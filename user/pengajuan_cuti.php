@@ -108,11 +108,11 @@ layout_header('Ajukan Cuti', 'ajukan');
 <p class="lead">Persetujuan akan otomatis dirutekan sesuai jabatan Anda: <?= e($pegawai['nama_jabatan']) ?>.</p>
 
 <div class="stat-row">
-  <div class="stat-tile">
+  <div class="stat-tile tone-green">
     <div class="num"><?= (int) $pegawai['hak_cuti_tahunan'] ?></div>
     <div class="label">Sisa Cuti Tahunan (hari)</div>
   </div>
-  <div class="stat-tile">
+  <div class="stat-tile tone-teal">
     <div class="num" style="font-size:1.1rem"><?= e(cuti_masa_kerja($pegawai['tmt_pegawai'])) ?></div>
     <div class="label">Masa Kerja</div>
   </div>

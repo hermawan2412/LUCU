@@ -26,21 +26,24 @@ layout_header('Dashboard', 'dashboard');
 <?php endif; ?>
 
 <?php if ($pegawai): ?>
-  <?php $kuotaStatus = kalender_kuota_status((int) $pegawai['hak_cuti_tahunan']); ?>
+  <?php
+    $kuotaStatus = kalender_kuota_status((int) $pegawai['hak_cuti_tahunan']);
+    $kuotaTone = match ($kuotaStatus) { 'kritis' => 'tone-red', 'rendah' => 'tone-amber', default => 'tone-green' };
+  ?>
   <div class="stat-row">
-    <div class="stat-tile">
+    <div class="stat-tile <?= $kuotaTone ?>">
       <div class="num"><?= (int) $pegawai['hak_cuti_tahunan'] ?></div>
       <div class="label">Sisa Cuti Tahunan &middot; <span class="badge <?= kalender_kuota_badge_class($kuotaStatus) ?>"><?= kalender_kuota_label($kuotaStatus) ?></span></div>
     </div>
-    <div class="stat-tile">
+    <div class="stat-tile tone-purple">
       <div class="num" style="font-size:1rem"><?= e($pegawai['nama_jabatan']) ?></div>
       <div class="label">Jabatan</div>
     </div>
-    <div class="stat-tile">
+    <div class="stat-tile tone-teal">
       <div class="num" style="font-size:1rem"><?= e(cuti_masa_kerja($pegawai['tmt_pegawai'])) ?></div>
       <div class="label">Masa Kerja</div>
     </div>
-    <div class="stat-tile">
+    <div class="stat-tile <?= $pendingCount > 0 ? 'tone-blue' : '' ?>">
       <div class="num"><?= $pendingCount ?></div>
       <div class="label">Menunggu Approval Anda</div>
     </div>

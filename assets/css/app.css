@@ -51,6 +51,15 @@
   --danger: #a83a2a;
   --danger-bg: #f7e8e4;
 
+  /* pastel - panel dalam (dashboard/tabel) sengaja tetap netral di
+     permukaan gede (cream/putih), tapi butuh variasi warna lembut di
+     elemen kecil (stat tile, chip) biar gak monoton. Bukan warna
+     brand/semantik, murni buat variasi visual. */
+  --pastel-blue-bg: #e9f1fb; --pastel-blue: #3d5f8f;
+  --pastel-purple-bg: #f1ecfb; --pastel-purple: #6b4fa0;
+  --pastel-teal-bg: #e6f5f1; --pastel-teal: #227a68;
+  --pastel-rose-bg: #fbebf0; --pastel-rose: #a83a63;
+
   --font-body: "Sofia Sans", "SofiaSans", Arial, sans-serif;
 
   /* radius: DESIGN.md §5 - cuma 3 kelompok, gak ada 8-12px di tengah */
@@ -423,6 +432,21 @@ a { color: var(--link-blue); }
   letter-spacing: -0.02em;
 }
 
+.stat-tile.tone-blue { background: var(--pastel-blue-bg); }
+.stat-tile.tone-blue .num { color: var(--pastel-blue); }
+.stat-tile.tone-purple { background: var(--pastel-purple-bg); }
+.stat-tile.tone-purple .num { color: var(--pastel-purple); }
+.stat-tile.tone-teal { background: var(--pastel-teal-bg); }
+.stat-tile.tone-teal .num { color: var(--pastel-teal); }
+.stat-tile.tone-rose { background: var(--pastel-rose-bg); }
+.stat-tile.tone-rose .num { color: var(--pastel-rose); }
+.stat-tile.tone-amber { background: var(--warning-bg); }
+.stat-tile.tone-amber .num { color: var(--warning); }
+.stat-tile.tone-green { background: var(--success-bg); }
+.stat-tile.tone-green .num { color: var(--success); }
+.stat-tile.tone-red { background: var(--danger-bg); }
+.stat-tile.tone-red .num { color: var(--danger); }
+
 .stat-tile .label {
   font-size: 0.78rem;
   font-weight: 450;
@@ -532,7 +556,7 @@ table.data-table td.num {
 .badge-success { background: var(--success-bg); color: var(--success); }
 .badge-warning { background: var(--warning-bg); color: var(--warning); }
 .badge-danger { background: var(--danger-bg); color: var(--danger); }
-.badge-neutral { background: var(--bone); color: var(--slate); }
+.badge-neutral { background: var(--pastel-blue-bg); color: var(--pastel-blue); }
 
 /* ===== Kalender cuti (dashboard) ===== */
 

@@ -34,12 +34,12 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
 <p class="lead">Selamat datang, <?= e($_SESSION['username']) ?>.</p>
 
 <div class="stat-row">
-  <div class="stat-tile"><div class="num"><?= (int) $totalPegawai ?></div><div class="label">Total Pegawai</div></div>
-  <div class="stat-tile"><div class="num"><?= (int) $totalJabatan ?></div><div class="label">Jabatan</div></div>
-  <div class="stat-tile"><div class="num"><?= (int) $totalGolongan ?></div><div class="label">Golongan</div></div>
-  <div class="stat-tile"><div class="num"><?= (int) $pengajuanAktif ?></div><div class="label">Cuti Sedang Diajukan</div></div>
-  <div class="stat-tile"><div class="num" style="color:<?= $kgbOverdue > 0 ? 'var(--danger)' : 'inherit' ?>"><?= $kgbOverdue ?></div><div class="label">KGB Jatuh Tempo</div></div>
-  <div class="stat-tile"><div class="num" style="color:<?= $knpOverdue > 0 ? 'var(--danger)' : 'inherit' ?>"><?= $knpOverdue ?></div><div class="label">KNP Jatuh Tempo</div></div>
+  <div class="stat-tile tone-blue"><div class="num"><?= (int) $totalPegawai ?></div><div class="label">Total Pegawai</div></div>
+  <div class="stat-tile tone-purple"><div class="num"><?= (int) $totalJabatan ?></div><div class="label">Jabatan</div></div>
+  <div class="stat-tile tone-teal"><div class="num"><?= (int) $totalGolongan ?></div><div class="label">Golongan</div></div>
+  <div class="stat-tile tone-amber"><div class="num"><?= (int) $pengajuanAktif ?></div><div class="label">Cuti Sedang Diajukan</div></div>
+  <div class="stat-tile <?= $kgbOverdue > 0 ? 'tone-red' : 'tone-green' ?>"><div class="num"><?= $kgbOverdue ?></div><div class="label">KGB Jatuh Tempo</div></div>
+  <div class="stat-tile <?= $knpOverdue > 0 ? 'tone-red' : 'tone-green' ?>"><div class="num"><?= $knpOverdue ?></div><div class="label">KNP Jatuh Tempo</div></div>
 </div>
 
 <div class="card">
