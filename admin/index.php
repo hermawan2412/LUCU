@@ -75,7 +75,7 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
       </form>
     </div>
   </div>
-  <p class="hint" style="margin-bottom:14px;">&#128308; = hari libur nasional (sinkron otomatis dari date.nager.at)</p>
+  <p class="hint" style="margin-bottom:14px;">&#128308; = hari libur nasional/cuti bersama (sinkron otomatis dari kalender publik Google - nyakup libur keagamaan spt Idul Fitri, Idul Adha, Maulid Nabi)</p>
   <div class="calendar-grid">
     <?php foreach (['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] as $wd): ?>
       <div class="calendar-weekday"><?= $wd ?></div>
