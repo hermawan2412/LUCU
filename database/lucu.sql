@@ -25,32 +25,41 @@ INSERT INTO `golongan` (`id_golongan`, `nama_golongan`) VALUES
 CREATE TABLE `jabatan` (
   `id_jabatan` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `nama_jabatan` varchar(225) NOT NULL,
-  PRIMARY KEY (`id_jabatan`)
+  `id_atasan` int(11) UNSIGNED DEFAULT NULL COMMENT 'jabatan yg approve cuti jabatan ini; NULL = puncak, auto-approve',
+  PRIMARY KEY (`id_jabatan`),
+  KEY `id_atasan` (`id_atasan`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO `jabatan` (`id_jabatan`, `nama_jabatan`) VALUES
-(1, 'KETUA'),
-(2, 'WAKIL KETUA'),
-(3, 'HAKIM'),
-(5, 'PANITERA'),
-(6, 'SEKRETARIS'),
-(7, 'PANITERA MUDA HUKUM'),
-(8, 'PANITERA MUDA GUGATAN'),
-(9, 'PANITERA MUDA PERMOHONAN'),
-(11, 'KEPALA BAGIAN UMUM DAN KEUANGAN'),
-(12, 'KEPALA BAGIAN PERENCANAAN DAN KEPEGAWAIAN'),
-(13, 'PANITERA PENGGANTI'),
-(14, 'JURUSITA'),
-(15, 'JURUSITA PENGGANTI'),
-(16, 'KASUBAG KEPEGAWAIAN DAN TI'),
-(17, 'KASUBAG RENPROG DAN ANGGARAN'),
-(18, 'KASUBAG KEUANGAN DAN PELAPORAN'),
-(19, 'KASUBAG TATA USAHA DAN RUMAH TANGGA'),
-(20, 'KLEREK - PENGOLAH DATA DAN INFORMASI'),
-(21, 'OPERATOR - TEKNISI SARANA DAN PRASARANA'),
-(22, 'KLEREK - PENGELOLA PENANGANAN PERKARA'),
-(23, 'KLEREK - PENGADMINISTRASI PERKANTORAN'),
-(24, 'OPERATOR - PENATA LAYANAN OPERASIONAL');
+-- Hierarki approval cuti PA Rantau. Default masuk akal untuk struktur
+-- pengadilan agama kelas umum; sesuaikan id_atasan lewat admin kalau beda.
+-- Kedalaman rantai maksimal 3 (staf -> kasubag -> panitera/sekretaris -> ketua)
+-- biar pas sama 3 kolom approval yg ada di cuti_pegawai.
+INSERT INTO `jabatan` (`id_jabatan`, `nama_jabatan`, `id_atasan`) VALUES
+(1, 'KETUA', NULL),
+(2, 'WAKIL KETUA', 1),
+(3, 'HAKIM', 1),
+(5, 'PANITERA', 1),
+(6, 'SEKRETARIS', 1),
+(7, 'PANITERA MUDA HUKUM', 5),
+(8, 'PANITERA MUDA GUGATAN', 5),
+(9, 'PANITERA MUDA PERMOHONAN', 5),
+(11, 'KEPALA BAGIAN UMUM DAN KEUANGAN', 6),
+(12, 'KEPALA BAGIAN PERENCANAAN DAN KEPEGAWAIAN', 6),
+(13, 'PANITERA PENGGANTI', 5),
+(14, 'JURUSITA', 5),
+(15, 'JURUSITA PENGGANTI', 5),
+(16, 'KASUBAG KEPEGAWAIAN DAN TI', 6),
+(17, 'KASUBAG RENPROG DAN ANGGARAN', 6),
+(18, 'KASUBAG KEUANGAN DAN PELAPORAN', 6),
+(19, 'KASUBAG TATA USAHA DAN RUMAH TANGGA', 6),
+(20, 'KLEREK - PENGOLAH DATA DAN INFORMASI', 16),
+(21, 'OPERATOR - TEKNISI SARANA DAN PRASARANA', 19),
+(22, 'KLEREK - PENGELOLA PENANGANAN PERKARA', 7),
+(23, 'KLEREK - PENGADMINISTRASI PERKANTORAN', 19),
+(24, 'OPERATOR - PENATA LAYANAN OPERASIONAL', 17);
+
+ALTER TABLE `jabatan`
+  ADD CONSTRAINT `jabatan_ibfk_1` FOREIGN KEY (`id_atasan`) REFERENCES `jabatan` (`id_jabatan`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- --------------------------------------------------------
 
@@ -74,10 +83,14 @@ CREATE TABLE `pegawai` (
   CONSTRAINT `pegawai_ibfk_2` FOREIGN KEY (`id_jabatan`) REFERENCES `jabatan` (`id_jabatan`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Data dummy untuk development lokal - BUKAN data pegawai sungguhan
+-- Data dummy untuk development lokal - BUKAN data pegawai sungguhan.
+-- Mengisi 1 orang per jabatan yang dilewati rantai approval staf (20 -> 16 -> 6 -> 1)
+-- biar alur pengajuan cuti bisa dites lengkap end-to-end.
 INSERT INTO `pegawai` (`nama_pegawai`, `nip`, `id_jabatan`, `id_golongan`, `unit_kerja`, `tmt_pegawai`, `hak_cuti_tahunan`, `hak_cuti_sakit`, `hak_cuti_penting`, `no_telp`) VALUES
 ('Contoh Ketua, S.H., M.H.', '190000000000000001', 1, 5, 'Pengadilan Agama Rantau', '2015-01-01', 12, 0, 0, ''),
 ('Contoh Panitera, S.H.', '190000000000000002', 5, 3, 'Pengadilan Agama Rantau', '2018-03-01', 12, 0, 0, ''),
+('Contoh Sekretaris, S.H.', '190000000000000004', 6, 4, 'Pengadilan Agama Rantau', '2017-05-01', 12, 0, 0, ''),
+('Contoh Kasubag TI, A.Md.', '190000000000000005', 16, 9, 'Pengadilan Agama Rantau', '2019-02-01', 12, 0, 0, ''),
 ('Contoh Staf, A.Md.', '190000000000000003', 20, 10, 'Pengadilan Agama Rantau', '2021-06-01', 12, 6, 6, '');
 
 -- --------------------------------------------------------

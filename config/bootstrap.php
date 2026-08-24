@@ -23,5 +23,7 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/helpers.php';
+require_once __DIR__ . '/../includes/cuti.php';
+require_once __DIR__ . '/../includes/layout.php';
 
 $db = db_connect($config['db']);
