@@ -18,6 +18,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
         'pegawai' => ['label' => 'Data Pegawai', 'href' => 'data_pegawai.php'],
         'jabatan' => ['label' => 'Data Jabatan', 'href' => 'data_jabatan.php'],
         'golongan' => ['label' => 'Data Golongan', 'href' => 'data_golongan.php'],
+        'kgb' => ['label' => 'KGB', 'href' => 'data_kgb.php'],
     ];
     $nav = $section === 'admin' ? $navAdmin : $navUser;
     ?>

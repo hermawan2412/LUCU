@@ -172,10 +172,13 @@ CREATE TABLE `permohonan_cuti` (
 CREATE TABLE `kgb_pegawai` (
   `id_kgbpegawai` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `id_pegawai` int(11) UNSIGNED NOT NULL,
-  `kgb_terakhir` varchar(225) NOT NULL,
-  `kgb_datang` varchar(225) NOT NULL,
-  `keterangan` varchar(225) NOT NULL,
-  `timestamp` varchar(225) NOT NULL,
+  -- MACOA nyimpen ini varchar padahal isinya udah ISO date dari <input type="date">
+  -- (gak ada konversi ke teks Indonesia kayak tabel cuti) - di sini dibetulin jadi
+  -- DATE asli biar bisa dihitung (+2 tahun) & di-query (siapa yg jatuh tempo).
+  `kgb_terakhir` date NOT NULL,
+  `kgb_datang` date NOT NULL COMMENT 'default kgb_terakhir + 2 tahun, admin bisa override (mis. tertunda krn hukuman disiplin)',
+  `keterangan` varchar(225) NOT NULL DEFAULT '',
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_kgbpegawai`),
   KEY `id_pegawai` (`id_pegawai`),
   CONSTRAINT `kgb_pegawai_ibfk_1` FOREIGN KEY (`id_pegawai`) REFERENCES `pegawai` (`id_pegawai`) ON DELETE CASCADE ON UPDATE CASCADE
