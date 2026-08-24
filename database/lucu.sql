@@ -206,3 +206,19 @@ CREATE TABLE `knp_pegawai` (
   CONSTRAINT `knp_pegawai_ibfk_1` FOREIGN KEY (`id_pegawai`) REFERENCES `pegawai` (`id_pegawai`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `knp_pegawai_ibfk_2` FOREIGN KEY (`id_golongan_tujuan`) REFERENCES `golongan` (`id_golongan`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+-- Notifikasi in-app (bukan WhatsApp/SMS - itu nunggu provider pihak
+-- ketiga punya PA Rantau sendiri). Dipicu otomatis dari alur cuti:
+-- pengajuan baru -> approver berikutnya, cuti disetujui/ditolak -> pemohon.
+CREATE TABLE `notifikasi` (
+  `id_notifikasi` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `nip` varchar(225) NOT NULL COMMENT 'penerima, nip di tabel user',
+  `pesan` varchar(255) NOT NULL,
+  `url` varchar(255) NOT NULL DEFAULT '',
+  `dibaca` tinyint(1) NOT NULL DEFAULT 0,
+  `dibuat_pada` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_notifikasi`),
+  KEY `nip` (`nip`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

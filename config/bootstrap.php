@@ -5,6 +5,12 @@
 
 declare(strict_types=1);
 
+// PHP default ke UTC kalau gak di-set, sementara MySQL server jalan di
+// timezone SYSTEM (WITA, ikut jam OS - PA Rantau di Kalimantan Selatan).
+// Tanpa ini, semua hitungan "X jam/hari lalu" (notifikasi) dan cek
+// tanggal (KGB/KNP jatuh tempo dkk) bisa geser sampai 8 jam.
+date_default_timezone_set('Asia/Makassar');
+
 error_reporting(E_ALL);
 ini_set('display_errors', '0'); // jangan bocorkan error ke user
 ini_set('log_errors', '1');
@@ -28,6 +34,7 @@ require_once __DIR__ . '/../includes/kgb.php';
 require_once __DIR__ . '/../includes/knp.php';
 require_once __DIR__ . '/../includes/kalender.php';
 require_once __DIR__ . '/../includes/export.php';
+require_once __DIR__ . '/../includes/notifikasi.php';
 require_once __DIR__ . '/../includes/layout.php';
 
 $db = db_connect($config['db']);

@@ -91,6 +91,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $db->commit();
+
+                foreach (['panmud_kasubag', 'panitera_sekretaris', 'ketua'] as $level) {
+                    if ($slots[$level]['flag'] === 0) {
+                        notifikasi_kirim($db, $slots[$level]['nip'],
+                            "Pengajuan {$jenis} dari {$pegawai['nama_pegawai']} menunggu approval Anda.",
+                            'approve_cuti.php');
+                        break;
+                    }
+                }
+
                 flash_set('success', 'Pengajuan cuti berhasil dikirim.');
                 redirect('daftar_cuti.php');
             } catch (Throwable $e) {

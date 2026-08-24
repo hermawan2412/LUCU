@@ -310,15 +310,20 @@ function cuti_approve(PDO $db, array $row, string $approverNip): bool
         $updated = cuti_get_by_id($db, (int) $row['id_cutipegawai']);
         $nextLevel = cuti_current_pending_level($updated);
 
+        $pemohon = db_one($db, "SELECT nip, nama_pegawai FROM pegawai WHERE id_pegawai = ?", [$row['id_pegawai']]);
+        $pemohonNip = $pemohon['nip'];
+
         if ($nextLevel === null) {
             db_query($db, "UPDATE cuti_pegawai SET status_cuti = 'Disetujui', ket_status_cuti = 'Pengajuan Cuti Disetujui' WHERE id_cutipegawai = ?", [$row['id_cutipegawai']]);
             if (cuti_apakah_potong_saldo_tahunan($row['jenis_cuti'])) {
                 db_query($db, "UPDATE pegawai SET hak_cuti_tahunan = hak_cuti_tahunan - ? WHERE id_pegawai = ?", [$row['lama_cuti'], $row['id_pegawai']]);
             }
+            notifikasi_kirim($db, $pemohonNip, "Pengajuan {$row['jenis_cuti']} Anda telah disetujui.", 'daftar_cuti.php');
         } else {
             $jabatan = cuti_nama_jabatan_by_nip($db, $updated[$nextLevel]);
             $ket = "Menunggu Approval $jabatan";
             db_query($db, "UPDATE cuti_pegawai SET ket_status_cuti = ? WHERE id_cutipegawai = ?", [$ket, $row['id_cutipegawai']]);
+            notifikasi_kirim($db, $updated[$nextLevel], "Pengajuan {$row['jenis_cuti']} dari {$pemohon['nama_pegawai']} menunggu approval Anda.", 'approve_cuti.php');
         }
 
         $db->commit();
@@ -338,6 +343,10 @@ function cuti_reject(PDO $db, array $row, string $approverNip, string $alasan): 
     }
 
     db_query($db, "UPDATE cuti_pegawai SET status_cuti = 'Tidak Disetujui', ket_status_cuti = ? WHERE id_cutipegawai = ?", [$alasan, $row['id_cutipegawai']]);
+
+    $pemohonNip = db_one($db, "SELECT nip FROM pegawai WHERE id_pegawai = ?", [$row['id_pegawai']])['nip'];
+    notifikasi_kirim($db, $pemohonNip, "Pengajuan {$row['jenis_cuti']} Anda ditolak: $alasan", 'daftar_cuti.php');
+
     return true;
 }
 
