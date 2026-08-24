@@ -128,30 +128,31 @@ a { color: var(--link-blue); }
     var(--ink);
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 32px;
+  justify-content: flex-end;
+  padding: 32px 7vw;
 }
 
 .login-topleft {
   position: absolute;
-  top: 36px;
-  left: 40px;
-  max-width: 320px;
+  top: 50%;
+  left: 6vw;
+  transform: translateY(-50%);
+  max-width: 400px;
 }
 
-.login-topleft .brand-mark .wordmark { color: #fff; font-size: 1.35rem; }
+.login-topleft .brand-mark { margin-top: 18px; }
+.login-topleft .brand-mark .wordmark { color: #fff; font-size: 1.2rem; }
 .login-topleft .brand-mark svg { color: var(--signal-light); }
 
 .login-topleft .badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--dust);
-  margin-bottom: 10px;
 }
 
 .login-topleft .badge::before {
@@ -163,15 +164,20 @@ a { color: var(--link-blue); }
   display: inline-block;
 }
 
-.login-tagline {
-  color: var(--dust);
-  font-size: 0.86rem;
-  font-weight: 450;
-  margin: 10px 0 0;
-  line-height: 1.5;
+.login-title {
+  color: #fff;
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin: 20px 0 0;
+  text-wrap: balance;
 }
 
-.login-tagline em { font-style: normal; color: var(--signal-light); }
+.login-title em {
+  font-style: normal;
+  color: var(--signal-light);
+}
 
 .login-stat {
   display: flex;
@@ -217,13 +223,13 @@ a { color: var(--link-blue); }
   box-shadow: 0 40px 90px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 960px) {
   .login-shell { display: block; padding: 40px 20px; }
 
-  .login-topleft { position: static; max-width: none; text-align: center; margin: 0 0 28px; }
+  .login-topleft { position: static; transform: none; max-width: none; text-align: center; margin: 0 0 28px; }
   .login-topleft .badge { display: flex; justify-content: center; margin-bottom: 12px; }
   .login-topleft .brand-mark { justify-content: center; }
-  .login-tagline { max-width: 32ch; margin: 10px auto 0; }
+  .login-title { max-width: 36ch; margin: 20px auto 0; font-size: clamp(1.9rem, 6vw, 2.6rem); }
 
   .login-card { margin: 0 auto; max-width: 340px; padding: 32px 24px; }
   .login-stat-floating { position: static; margin: 24px auto 0; max-width: 340px; }
@@ -310,7 +316,7 @@ a { color: var(--link-blue); }
   color: rgba(255, 255, 255, 0.35);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 960px) {
   .login-footer { position: static; margin-top: 28px; }
 }
 

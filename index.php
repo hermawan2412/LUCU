@@ -20,8 +20,8 @@ $statCuti = cuti_statistik_hari_ini($db);
   <div class="login-shell">
     <div class="login-topleft">
       <span class="badge"><?= e(APP_INSTANSI) ?></span>
-      <div class="brand-mark"><?= brand_mark_svg(30) ?><span class="wordmark"><?= e(APP_NAME) ?></span></div>
-      <p class="login-tagline"><?= e(APP_FULL_NAME) ?> &mdash; <em>layanan cuti, tanpa antre.</em></p>
+      <div class="brand-mark"><?= brand_mark_svg(28) ?><span class="wordmark"><?= e(APP_NAME) ?></span></div>
+      <h1 class="login-title"><?= e(APP_FULL_NAME) ?><br><em>layanan cuti, tanpa antre.</em></h1>
     </div>
 
     <div class="login-card">
