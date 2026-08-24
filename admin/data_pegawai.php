@@ -7,7 +7,7 @@ $editing = null;
 
 function pegawai_form_values(array $post, ?array $editing): array
 {
-    $keys = ['nama_pegawai', 'nip', 'id_jabatan', 'id_golongan', 'unit_kerja', 'tmt_pegawai', 'hak_cuti_tahunan', 'hak_cuti_sakit', 'hak_cuti_penting', 'no_telp'];
+    $keys = ['nama_pegawai', 'nip', 'id_jabatan', 'id_golongan', 'jenis_asn', 'unit_kerja', 'tmt_pegawai', 'hak_cuti_tahunan', 'hak_cuti_sakit', 'hak_cuti_penting', 'no_telp'];
     $out = [];
     foreach ($keys as $k) {
         $out[$k] = $post[$k] ?? ($editing[$k] ?? '');
@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nip = trim($_POST['nip'] ?? '');
     $idJabatan = (int) ($_POST['id_jabatan'] ?? 0);
     $idGolongan = (int) ($_POST['id_golongan'] ?? 0);
+    $jenisAsn = $_POST['jenis_asn'] ?? 'PNS';
     $unitKerja = trim($_POST['unit_kerja'] ?? '') ?: APP_INSTANSI;
     $tmt = $_POST['tmt_pegawai'] ?? '';
     $hakTahunan = (int) ($_POST['hak_cuti_tahunan'] ?? 0);
@@ -42,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($nip === '' || !ctype_digit($nip)) $errors[] = 'NIP wajib diisi, hanya angka.';
     if ($idJabatan <= 0) $errors[] = 'Jabatan wajib dipilih.';
     if ($idGolongan <= 0) $errors[] = 'Golongan wajib dipilih.';
+    if (!in_array($jenisAsn, ['PNS', 'PPPK'], true)) $errors[] = 'Jenis ASN tidak valid.';
     if ($tmt !== '' && DateTime::createFromFormat('Y-m-d', $tmt) === false) $errors[] = 'Tanggal TMT tidak valid.';
     if ($hakTahunan < 0 || $hakSakit < 0 || $hakPenting < 0) $errors[] = 'Hak cuti tidak boleh negatif.';
 
@@ -49,14 +51,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tmtValue = $tmt !== '' ? $tmt : null;
         try {
             if ($action === 'create') {
-                db_query($db, "INSERT INTO pegawai (nama_pegawai, nip, id_jabatan, id_golongan, unit_kerja, tmt_pegawai, hak_cuti_tahunan, hak_cuti_sakit, hak_cuti_penting, no_telp)
-                    VALUES (?,?,?,?,?,?,?,?,?,?)",
-                    [$nama, $nip, $idJabatan, $idGolongan, $unitKerja, $tmtValue, $hakTahunan, $hakSakit, $hakPenting, $noTelp]);
+                db_query($db, "INSERT INTO pegawai (nama_pegawai, nip, id_jabatan, id_golongan, jenis_asn, unit_kerja, tmt_pegawai, hak_cuti_tahunan, hak_cuti_sakit, hak_cuti_penting, no_telp)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    [$nama, $nip, $idJabatan, $idGolongan, $jenisAsn, $unitKerja, $tmtValue, $hakTahunan, $hakSakit, $hakPenting, $noTelp]);
                 flash_set('success', 'Pegawai ditambahkan.');
                 redirect('data_pegawai.php');
             } elseif ($action === 'update') {
-                db_query($db, "UPDATE pegawai SET nama_pegawai=?, nip=?, id_jabatan=?, id_golongan=?, unit_kerja=?, tmt_pegawai=?, hak_cuti_tahunan=?, hak_cuti_sakit=?, hak_cuti_penting=?, no_telp=? WHERE id_pegawai=?",
-                    [$nama, $nip, $idJabatan, $idGolongan, $unitKerja, $tmtValue, $hakTahunan, $hakSakit, $hakPenting, $noTelp, $id]);
+                db_query($db, "UPDATE pegawai SET nama_pegawai=?, nip=?, id_jabatan=?, id_golongan=?, jenis_asn=?, unit_kerja=?, tmt_pegawai=?, hak_cuti_tahunan=?, hak_cuti_sakit=?, hak_cuti_penting=?, no_telp=? WHERE id_pegawai=?",
+                    [$nama, $nip, $idJabatan, $idGolongan, $jenisAsn, $unitKerja, $tmtValue, $hakTahunan, $hakSakit, $hakPenting, $noTelp, $id]);
                 flash_set('success', 'Data pegawai diperbarui.');
                 redirect('data_pegawai.php');
             }
@@ -146,6 +148,18 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
 
     <div class="field-row">
       <div class="field">
+        <label for="jenis_asn">Jenis ASN</label>
+        <select id="jenis_asn" name="jenis_asn">
+          <option value="PNS" <?= ($form['jenis_asn'] ?: 'PNS') === 'PNS' ? 'selected' : '' ?>>PNS</option>
+          <option value="PPPK" <?= ($form['jenis_asn'] ?? '') === 'PPPK' ? 'selected' : '' ?>>PPPK</option>
+        </select>
+        <p class="hint">Menentukan pejabat pemberi izin cuti akhir: PNS &rarr; Ketua, PPPK &rarr; Sekretaris.</p>
+      </div>
+      <div class="field"></div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
         <label for="hak_cuti_tahunan">Hak Cuti Tahunan (hari)</label>
         <input id="hak_cuti_tahunan" name="hak_cuti_tahunan" type="number" min="0" value="<?= e((string) ($form['hak_cuti_tahunan'] ?: 12)) ?>">
       </div>
@@ -175,7 +189,7 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
   <div style="overflow-x:auto;">
     <table class="data-table">
       <thead>
-        <tr><th>Nama</th><th>NIP</th><th>Jabatan</th><th>Golongan</th><th>Sisa Cuti Tahunan</th><th style="width:160px;">Aksi</th></tr>
+        <tr><th>Nama</th><th>NIP</th><th>Jabatan</th><th>Golongan</th><th>ASN</th><th>Sisa Cuti Tahunan</th><th style="width:160px;">Aksi</th></tr>
       </thead>
       <tbody>
         <?php foreach ($list as $row): ?>
@@ -184,6 +198,7 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
             <td><?= e($row['nip']) ?></td>
             <td><?= e($row['nama_jabatan']) ?></td>
             <td><?= e($row['nama_golongan']) ?></td>
+            <td><span class="badge <?= $row['jenis_asn'] === 'PPPK' ? 'badge-warning' : 'badge-neutral' ?>"><?= e($row['jenis_asn']) ?></span></td>
             <td><?= (int) $row['hak_cuti_tahunan'] ?></td>
             <td>
               <a href="?edit=<?= (int) $row['id_pegawai'] ?>" class="btn-secondary" style="padding:5px 10px;">Edit</a>

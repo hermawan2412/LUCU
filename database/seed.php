@@ -15,6 +15,9 @@ $accounts = [
     ['username' => 'kasubagti', 'nip' => '190000000000000005', 'password' => 'rahasia123', 'role' => 'User'],
     ['username' => 'sekretaris', 'nip' => '190000000000000004', 'password' => 'rahasia123', 'role' => 'User'],
     ['username' => 'ketua', 'nip' => '190000000000000001', 'password' => 'rahasia123', 'role' => 'User'],
+    ['username' => 'panmudhukum', 'nip' => '190000000000000007', 'password' => 'rahasia123', 'role' => 'User'],
+    ['username' => 'panitera', 'nip' => '190000000000000002', 'password' => 'rahasia123', 'role' => 'User'],
+    ['username' => 'stafpppk', 'nip' => '190000000000000006', 'password' => 'rahasia123', 'role' => 'User'],
 ];
 
 foreach ($accounts as $acc) {

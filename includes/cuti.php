@@ -59,6 +59,44 @@ function cuti_approval_chain(PDO $db, int $idJabatanPemohon): array
     return $chain;
 }
 
+/**
+ * Ganti otoritas akhir rantai approval sesuai jenis ASN pemohon.
+ * PNS: rantai gak berubah (otoritas akhir tetap Ketua/puncak alami).
+ * PPPK: otoritas akhir diganti jadi jabatan yang ditandai
+ * `is_pejabat_pppk` (Sekretaris) - langkah2 sebelumnya (kasubag/panmud dst)
+ * tetap jalan seperti biasa.
+ *
+ * Return null kalau pejabat PPPK belum dikonfigurasi (caller harus tolak
+ * submission, bukan lolos diam-diam).
+ */
+function cuti_cap_chain_for_jenis_asn(PDO $db, array $chain, string $jenisAsn, int $idJabatanPemohon): ?array
+{
+    if ($jenisAsn !== 'PPPK') {
+        return $chain;
+    }
+
+    $row = db_one($db, "SELECT id_jabatan FROM jabatan WHERE is_pejabat_pppk = 1 LIMIT 1");
+    if ($row === null) {
+        return null;
+    }
+    $idPejabatPppk = (int) $row['id_jabatan'];
+
+    if ($idJabatanPemohon === $idPejabatPppk) {
+        return []; // pemohon sendiri pejabat berwenang PPPK -> auto-approve
+    }
+
+    // rantai alami selalu diakhiri jabatan puncak (id_atasan NULL, "Ketua");
+    // buang itu, ganti otoritas akhirnya jadi pejabat PPPK.
+    if (!empty($chain)) {
+        array_pop($chain);
+    }
+    if (empty($chain) || end($chain) !== $idPejabatPppk) {
+        $chain[] = $idPejabatPppk;
+    }
+
+    return $chain;
+}
+
 function cuti_resolve_pegawai_by_jabatan(PDO $db, int $idJabatan): ?array
 {
     return db_one($db, "SELECT * FROM pegawai WHERE id_jabatan = ? LIMIT 1", [$idJabatan]);
@@ -101,7 +139,21 @@ function cuti_build_approval_slots(PDO $db, array $chain): ?array
     return $slots;
 }
 
-function cuti_status_awal(array $slots): array
+function cuti_nama_jabatan_by_nip(PDO $db, ?string $nip): string
+{
+    if ($nip === null) {
+        return 'Atasan';
+    }
+    $row = db_one($db, "SELECT j.nama_jabatan FROM pegawai p JOIN jabatan j ON j.id_jabatan = p.id_jabatan WHERE p.nip = ?", [$nip]);
+    return $row['nama_jabatan'] ?? 'Atasan';
+}
+
+/**
+ * Label status pending diambil dari jabatan approver yang beneran ke-assign
+ * di slot itu (bukan teks hardcode "Ketua") - buat PPPK, slot terakhir
+ * isinya Sekretaris, bukan Ketua, jadi labelnya harus ikut berubah.
+ */
+function cuti_status_awal(PDO $db, array $slots): array
 {
     $semuaTerpenuhi = $slots['panmud_kasubag']['flag'] === 1
         && $slots['panitera_sekretaris']['flag'] === 1
@@ -111,13 +163,13 @@ function cuti_status_awal(array $slots): array
         return ['Disetujui', 'Pengajuan Cuti Disetujui'];
     }
 
-    if ($slots['panmud_kasubag']['flag'] === 0) {
-        return ['Diajukan', 'Menunggu Approval Atasan Langsung'];
+    foreach (['panmud_kasubag', 'panitera_sekretaris', 'ketua'] as $level) {
+        if ($slots[$level]['flag'] === 0) {
+            $jabatan = cuti_nama_jabatan_by_nip($db, $slots[$level]['nip']);
+            return ['Diajukan', "Menunggu Approval $jabatan"];
+        }
     }
-    if ($slots['panitera_sekretaris']['flag'] === 0) {
-        return ['Diajukan', 'Menunggu Approval Panitera/Sekretaris'];
-    }
-    return ['Diajukan', 'Menunggu Approval Ketua'];
+    return ['Diajukan', 'Menunggu Approval'];
 }
 
 function cuti_get_by_id(PDO $db, int $id): ?array
@@ -186,11 +238,8 @@ function cuti_approve(PDO $db, array $row, string $approverNip): bool
                 db_query($db, "UPDATE pegawai SET hak_cuti_tahunan = hak_cuti_tahunan - ? WHERE id_pegawai = ?", [$row['lama_cuti'], $row['id_pegawai']]);
             }
         } else {
-            $ket = match ($nextLevel) {
-                'panitera_sekretaris' => 'Menunggu Approval Panitera/Sekretaris',
-                'ketua' => 'Menunggu Approval Ketua',
-                default => 'Menunggu Approval Atasan Langsung',
-            };
+            $jabatan = cuti_nama_jabatan_by_nip($db, $updated[$nextLevel]);
+            $ket = "Menunggu Approval $jabatan";
             db_query($db, "UPDATE cuti_pegawai SET ket_status_cuti = ? WHERE id_cutipegawai = ?", [$ket, $row['id_cutipegawai']]);
         }
 

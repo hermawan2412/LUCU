@@ -26,6 +26,7 @@ CREATE TABLE `jabatan` (
   `id_jabatan` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `nama_jabatan` varchar(225) NOT NULL,
   `id_atasan` int(11) UNSIGNED DEFAULT NULL COMMENT 'jabatan yg approve cuti jabatan ini; NULL = puncak, auto-approve',
+  `is_pejabat_pppk` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'jabatan ini pemberi izin cuti akhir buat pegawai PPPK (harus persis 1 baris bernilai 1)',
   PRIMARY KEY (`id_jabatan`),
   KEY `id_atasan` (`id_atasan`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -58,6 +59,9 @@ INSERT INTO `jabatan` (`id_jabatan`, `nama_jabatan`, `id_atasan`) VALUES
 (23, 'KLEREK - PENGADMINISTRASI PERKANTORAN', 19),
 (24, 'OPERATOR - PENATA LAYANAN OPERASIONAL', 17);
 
+-- Sekretaris = pemberi izin cuti akhir buat pegawai PPPK (harus persis 1 baris)
+UPDATE `jabatan` SET `is_pejabat_pppk` = 1 WHERE `id_jabatan` = 6;
+
 -- RESTRICT, bukan SET NULL: kalau jabatan yg dihapus masih jadi atasan
 -- jabatan lain, SET NULL bakal diam-diam bikin jabatan itu "naik" ke puncak
 -- (auto-approve) tanpa admin sadar. Wajib pindahin id_atasan anaknya dulu.
@@ -72,6 +76,7 @@ CREATE TABLE `pegawai` (
   `nip` varchar(225) NOT NULL,
   `id_jabatan` int(11) UNSIGNED NOT NULL,
   `id_golongan` int(11) UNSIGNED NOT NULL,
+  `jenis_asn` enum('PNS','PPPK') NOT NULL DEFAULT 'PNS' COMMENT 'nentuin pejabat pemberi izin cuti akhir: PNS->Ketua, PPPK->jabatan is_pejabat_pppk',
   `unit_kerja` varchar(225) NOT NULL DEFAULT 'Pengadilan Agama Rantau',
   `tmt_pegawai` date DEFAULT NULL,
   `hak_cuti_tahunan` int(2) NOT NULL DEFAULT 12,
@@ -91,13 +96,16 @@ CREATE TABLE `pegawai` (
 
 -- Data dummy untuk development lokal - BUKAN data pegawai sungguhan.
 -- Mengisi 1 orang per jabatan yang dilewati rantai approval staf (20 -> 16 -> 6 -> 1)
--- biar alur pengajuan cuti bisa dites lengkap end-to-end.
-INSERT INTO `pegawai` (`nama_pegawai`, `nip`, `id_jabatan`, `id_golongan`, `unit_kerja`, `tmt_pegawai`, `hak_cuti_tahunan`, `hak_cuti_sakit`, `hak_cuti_penting`, `no_telp`) VALUES
-('Contoh Ketua, S.H., M.H.', '190000000000000001', 1, 5, 'Pengadilan Agama Rantau', '2015-01-01', 12, 0, 0, ''),
-('Contoh Panitera, S.H.', '190000000000000002', 5, 3, 'Pengadilan Agama Rantau', '2018-03-01', 12, 0, 0, ''),
-('Contoh Sekretaris, S.H.', '190000000000000004', 6, 4, 'Pengadilan Agama Rantau', '2017-05-01', 12, 0, 0, ''),
-('Contoh Kasubag TI, A.Md.', '190000000000000005', 16, 9, 'Pengadilan Agama Rantau', '2019-02-01', 12, 0, 0, ''),
-('Contoh Staf, A.Md.', '190000000000000003', 20, 10, 'Pengadilan Agama Rantau', '2021-06-01', 12, 6, 6, '');
+-- dan jalur panitera (22 -> 7 -> 5 -> [Ketua/Sekretaris tergantung jenis_asn])
+-- biar alur pengajuan cuti bisa dites lengkap end-to-end, PNS maupun PPPK.
+INSERT INTO `pegawai` (`nama_pegawai`, `nip`, `id_jabatan`, `id_golongan`, `jenis_asn`, `unit_kerja`, `tmt_pegawai`, `hak_cuti_tahunan`, `hak_cuti_sakit`, `hak_cuti_penting`, `no_telp`) VALUES
+('Contoh Ketua, S.H., M.H.', '190000000000000001', 1, 5, 'PNS', 'Pengadilan Agama Rantau', '2015-01-01', 12, 0, 0, ''),
+('Contoh Panitera, S.H.', '190000000000000002', 5, 3, 'PNS', 'Pengadilan Agama Rantau', '2018-03-01', 12, 0, 0, ''),
+('Contoh Sekretaris, S.H.', '190000000000000004', 6, 4, 'PNS', 'Pengadilan Agama Rantau', '2017-05-01', 12, 0, 0, ''),
+('Contoh Kasubag TI, A.Md.', '190000000000000005', 16, 9, 'PNS', 'Pengadilan Agama Rantau', '2019-02-01', 12, 0, 0, ''),
+('Contoh Panmud Hukum, S.H.', '190000000000000007', 7, 3, 'PNS', 'Pengadilan Agama Rantau', '2016-04-01', 12, 0, 0, ''),
+('Contoh Staf, A.Md.', '190000000000000003', 20, 10, 'PNS', 'Pengadilan Agama Rantau', '2021-06-01', 12, 6, 6, ''),
+('Contoh Staf PPPK, A.Md.', '190000000000000006', 22, 10, 'PPPK', 'Pengadilan Agama Rantau', '2022-01-01', 12, 6, 6, '');
 
 -- --------------------------------------------------------
 

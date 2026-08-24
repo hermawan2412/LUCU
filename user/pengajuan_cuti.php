@@ -51,12 +51,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $chain = cuti_approval_chain($db, (int) $pegawai['id_jabatan']);
-        $slots = cuti_build_approval_slots($db, $chain);
+        $chain = cuti_cap_chain_for_jenis_asn($db, $chain, $pegawai['jenis_asn'], (int) $pegawai['id_jabatan']);
 
-        if ($slots === null) {
-            $errors[] = 'Pejabat penyetuju belum terdaftar di data pegawai. Hubungi admin.';
+        if ($chain === null) {
+            $errors[] = 'Pejabat pemberi izin cuti untuk PPPK belum dikonfigurasi. Hubungi admin.';
         } else {
-            [$status, $ketStatus] = cuti_status_awal($slots);
+            $slots = cuti_build_approval_slots($db, $chain);
+        }
+
+        if (empty($errors) && $slots === null) {
+            $errors[] = 'Pejabat penyetuju belum terdaftar di data pegawai. Hubungi admin.';
+        } elseif (empty($errors)) {
+            [$status, $ketStatus] = cuti_status_awal($db, $slots);
             $tglIndo = indonesia_tgl($tglPengajuan);
             $dariIndo = indonesia_tgl($dari);
             $sampaiIndo = indonesia_tgl($sampai);

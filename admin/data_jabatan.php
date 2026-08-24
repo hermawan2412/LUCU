@@ -38,10 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int) ($_POST['id_jabatan'] ?? 0);
         $dipakaiPegawai = db_one($db, "SELECT COUNT(*) AS n FROM pegawai WHERE id_jabatan = ?", [$id])['n'];
         $dipakaiAtasan = db_one($db, "SELECT COUNT(*) AS n FROM jabatan WHERE id_atasan = ?", [$id])['n'];
+        $isPejabatPppk = db_one($db, "SELECT is_pejabat_pppk FROM jabatan WHERE id_jabatan = ?", [$id]);
+
         if ($dipakaiPegawai > 0) {
             $errors[] = "Jabatan masih dipakai $dipakaiPegawai pegawai, tidak bisa dihapus.";
         } elseif ($dipakaiAtasan > 0) {
             $errors[] = "Jabatan ini masih jadi atasan $dipakaiAtasan jabatan lain, pindahkan dulu.";
+        } elseif ($isPejabatPppk && (int) $isPejabatPppk['is_pejabat_pppk'] === 1) {
+            $errors[] = 'Jabatan ini ditandai sebagai pemberi izin cuti akhir PPPK, pindahkan tandanya ke jabatan lain dulu sebelum dihapus.';
         } else {
             db_query($db, "DELETE FROM jabatan WHERE id_jabatan = ?", [$id]);
             flash_set('success', 'Jabatan dihapus.');
@@ -51,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nama = trim($_POST['nama_jabatan'] ?? '');
         $atasanRaw = $_POST['id_atasan'] ?? '';
         $idAtasan = $atasanRaw === '' ? null : (int) $atasanRaw;
+        $isPejabatPppk = isset($_POST['is_pejabat_pppk']) ? 1 : 0;
         $id = isset($_POST['id_jabatan']) ? (int) $_POST['id_jabatan'] : null;
 
         if ($nama === '') {
@@ -61,11 +66,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($errors) && $action === 'create') {
-            db_query($db, "INSERT INTO jabatan (nama_jabatan, id_atasan) VALUES (?, ?)", [$nama, $idAtasan]);
+            if ($isPejabatPppk) {
+                db_query($db, "UPDATE jabatan SET is_pejabat_pppk = 0");
+            }
+            db_query($db, "INSERT INTO jabatan (nama_jabatan, id_atasan, is_pejabat_pppk) VALUES (?, ?, ?)", [$nama, $idAtasan, $isPejabatPppk]);
             flash_set('success', 'Jabatan ditambahkan.');
             redirect('data_jabatan.php');
         } elseif (empty($errors) && $action === 'update') {
-            db_query($db, "UPDATE jabatan SET nama_jabatan = ?, id_atasan = ? WHERE id_jabatan = ?", [$nama, $idAtasan, $id]);
+            if ($isPejabatPppk) {
+                db_query($db, "UPDATE jabatan SET is_pejabat_pppk = 0 WHERE id_jabatan != ?", [$id]);
+            }
+            db_query($db, "UPDATE jabatan SET nama_jabatan = ?, id_atasan = ?, is_pejabat_pppk = ? WHERE id_jabatan = ?", [$nama, $idAtasan, $isPejabatPppk, $id]);
             flash_set('success', 'Jabatan diperbarui.');
             redirect('data_jabatan.php');
         }
@@ -112,6 +123,13 @@ layout_header('Data Jabatan', 'jabatan', 'admin');
         </select>
       </div>
     </div>
+    <div class="field" style="margin-top:4px;">
+      <label style="display:flex; align-items:center; gap:8px; font-weight:400;">
+        <input type="checkbox" name="is_pejabat_pppk" value="1" style="width:auto;" <?= !empty($editing['is_pejabat_pppk']) ? 'checked' : '' ?>>
+        Jadikan pemberi izin cuti akhir untuk pegawai PPPK
+      </label>
+      <p class="hint">Cuma boleh 1 jabatan yang ditandai; centang di sini otomatis lepas tanda dari jabatan lain.</p>
+    </div>
     <button type="submit" class="btn-primary" style="width:auto;padding:10px 20px;margin-top:8px;"><?= $editing ? 'Simpan' : 'Tambah' ?></button>
     <?php if ($editing): ?><a href="data_jabatan.php" class="btn-secondary">Batal</a><?php endif; ?>
   </form>
@@ -119,12 +137,13 @@ layout_header('Data Jabatan', 'jabatan', 'admin');
 
 <div class="card">
   <table class="data-table">
-    <thead><tr><th>Nama Jabatan</th><th>Atasan</th><th style="width:160px;">Aksi</th></tr></thead>
+    <thead><tr><th>Nama Jabatan</th><th>Atasan</th><th>Peran</th><th style="width:160px;">Aksi</th></tr></thead>
     <tbody>
       <?php foreach ($list as $row): ?>
         <tr>
           <td><?= e($row['nama_jabatan']) ?></td>
           <td><?= $row['nama_atasan'] ? e($row['nama_atasan']) : '<span class="badge badge-neutral">Puncak</span>' ?></td>
+          <td><?= $row['is_pejabat_pppk'] ? '<span class="badge badge-warning">Pejabat PPPK</span>' : '' ?></td>
           <td>
             <a href="?edit=<?= (int) $row['id_jabatan'] ?>" class="btn-secondary" style="padding:5px 10px;">Edit</a>
             <form method="POST" style="display:inline;" onsubmit="return confirm('Hapus jabatan <?= e(addslashes($row['nama_jabatan'])) ?>?');">
