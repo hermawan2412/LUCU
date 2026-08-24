@@ -10,17 +10,17 @@ require_once __DIR__ . '/../includes/db.php';
 $db = db_connect($config['db']);
 
 $accounts = [
-    ['nip' => '190000000000000001', 'password' => 'rahasia123', 'role' => 'Admin'],
-    ['nip' => '190000000000000003', 'password' => 'rahasia123', 'role' => 'User'],
+    ['username' => 'admin', 'nip' => '190000000000000001', 'password' => 'rahasia123', 'role' => 'Admin'],
+    ['username' => 'staf1', 'nip' => '190000000000000003', 'password' => 'rahasia123', 'role' => 'User'],
 ];
 
 foreach ($accounts as $acc) {
-    $exists = db_one($db, "SELECT id_user FROM user WHERE nip = ?", [$acc['nip']]);
+    $exists = db_one($db, "SELECT id_user FROM user WHERE username = ?", [$acc['username']]);
     if ($exists) {
-        echo "Skip {$acc['nip']}, sudah ada.\n";
+        echo "Skip {$acc['username']}, sudah ada.\n";
         continue;
     }
     $hash = password_hash($acc['password'], PASSWORD_BCRYPT);
-    db_query($db, "INSERT INTO user (nip, password, role) VALUES (?, ?, ?)", [$acc['nip'], $hash, $acc['role']]);
-    echo "Dibuat: {$acc['nip']} / {$acc['password']} ({$acc['role']})\n";
+    db_query($db, "INSERT INTO user (username, nip, password, role) VALUES (?, ?, ?, ?)", [$acc['username'], $acc['nip'], $hash, $acc['role']]);
+    echo "Dibuat: {$acc['username']} / {$acc['password']} ({$acc['role']})\n";
 }

@@ -25,7 +25,7 @@ $error = flash_get('error');
     <div class="login-form-wrap">
       <div class="login-card">
         <h2>Masuk</h2>
-        <p class="sub">Gunakan NIP dan kata sandi akun Anda.</p>
+        <p class="sub">Gunakan username dan kata sandi akun Anda.</p>
 
         <?php if ($error): ?>
           <div class="alert alert-danger"><?= e($error) ?></div>
@@ -34,8 +34,8 @@ $error = flash_get('error');
         <form method="POST" action="check_login.php">
           <?= csrf_field() ?>
           <div class="field">
-            <label for="nip">NIP</label>
-            <input id="nip" name="nip" type="text" autocomplete="username" required autofocus>
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username" required autofocus>
           </div>
           <div class="field">
             <label for="password">Kata Sandi</label>

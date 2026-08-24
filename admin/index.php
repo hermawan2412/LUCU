@@ -11,7 +11,7 @@ auth_require('Admin');
 </head>
 <body style="padding:40px;">
   <h1><?= e(APP_NAME) ?> — Dashboard Admin</h1>
-  <p>Login sebagai NIP: <?= e($_SESSION['nip']) ?> (<?= e($_SESSION['role']) ?>)</p>
+  <p>Login sebagai: <?= e($_SESSION['username']) ?> (<?= e($_SESSION['role']) ?>)</p>
   <p><a href="../logout.php">Keluar</a></p>
   <p style="color:#888">Modul: data pegawai, pengajuan cuti, approval, KGB, KNP — menyusul.</p>
 </body>

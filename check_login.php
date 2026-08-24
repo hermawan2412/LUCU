@@ -7,18 +7,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 csrf_verify();
 
-$nip = trim($_POST['nip'] ?? '');
+$username = trim($_POST['username'] ?? '');
 $password = (string) ($_POST['password'] ?? '');
 
-if ($nip === '' || $password === '') {
-    flash_set('error', 'NIP dan kata sandi wajib diisi.');
+if ($username === '' || $password === '') {
+    flash_set('error', 'Username dan kata sandi wajib diisi.');
     redirect('index.php');
 }
 
-$user = auth_attempt($db, $nip, $password);
+$user = auth_attempt($db, $username, $password);
 
 if ($user === null) {
-    flash_set('error', 'NIP atau kata sandi salah.');
+    flash_set('error', 'Username atau kata sandi salah.');
     redirect('index.php');
 }
 

@@ -84,11 +84,13 @@ INSERT INTO `pegawai` (`nama_pegawai`, `nip`, `id_jabatan`, `id_golongan`, `unit
 
 CREATE TABLE `user` (
   `id_user` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `nip` varchar(225) NOT NULL,
+  `username` varchar(100) NOT NULL,
+  `nip` varchar(225) NOT NULL COMMENT 'referensi ke pegawai.nip, bukan buat login',
   `password` varchar(255) NOT NULL COMMENT 'bcrypt hash (password_hash)',
   `role` enum('Admin','User') NOT NULL DEFAULT 'User',
   `foto` varchar(225) DEFAULT NULL,
   PRIMARY KEY (`id_user`),
+  UNIQUE KEY `username` (`username`),
   KEY `nip` (`nip`(191))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
