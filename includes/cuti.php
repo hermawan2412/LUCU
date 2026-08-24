@@ -10,13 +10,24 @@
 
 declare(strict_types=1);
 
-// 7 jenis cuti PNS per Pasal 3 PP No. 11 Tahun 2017 jo. Perka BKN No. 24
+// PNS: 7 jenis cuti per Pasal 3 PP No. 11 Tahun 2017 jo. Perka BKN No. 24
 // Tahun 2017 (beserta perubahannya, Perka BKN No. 7 Tahun 2021). "Cuti
 // Bersama" sebelumnya kelewat - bukan cuti yg diajukan pegawai (ditetapkan
 // pemerintah tiap tahun), tapi tetap perlu dicatat sistem: gak boleh
-// ngurangin jatah Cuti Tahunan (lihat cuti_apakah_potong_saldo()).
-function cuti_leave_types(): array
+// ngurangin jatah Cuti Tahunan (lihat cuti_apakah_potong_saldo_tahunan()).
+//
+// PPPK: cuma 3 jenis per PP No. 49 Tahun 2018 Pasal 76 - status
+// kepegawaiannya kontrak, jadi gak dapet Cuti Besar/CLTN (konsep pegawai
+// tetap) atau Cuti Karena Alasan Penting.
+function cuti_leave_types(string $jenisAsn = 'PNS'): array
 {
+    if ($jenisAsn === 'PPPK') {
+        return [
+            'Cuti Tahunan',
+            'Cuti Sakit',
+            'Cuti Melahirkan',
+        ];
+    }
     return [
         'Cuti Tahunan',
         'Cuti Besar',

@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sampai = $_POST['sampai_dengan'] ?? '';
     $alamatCuti = trim($_POST['alamat_cuti'] ?? '');
 
-    if (!in_array($jenis, cuti_leave_types(), true)) {
-        $errors[] = 'Jenis cuti tidak valid.';
+    if (!in_array($jenis, cuti_leave_types($pegawai['jenis_asn']), true)) {
+        $errors[] = 'Jenis cuti tidak valid untuk status ASN Anda.';
     }
     if ($alasan === '') {
         $errors[] = 'Alasan cuti wajib diisi.';
@@ -129,11 +129,15 @@ layout_header('Ajukan Cuti', 'ajukan');
       <label for="jenis_cuti">Jenis Cuti</label>
       <select id="jenis_cuti" name="jenis_cuti" required>
         <option value="" disabled selected>-- Pilih jenis cuti --</option>
-        <?php foreach (cuti_leave_types() as $type): ?>
+        <?php foreach (cuti_leave_types($pegawai['jenis_asn']) as $type): ?>
           <option value="<?= e($type) ?>" <?= ($_POST['jenis_cuti'] ?? '') === $type ? 'selected' : '' ?>><?= e($type) ?></option>
         <?php endforeach; ?>
       </select>
-      <p class="hint">Cuti Besar &amp; Cuti di Luar Tanggungan Negara: minimal masa kerja 5 tahun terus-menerus. Cuti Sakit &gt;14 hari wajib lampirkan surat keterangan dokter (serahkan manual ke bagian kepegawaian).</p>
+      <?php if ($pegawai['jenis_asn'] === 'PPPK'): ?>
+        <p class="hint">Status PPPK cuma dapat 3 jenis cuti (PP 49/2018 Psl 76): Tahunan, Sakit, Melahirkan. Cuti Sakit &gt;14 hari wajib lampirkan surat keterangan dokter (serahkan manual ke bagian kepegawaian).</p>
+      <?php else: ?>
+        <p class="hint">Cuti Besar &amp; Cuti di Luar Tanggungan Negara: minimal masa kerja 5 tahun terus-menerus. Cuti Sakit &gt;14 hari wajib lampirkan surat keterangan dokter (serahkan manual ke bagian kepegawaian).</p>
+      <?php endif; ?>
     </div>
     <div class="field">
       <label for="alasan_cuti">Alasan Cuti</label>
