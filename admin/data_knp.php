@@ -71,7 +71,7 @@ $jumlahPensiun = count(array_filter($list, fn($r) => knp_pensiun_mendekati($r['p
 layout_header('Data KNP', 'knp', 'admin');
 ?>
 <h1>Kenaikan Pangkat (KNP)</h1>
-<p class="lead">Pencatatan kenaikan golongan pegawai. "KNP yang akan datang" otomatis terisi +4 tahun dari tanggal terakhir.</p>
+<p class="lead">Pencatatan kenaikan golongan pegawai. "KNP yang akan datang" otomatis terisi +4 tahun dari tanggal terakhir. <a href="export_knp.php" class="btn-secondary" style="padding:4px 14px;font-size:0.78rem;">Export CSV</a></p>
 
 <div class="stat-row">
   <div class="stat-tile"><div class="num" style="color:var(--danger)"><?= $jumlahOverdue ?></div><div class="label">Jatuh Tempo</div></div>

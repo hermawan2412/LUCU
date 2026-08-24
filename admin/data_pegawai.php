@@ -91,7 +91,7 @@ $success = flash_get('success');
 layout_header('Data Pegawai', 'pegawai', 'admin');
 ?>
 <h1>Data Pegawai</h1>
-<p class="lead">Kelola data pegawai, jabatan, dan hak cuti.</p>
+<p class="lead">Kelola data pegawai, jabatan, dan hak cuti. <a href="export_pegawai.php" class="btn-secondary" style="padding:4px 14px;font-size:0.78rem;">Export CSV</a></p>
 
 <?php if ($success): ?><div class="alert alert-success"><?= e($success) ?></div><?php endif; ?>
 <?php foreach ($errors as $err): ?><div class="alert alert-danger"><?= e($err) ?></div><?php endforeach; ?>

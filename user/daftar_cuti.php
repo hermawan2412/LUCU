@@ -10,6 +10,7 @@ if ($pegawai === null) {
 
 $riwayat = db_all($db, "SELECT * FROM cuti_pegawai WHERE id_pegawai = ? ORDER BY id_cutipegawai DESC", [$pegawai['id_pegawai']]);
 $success = flash_get('success');
+$error = flash_get('error');
 
 layout_header('Riwayat Cuti', 'riwayat');
 ?>
@@ -18,6 +19,9 @@ layout_header('Riwayat Cuti', 'riwayat');
 
 <?php if ($success): ?>
   <div class="alert alert-success"><?= e($success) ?></div>
+<?php endif; ?>
+<?php if ($error): ?>
+  <div class="alert alert-danger"><?= e($error) ?></div>
 <?php endif; ?>
 
 <div class="card">
@@ -34,6 +38,7 @@ layout_header('Riwayat Cuti', 'riwayat');
             <th>Diajukan</th>
             <th>Status</th>
             <th>Keterangan</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -45,6 +50,7 @@ layout_header('Riwayat Cuti', 'riwayat');
               <td><?= e($row['tgl_pengajuan']) ?></td>
               <td><span class="badge <?= cuti_status_badge_class($row['status_cuti']) ?>"><?= e($row['status_cuti']) ?></span></td>
               <td><?= e($row['ket_status_cuti']) ?></td>
+              <td><a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;" target="_blank">Cetak</a></td>
             </tr>
           <?php endforeach; ?>
         </tbody>

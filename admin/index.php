@@ -100,6 +100,7 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
      <a href="data_jabatan.php" class="btn-secondary">Kelola Data Jabatan</a>
      <a href="data_golongan.php" class="btn-secondary">Kelola Data Golongan</a>
      <a href="data_kgb.php" class="btn-secondary">Kelola KGB<?= $kgbOverdue > 0 ? " ($kgbOverdue)" : '' ?></a>
-     <a href="data_knp.php" class="btn-secondary">Kelola KNP<?= $knpOverdue > 0 ? " ($knpOverdue)" : '' ?></a></p>
+     <a href="data_knp.php" class="btn-secondary">Kelola KNP<?= $knpOverdue > 0 ? " ($knpOverdue)" : '' ?></a>
+     <a href="export_cuti.php" class="btn-secondary">Export Data Cuti (CSV)</a></p>
 </div>
 <?php layout_footer(); ?>

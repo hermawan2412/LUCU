@@ -27,6 +27,7 @@ require_once __DIR__ . '/../includes/cuti.php';
 require_once __DIR__ . '/../includes/kgb.php';
 require_once __DIR__ . '/../includes/knp.php';
 require_once __DIR__ . '/../includes/kalender.php';
+require_once __DIR__ . '/../includes/export.php';
 require_once __DIR__ . '/../includes/layout.php';
 
 $db = db_connect($config['db']);

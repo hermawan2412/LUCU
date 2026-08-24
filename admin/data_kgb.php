@@ -62,7 +62,7 @@ $jumlahSegera = count(array_filter($list, fn($r) => kgb_status($r['kgb_datang'])
 layout_header('Data KGB', 'kgb', 'admin');
 ?>
 <h1>Kenaikan Gaji Berkala (KGB)</h1>
-<p class="lead">Pencatatan KGB tiap pegawai. "KGB yang akan datang" otomatis terisi +2 tahun dari tanggal terakhir, bisa diubah manual kalau ada penundaan.</p>
+<p class="lead">Pencatatan KGB tiap pegawai. "KGB yang akan datang" otomatis terisi +2 tahun dari tanggal terakhir, bisa diubah manual kalau ada penundaan. <a href="export_kgb.php" class="btn-secondary" style="padding:4px 14px;font-size:0.78rem;">Export CSV</a></p>
 
 <div class="stat-row">
   <div class="stat-tile"><div class="num" style="color:var(--danger)"><?= $jumlahOverdue ?></div><div class="label">Jatuh Tempo</div></div>
