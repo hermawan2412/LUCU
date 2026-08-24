@@ -85,7 +85,11 @@ $list = db_all($db, "SELECT p.*, j.nama_jabatan, g.nama_golongan
     JOIN golongan g ON g.id_golongan = p.id_golongan
     ORDER BY p.nama_pegawai ASC");
 $jabatanList = db_all($db, "SELECT id_jabatan, nama_jabatan FROM jabatan ORDER BY nama_jabatan ASC");
-$golonganList = db_all($db, "SELECT id_golongan, nama_golongan FROM golongan ORDER BY id_golongan ASC");
+$golonganList = db_all($db, "SELECT id_golongan, nama_golongan, jenis_asn FROM golongan ORDER BY jenis_asn ASC, id_golongan ASC");
+$golonganByJenis = ['PNS' => [], 'PPPK' => []];
+foreach ($golonganList as $g) {
+    $golonganByJenis[$g['jenis_asn']][] = $g;
+}
 $success = flash_get('success');
 
 layout_header('Data Pegawai', 'pegawai', 'admin');
@@ -128,8 +132,13 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
         <label for="id_golongan">Golongan</label>
         <select id="id_golongan" name="id_golongan" required>
           <option value="" disabled <?= $form['id_golongan'] === '' ? 'selected' : '' ?>>-- Pilih golongan --</option>
-          <?php foreach ($golonganList as $g): ?>
-            <option value="<?= (int) $g['id_golongan'] ?>" <?= (int) $form['id_golongan'] === (int) $g['id_golongan'] ? 'selected' : '' ?>><?= e($g['nama_golongan']) ?></option>
+          <?php foreach ($golonganByJenis as $jenis => $golonganGrup): ?>
+            <?php if (empty($golonganGrup)) continue; ?>
+            <optgroup label="<?= e($jenis) ?>">
+              <?php foreach ($golonganGrup as $g): ?>
+                <option value="<?= (int) $g['id_golongan'] ?>" <?= (int) $form['id_golongan'] === (int) $g['id_golongan'] ? 'selected' : '' ?>><?= e($g['nama_golongan']) ?></option>
+              <?php endforeach; ?>
+            </optgroup>
           <?php endforeach; ?>
         </select>
       </div>

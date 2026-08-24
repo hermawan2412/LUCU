@@ -9,16 +9,25 @@ SET NAMES utf8mb4;
 
 -- --------------------------------------------------------
 
+-- Golongan PNS (format 'IV/a' dst, Peraturan Gaji PNS) dan PPPK (format
+-- Romawi polos 'I'..'XVII', skala gaji PPPK per Perpres 98/2020) beda
+-- struktur total & gak collision penamaan - satu tabel aman ditumpuk,
+-- kolom jenis_asn buat filter mana yg cocok buat pegawai yg mana.
 CREATE TABLE `golongan` (
   `id_golongan` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `nama_golongan` varchar(255) NOT NULL,
+  `jenis_asn` enum('PNS','PPPK') NOT NULL DEFAULT 'PNS',
   PRIMARY KEY (`id_golongan`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO `golongan` (`id_golongan`, `nama_golongan`) VALUES
-(1, 'IV/a'), (2, 'IV/b'), (3, 'IV/c'), (4, 'IV/d'), (5, 'IV/e'),
-(6, 'III/a'), (7, 'III/b'), (8, 'III/c'), (9, 'III/d'),
-(10, 'II/a'), (11, 'II/b'), (12, 'II/c'), (13, 'II/d');
+INSERT INTO `golongan` (`id_golongan`, `nama_golongan`, `jenis_asn`) VALUES
+(1, 'IV/a', 'PNS'), (2, 'IV/b', 'PNS'), (3, 'IV/c', 'PNS'), (4, 'IV/d', 'PNS'), (5, 'IV/e', 'PNS'),
+(6, 'III/a', 'PNS'), (7, 'III/b', 'PNS'), (8, 'III/c', 'PNS'), (9, 'III/d', 'PNS'),
+(10, 'II/a', 'PNS'), (11, 'II/b', 'PNS'), (12, 'II/c', 'PNS'), (13, 'II/d', 'PNS'),
+(14, 'I', 'PPPK'), (15, 'II', 'PPPK'), (16, 'III', 'PPPK'), (17, 'IV', 'PPPK'),
+(18, 'V', 'PPPK'), (19, 'VI', 'PPPK'), (20, 'VII', 'PPPK'), (21, 'VIII', 'PPPK'),
+(22, 'IX', 'PPPK'), (23, 'X', 'PPPK'), (24, 'XI', 'PPPK'), (25, 'XII', 'PPPK'),
+(26, 'XIII', 'PPPK'), (27, 'XIV', 'PPPK'), (28, 'XV', 'PPPK'), (29, 'XVI', 'PPPK'), (30, 'XVII', 'PPPK');
 
 -- --------------------------------------------------------
 
