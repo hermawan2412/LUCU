@@ -12,13 +12,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'delete') {
         $id = (int) ($_POST['id_golongan'] ?? 0);
-        $dipakai = db_one($db, "SELECT COUNT(*) AS n FROM pegawai WHERE id_golongan = ?", [$id])['n'];
-        if ($dipakai > 0) {
-            $errors[] = "Golongan masih dipakai $dipakai pegawai, tidak bisa dihapus.";
+        $dipakaiPegawai = db_one($db, "SELECT COUNT(*) AS n FROM pegawai WHERE id_golongan = ?", [$id])['n'];
+        $dipakaiKnp = db_one($db, "SELECT COUNT(*) AS n FROM knp_pegawai WHERE id_golongan_tujuan = ?", [$id])['n'];
+        if ($dipakaiPegawai > 0) {
+            $errors[] = "Golongan masih dipakai $dipakaiPegawai pegawai, tidak bisa dihapus.";
+        } elseif ($dipakaiKnp > 0) {
+            $errors[] = "Golongan masih jadi tujuan $dipakaiKnp catatan KNP, tidak bisa dihapus.";
         } else {
-            db_query($db, "DELETE FROM golongan WHERE id_golongan = ?", [$id]);
-            flash_set('success', 'Golongan dihapus.');
-            redirect('data_golongan.php');
+            try {
+                db_query($db, "DELETE FROM golongan WHERE id_golongan = ?", [$id]);
+                flash_set('success', 'Golongan dihapus.');
+                redirect('data_golongan.php');
+            } catch (PDOException $e) {
+                error_log('Gagal hapus golongan: ' . $e->getMessage());
+                $errors[] = 'Golongan masih direferensikan data lain, tidak bisa dihapus.';
+            }
         }
     } else {
         if ($nama === '') {

@@ -8,6 +8,8 @@ $totalGolongan = db_one($db, "SELECT COUNT(*) AS n FROM golongan")['n'];
 $pengajuanAktif = db_one($db, "SELECT COUNT(*) AS n FROM cuti_pegawai WHERE status_cuti = 'Diajukan'")['n'];
 $kgbList = kgb_daftar_terbaru_per_pegawai($db);
 $kgbOverdue = count(array_filter($kgbList, fn($r) => kgb_status($r['kgb_datang']) === 'overdue'));
+$knpList = knp_daftar_terbaru_per_pegawai($db);
+$knpOverdue = count(array_filter($knpList, fn($r) => knp_status($r['knp_datang']) === 'overdue'));
 
 layout_header('Dashboard Admin', 'dashboard', 'admin');
 ?>
@@ -20,12 +22,14 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
   <div class="stat-tile"><div class="num"><?= (int) $totalGolongan ?></div><div class="label">Golongan</div></div>
   <div class="stat-tile"><div class="num"><?= (int) $pengajuanAktif ?></div><div class="label">Cuti Sedang Diajukan</div></div>
   <div class="stat-tile"><div class="num" style="color:<?= $kgbOverdue > 0 ? 'var(--danger)' : 'inherit' ?>"><?= $kgbOverdue ?></div><div class="label">KGB Jatuh Tempo</div></div>
+  <div class="stat-tile"><div class="num" style="color:<?= $knpOverdue > 0 ? 'var(--danger)' : 'inherit' ?>"><?= $knpOverdue ?></div><div class="label">KNP Jatuh Tempo</div></div>
 </div>
 
 <div class="card">
   <p><a href="data_pegawai.php" class="btn-secondary">Kelola Data Pegawai</a>
      <a href="data_jabatan.php" class="btn-secondary">Kelola Data Jabatan</a>
      <a href="data_golongan.php" class="btn-secondary">Kelola Data Golongan</a>
-     <a href="data_kgb.php" class="btn-secondary">Kelola KGB<?= $kgbOverdue > 0 ? " ($kgbOverdue)" : '' ?></a></p>
+     <a href="data_kgb.php" class="btn-secondary">Kelola KGB<?= $kgbOverdue > 0 ? " ($kgbOverdue)" : '' ?></a>
+     <a href="data_knp.php" class="btn-secondary">Kelola KNP<?= $knpOverdue > 0 ? " ($knpOverdue)" : '' ?></a></p>
 </div>
 <?php layout_footer(); ?>

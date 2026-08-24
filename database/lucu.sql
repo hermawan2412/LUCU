@@ -189,12 +189,19 @@ CREATE TABLE `kgb_pegawai` (
 CREATE TABLE `knp_pegawai` (
   `id_knppegawai` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `id_pegawai` int(11) UNSIGNED NOT NULL,
-  `knp_terakhir` varchar(225) NOT NULL,
-  `knp_datang` varchar(225) NOT NULL,
-  `keterangan` varchar(225) NOT NULL,
-  `pensiun` varchar(225) NOT NULL,
-  `timestamp` varchar(225) NOT NULL,
+  -- sama kayak kgb_pegawai: MACOA nyimpen tanggal varchar padahal isinya ISO
+  -- date, dibetulin jadi DATE asli. Kolom 'keterangan' di MACOA sebenarnya
+  -- dropdown pilih golongan tujuan (label-nya aja salah) - di sini dipecah
+  -- jadi id_golongan_tujuan (FK, benar2 relasional) + catatan (teks bebas).
+  `knp_terakhir` date NOT NULL,
+  `knp_datang` date NOT NULL COMMENT 'default knp_terakhir + 4 tahun (siklus KP reguler)',
+  `id_golongan_tujuan` int(11) UNSIGNED NOT NULL,
+  `catatan` varchar(255) NOT NULL DEFAULT '',
+  `pensiun` date DEFAULT NULL COMMENT 'proyeksi tanggal BUP (Batas Usia Pensiun)',
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_knppegawai`),
   KEY `id_pegawai` (`id_pegawai`),
-  CONSTRAINT `knp_pegawai_ibfk_1` FOREIGN KEY (`id_pegawai`) REFERENCES `pegawai` (`id_pegawai`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `id_golongan_tujuan` (`id_golongan_tujuan`),
+  CONSTRAINT `knp_pegawai_ibfk_1` FOREIGN KEY (`id_pegawai`) REFERENCES `pegawai` (`id_pegawai`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `knp_pegawai_ibfk_2` FOREIGN KEY (`id_golongan_tujuan`) REFERENCES `golongan` (`id_golongan`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

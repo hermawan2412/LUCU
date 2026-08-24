@@ -47,9 +47,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($isPejabatPppk && (int) $isPejabatPppk['is_pejabat_pppk'] === 1) {
             $errors[] = 'Jabatan ini ditandai sebagai pemberi izin cuti akhir PPPK, pindahkan tandanya ke jabatan lain dulu sebelum dihapus.';
         } else {
-            db_query($db, "DELETE FROM jabatan WHERE id_jabatan = ?", [$id]);
-            flash_set('success', 'Jabatan dihapus.');
-            redirect('data_jabatan.php');
+            try {
+                db_query($db, "DELETE FROM jabatan WHERE id_jabatan = ?", [$id]);
+                flash_set('success', 'Jabatan dihapus.');
+                redirect('data_jabatan.php');
+            } catch (PDOException $e) {
+                error_log('Gagal hapus jabatan: ' . $e->getMessage());
+                $errors[] = 'Jabatan masih direferensikan data lain, tidak bisa dihapus.';
+            }
         }
     } else {
         $nama = trim($_POST['nama_jabatan'] ?? '');
