@@ -120,6 +120,100 @@ function cuti_status_awal(array $slots): array
     return ['Diajukan', 'Menunggu Approval Ketua'];
 }
 
+function cuti_get_by_id(PDO $db, int $id): ?array
+{
+    return db_one($db, "SELECT * FROM cuti_pegawai WHERE id_cutipegawai = ?", [$id]);
+}
+
+/**
+ * Urutan level approval tetap: panmud_kasubag -> panitera_sekretaris -> ketua.
+ * Return nama level yang lagi nunggu approve, atau null kalau semua sudah
+ * terpenuhi (flag=1 semua).
+ */
+function cuti_current_pending_level(array $row): ?string
+{
+    foreach (['panmud_kasubag', 'panitera_sekretaris', 'ketua'] as $level) {
+        if ((int) $row["app_{$level}"] === 0) {
+            return $level;
+        }
+    }
+    return null;
+}
+
+/**
+ * Pengajuan yang lagi nunggu approval dari $nip di level yang sedang
+ * berjalan (bukan level yg sudah lewat/belum sampai giliran).
+ */
+function cuti_pending_for_approver(PDO $db, string $nip): array
+{
+    return db_all($db, "SELECT c.*, p.nama_pegawai
+        FROM cuti_pegawai c JOIN pegawai p ON p.id_pegawai = c.id_pegawai
+        WHERE c.status_cuti = 'Diajukan' AND (
+            (c.app_panmud_kasubag = 0 AND c.panmud_kasubag = ?)
+            OR (c.app_panmud_kasubag = 1 AND c.app_panitera_sekretaris = 0 AND c.panitera_sekretaris = ?)
+            OR (c.app_panmud_kasubag = 1 AND c.app_panitera_sekretaris = 1 AND c.app_ketua = 0 AND c.ketua = ?)
+        )
+        ORDER BY c.id_cutipegawai ASC", [$nip, $nip, $nip]);
+}
+
+function cuti_pending_count_for_approver(PDO $db, string $nip): int
+{
+    return count(cuti_pending_for_approver($db, $nip));
+}
+
+/**
+ * Approve level yang sedang pending. $approverNip harus cocok sama NIP
+ * yang ke-assign di level itu (dicek di sini, bukan cuma dipercaya dari form).
+ * Return true kalau berhasil, false kalau approverNip gak berhak atas row ini.
+ */
+function cuti_approve(PDO $db, array $row, string $approverNip): bool
+{
+    $level = cuti_current_pending_level($row);
+    if ($level === null || $row[$level] !== $approverNip) {
+        return false;
+    }
+
+    $db->beginTransaction();
+    try {
+        db_query($db, "UPDATE cuti_pegawai SET app_{$level} = 1 WHERE id_cutipegawai = ?", [$row['id_cutipegawai']]);
+
+        $updated = cuti_get_by_id($db, (int) $row['id_cutipegawai']);
+        $nextLevel = cuti_current_pending_level($updated);
+
+        if ($nextLevel === null) {
+            db_query($db, "UPDATE cuti_pegawai SET status_cuti = 'Disetujui', ket_status_cuti = 'Pengajuan Cuti Disetujui' WHERE id_cutipegawai = ?", [$row['id_cutipegawai']]);
+            if ($row['jenis_cuti'] === 'Cuti Tahunan') {
+                db_query($db, "UPDATE pegawai SET hak_cuti_tahunan = hak_cuti_tahunan - ? WHERE id_pegawai = ?", [$row['lama_cuti'], $row['id_pegawai']]);
+            }
+        } else {
+            $ket = match ($nextLevel) {
+                'panitera_sekretaris' => 'Menunggu Approval Panitera/Sekretaris',
+                'ketua' => 'Menunggu Approval Ketua',
+                default => 'Menunggu Approval Atasan Langsung',
+            };
+            db_query($db, "UPDATE cuti_pegawai SET ket_status_cuti = ? WHERE id_cutipegawai = ?", [$ket, $row['id_cutipegawai']]);
+        }
+
+        $db->commit();
+        return true;
+    } catch (Throwable $e) {
+        $db->rollBack();
+        error_log('Gagal approve cuti: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function cuti_reject(PDO $db, array $row, string $approverNip, string $alasan): bool
+{
+    $level = cuti_current_pending_level($row);
+    if ($level === null || $row[$level] !== $approverNip) {
+        return false;
+    }
+
+    db_query($db, "UPDATE cuti_pegawai SET status_cuti = 'Tidak Disetujui', ket_status_cuti = ? WHERE id_cutipegawai = ?", [$alasan, $row['id_cutipegawai']]);
+    return true;
+}
+
 function cuti_status_badge_class(string $status): string
 {
     return match ($status) {

@@ -12,6 +12,9 @@ $db = db_connect($config['db']);
 $accounts = [
     ['username' => 'admin', 'nip' => '190000000000000001', 'password' => 'rahasia123', 'role' => 'Admin'],
     ['username' => 'staf1', 'nip' => '190000000000000003', 'password' => 'rahasia123', 'role' => 'User'],
+    ['username' => 'kasubagti', 'nip' => '190000000000000005', 'password' => 'rahasia123', 'role' => 'User'],
+    ['username' => 'sekretaris', 'nip' => '190000000000000004', 'password' => 'rahasia123', 'role' => 'User'],
+    ['username' => 'ketua', 'nip' => '190000000000000001', 'password' => 'rahasia123', 'role' => 'User'],
 ];
 
 foreach ($accounts as $acc) {

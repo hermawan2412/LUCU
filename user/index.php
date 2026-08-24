@@ -4,6 +4,7 @@ auth_require('User');
 
 $pegawai = cuti_get_pegawai_by_nip($db, $_SESSION['nip']);
 $error = flash_get('error');
+$pendingCount = $pegawai ? cuti_pending_count_for_approver($db, $pegawai['nip']) : 0;
 
 layout_header('Dashboard', 'dashboard');
 ?>
@@ -28,10 +29,15 @@ layout_header('Dashboard', 'dashboard');
       <div class="num" style="font-size:1rem"><?= e(cuti_masa_kerja($pegawai['tmt_pegawai'])) ?></div>
       <div class="label">Masa Kerja</div>
     </div>
+    <div class="stat-tile">
+      <div class="num"><?= $pendingCount ?></div>
+      <div class="label">Menunggu Approval Anda</div>
+    </div>
   </div>
   <div class="card">
     <p><a href="pengajuan_cuti.php" class="btn-secondary">+ Ajukan Cuti Baru</a>
-       <a href="daftar_cuti.php" class="btn-secondary">Lihat Riwayat Cuti</a></p>
+       <a href="daftar_cuti.php" class="btn-secondary">Lihat Riwayat Cuti</a>
+       <a href="approve_cuti.php" class="btn-secondary">Approval Cuti<?= $pendingCount > 0 ? " ($pendingCount)" : '' ?></a></p>
   </div>
 <?php else: ?>
   <div class="card">

@@ -11,6 +11,7 @@ function layout_header(string $title, string $active = ''): void
         'dashboard' => ['label' => 'Dashboard', 'href' => 'index.php'],
         'ajukan' => ['label' => 'Ajukan Cuti', 'href' => 'pengajuan_cuti.php'],
         'riwayat' => ['label' => 'Riwayat Cuti', 'href' => 'daftar_cuti.php'],
+        'approval' => ['label' => 'Approval', 'href' => 'approve_cuti.php'],
     ];
     ?>
 <!DOCTYPE html>
