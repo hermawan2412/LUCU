@@ -1,18 +1,25 @@
 <?php
-// Partial header/footer buat halaman setelah login. $base harus diisi
-// relatif dari file pemanggil ('.' buat root user/admin, '..' gak dipakai
-// di sini karena tiap halaman ada di dalam user/ atau admin/).
+// Partial header/footer buat halaman setelah login. Semua href nav relatif
+// terhadap folder tempat file pemanggil berada (user/ atau admin/), jadi
+// tiap section punya nav sendiri.
 
 declare(strict_types=1);
 
-function layout_header(string $title, string $active = ''): void
+function layout_header(string $title, string $active = '', string $section = 'user'): void
 {
-    $nav = [
+    $navUser = [
         'dashboard' => ['label' => 'Dashboard', 'href' => 'index.php'],
         'ajukan' => ['label' => 'Ajukan Cuti', 'href' => 'pengajuan_cuti.php'],
         'riwayat' => ['label' => 'Riwayat Cuti', 'href' => 'daftar_cuti.php'],
         'approval' => ['label' => 'Approval', 'href' => 'approve_cuti.php'],
     ];
+    $navAdmin = [
+        'dashboard' => ['label' => 'Dashboard', 'href' => 'index.php'],
+        'pegawai' => ['label' => 'Data Pegawai', 'href' => 'data_pegawai.php'],
+        'jabatan' => ['label' => 'Data Jabatan', 'href' => 'data_jabatan.php'],
+        'golongan' => ['label' => 'Data Golongan', 'href' => 'data_golongan.php'],
+    ];
+    $nav = $section === 'admin' ? $navAdmin : $navUser;
     ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -24,7 +31,7 @@ function layout_header(string $title, string $active = ''): void
 </head>
 <body>
   <div class="topbar">
-    <div class="brand"><?= e(APP_NAME) ?> · <?= e(APP_INSTANSI) ?></div>
+    <div class="brand"><?= e(APP_NAME) ?> · <?= e(APP_INSTANSI) ?><?= $section === 'admin' ? ' · Admin' : '' ?></div>
     <nav>
       <?php foreach ($nav as $key => $item): ?>
         <a href="<?= e($item['href']) ?>" class="<?= $active === $key ? 'active' : '' ?>"><?= e($item['label']) ?></a>

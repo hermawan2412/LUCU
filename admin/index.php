@@ -1,18 +1,27 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
 auth_require('Admin');
+
+$totalPegawai = db_one($db, "SELECT COUNT(*) AS n FROM pegawai")['n'];
+$totalJabatan = db_one($db, "SELECT COUNT(*) AS n FROM jabatan")['n'];
+$totalGolongan = db_one($db, "SELECT COUNT(*) AS n FROM golongan")['n'];
+$pengajuanAktif = db_one($db, "SELECT COUNT(*) AS n FROM cuti_pegawai WHERE status_cuti = 'Diajukan'")['n'];
+
+layout_header('Dashboard Admin', 'dashboard', 'admin');
 ?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <title><?= e(APP_NAME) ?> | Dashboard Admin</title>
-  <link rel="stylesheet" href="../assets/css/app.css">
-</head>
-<body style="padding:40px;">
-  <h1><?= e(APP_NAME) ?> — Dashboard Admin</h1>
-  <p>Login sebagai: <?= e($_SESSION['username']) ?> (<?= e($_SESSION['role']) ?>)</p>
-  <p><a href="../logout.php">Keluar</a></p>
-  <p style="color:#888">Modul: data pegawai, pengajuan cuti, approval, KGB, KNP — menyusul.</p>
-</body>
-</html>
+<h1>Dashboard Admin</h1>
+<p class="lead">Selamat datang, <?= e($_SESSION['username']) ?>.</p>
+
+<div class="stat-row">
+  <div class="stat-tile"><div class="num"><?= (int) $totalPegawai ?></div><div class="label">Total Pegawai</div></div>
+  <div class="stat-tile"><div class="num"><?= (int) $totalJabatan ?></div><div class="label">Jabatan</div></div>
+  <div class="stat-tile"><div class="num"><?= (int) $totalGolongan ?></div><div class="label">Golongan</div></div>
+  <div class="stat-tile"><div class="num"><?= (int) $pengajuanAktif ?></div><div class="label">Cuti Sedang Diajukan</div></div>
+</div>
+
+<div class="card">
+  <p><a href="data_pegawai.php" class="btn-secondary">Kelola Data Pegawai</a>
+     <a href="data_jabatan.php" class="btn-secondary">Kelola Data Jabatan</a>
+     <a href="data_golongan.php" class="btn-secondary">Kelola Data Golongan</a></p>
+</div>
+<?php layout_footer(); ?>

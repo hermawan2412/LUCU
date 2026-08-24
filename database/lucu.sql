@@ -58,8 +58,11 @@ INSERT INTO `jabatan` (`id_jabatan`, `nama_jabatan`, `id_atasan`) VALUES
 (23, 'KLEREK - PENGADMINISTRASI PERKANTORAN', 19),
 (24, 'OPERATOR - PENATA LAYANAN OPERASIONAL', 17);
 
+-- RESTRICT, bukan SET NULL: kalau jabatan yg dihapus masih jadi atasan
+-- jabatan lain, SET NULL bakal diam-diam bikin jabatan itu "naik" ke puncak
+-- (auto-approve) tanpa admin sadar. Wajib pindahin id_atasan anaknya dulu.
 ALTER TABLE `jabatan`
-  ADD CONSTRAINT `jabatan_ibfk_1` FOREIGN KEY (`id_atasan`) REFERENCES `jabatan` (`id_jabatan`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `jabatan_ibfk_1` FOREIGN KEY (`id_atasan`) REFERENCES `jabatan` (`id_jabatan`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- --------------------------------------------------------
 
@@ -76,11 +79,14 @@ CREATE TABLE `pegawai` (
   `hak_cuti_penting` int(2) NOT NULL DEFAULT 0,
   `no_telp` varchar(15) NOT NULL DEFAULT '',
   PRIMARY KEY (`id_pegawai`),
+  UNIQUE KEY `nip_unique` (`nip`),
   KEY `id_jabatan` (`id_jabatan`),
   KEY `id_golongan` (`id_golongan`),
-  KEY `nip` (`nip`(191)),
-  CONSTRAINT `pegawai_ibfk_1` FOREIGN KEY (`id_golongan`) REFERENCES `golongan` (`id_golongan`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `pegawai_ibfk_2` FOREIGN KEY (`id_jabatan`) REFERENCES `jabatan` (`id_jabatan`) ON DELETE CASCADE ON UPDATE CASCADE
+  -- RESTRICT, bukan CASCADE kayak MACOA: MACOA hapus 1 baris golongan/jabatan
+  -- bakal ikut ngehapus SEMUA pegawai yang pakai golongan/jabatan itu.
+  -- Di sini hapus ditolak selama masih ada pegawai yang mereferensikannya.
+  CONSTRAINT `pegawai_ibfk_1` FOREIGN KEY (`id_golongan`) REFERENCES `golongan` (`id_golongan`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `pegawai_ibfk_2` FOREIGN KEY (`id_jabatan`) REFERENCES `jabatan` (`id_jabatan`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Data dummy untuk development lokal - BUKAN data pegawai sungguhan.
