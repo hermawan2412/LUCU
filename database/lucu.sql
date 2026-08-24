@@ -240,3 +240,19 @@ CREATE TABLE `pengaturan` (
 
 INSERT INTO `pengaturan` (`id_pengaturan`, `nama_aplikasi`, `nama_lengkap`, `instansi`) VALUES
 (1, 'LUCU', 'Aplikasi Untuk Cuti', 'Pengadilan Agama Rantau');
+
+-- --------------------------------------------------------
+
+-- Hari libur nasional, disinkron dari API publik (date.nager.at, dataset
+-- Nager.Date, bukan hardcode di kode - kalender pemerintah berubah tiap
+-- tahun). tahun_sinkron dipakai buat cek "tahun ini udah pernah
+-- disinkron belum" tanpa fetch ulang ke API tiap buka kalender.
+CREATE TABLE `hari_libur` (
+  `id_libur` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `tanggal` date NOT NULL,
+  `keterangan` varchar(150) NOT NULL,
+  `tahun_sinkron` int(4) NOT NULL,
+  `disinkron_pada` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_libur`),
+  UNIQUE KEY `tanggal` (`tanggal`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

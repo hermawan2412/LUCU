@@ -10,8 +10,10 @@ $bulanParam = $_GET['bulan'] ?? date('Y-m');
 $bulanDate = DateTime::createFromFormat('Y-m-d', $bulanParam . '-01') ?: new DateTime('first day of this month');
 $year = (int) $bulanDate->format('Y');
 $month = (int) $bulanDate->format('n');
+libur_pastikan_tersinkron($db, $year);
 $grid = kalender_bulan_grid($year, $month);
 $cutiBulan = $pegawai ? kalender_cuti_bulan($db, $year, $month, (int) $pegawai['id_pegawai']) : [];
+$liburBulan = libur_bulan($db, $year, $month);
 $todayStr = date('Y-m-d');
 $bulanPrev = (clone $bulanDate)->modify('-1 month')->format('Y-m');
 $bulanNext = (clone $bulanDate)->modify('+1 month')->format('Y-m');
@@ -67,9 +69,12 @@ layout_header('Dashboard', 'dashboard');
         <?php if ($tgl === null): ?>
           <div class="calendar-cell empty"></div>
         <?php else: ?>
-          <?php $cuti = $cutiBulan[$tgl][0] ?? null; ?>
-          <div class="calendar-cell<?= $tgl === $todayStr ? ' today' : '' ?><?= $cuti ? ' on-leave' : '' ?>">
+          <?php $cuti = $cutiBulan[$tgl][0] ?? null; $libur = $liburBulan[$tgl] ?? null; ?>
+          <div class="calendar-cell<?= $tgl === $todayStr ? ' today' : '' ?><?= $cuti ? ' on-leave' : '' ?><?= $libur ? ' is-holiday' : '' ?>">
             <div class="calendar-day-num"><?= (int) substr($tgl, 8, 2) ?></div>
+            <?php if ($libur): ?>
+              <div class="calendar-holiday" title="<?= e($libur) ?>"><?= e($libur) ?></div>
+            <?php endif; ?>
             <?php if ($cuti): ?>
               <div class="calendar-on-leave-mark"><?= e($cuti['jenis']) ?></div>
             <?php endif; ?>

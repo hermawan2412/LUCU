@@ -2,6 +2,16 @@
 require_once __DIR__ . '/../config/bootstrap.php';
 auth_require('Admin');
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'sync_libur') {
+    csrf_verify();
+    $tahunSync = (int) ($_POST['tahun'] ?? date('Y'));
+    $berhasil = libur_sinkron_tahun($db, $tahunSync);
+    flash_set($berhasil ? 'success' : 'error', $berhasil
+        ? "Data hari libur $tahunSync berhasil disinkron."
+        : "Gagal menyinkron hari libur $tahunSync - API gak kejangkau, coba lagi nanti.");
+    redirect('index.php' . (isset($_GET['bulan']) ? '?bulan=' . urlencode($_GET['bulan']) : ''));
+}
+
 $totalPegawai = db_one($db, "SELECT COUNT(*) AS n FROM pegawai")['n'];
 $totalJabatan = db_one($db, "SELECT COUNT(*) AS n FROM jabatan")['n'];
 $totalGolongan = db_one($db, "SELECT COUNT(*) AS n FROM golongan")['n'];
@@ -17,8 +27,10 @@ $bulanDate = DateTime::createFromFormat('Y-m-d', $bulanParam . '-01') ?: new Dat
 $year = (int) $bulanDate->format('Y');
 $month = (int) $bulanDate->format('n');
 
+libur_pastikan_tersinkron($db, $year);
 $grid = kalender_bulan_grid($year, $month);
 $cutiBulan = kalender_cuti_bulan($db, $year, $month);
+$liburBulan = libur_bulan($db, $year, $month);
 $todayStr = date('Y-m-d');
 
 $bulanPrev = (clone $bulanDate)->modify('-1 month')->format('Y-m');
@@ -28,10 +40,16 @@ $pegawaiKuota = db_all($db, "SELECT p.id_pegawai, p.nama_pegawai, j.nama_jabatan
     FROM pegawai p JOIN jabatan j ON j.id_jabatan = p.id_jabatan
     ORDER BY p.hak_cuti_tahunan ASC, p.nama_pegawai ASC");
 
+$flashSuccess = flash_get('success');
+$flashError = flash_get('error');
+
 layout_header('Dashboard Admin', 'dashboard', 'admin');
 ?>
 <h1>Dashboard Admin</h1>
 <p class="lead">Selamat datang, <?= e($_SESSION['username']) ?>.</p>
+
+<?php if ($flashSuccess): ?><div class="alert alert-success"><?= e($flashSuccess) ?></div><?php endif; ?>
+<?php if ($flashError): ?><div class="alert alert-danger"><?= e($flashError) ?></div><?php endif; ?>
 
 <div class="stat-row">
   <div class="stat-tile tone-blue"><div class="num"><?= (int) $totalPegawai ?></div><div class="label">Total Pegawai</div></div>
@@ -49,8 +67,15 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
       <a href="?bulan=<?= e($bulanPrev) ?>" class="btn-secondary">&larr;</a>
       <a href="?bulan=<?= date('Y-m') ?>" class="btn-secondary">Hari ini</a>
       <a href="?bulan=<?= e($bulanNext) ?>" class="btn-secondary">&rarr;</a>
+      <form method="POST" style="display:inline;">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="sync_libur">
+        <input type="hidden" name="tahun" value="<?= $year ?>">
+        <button type="submit" class="btn-secondary" title="Sinkron ulang data hari libur nasional tahun <?= $year ?>">&#8635; Libur</button>
+      </form>
     </div>
   </div>
+  <p class="hint" style="margin-bottom:14px;">&#128308; = hari libur nasional (sinkron otomatis dari date.nager.at)</p>
   <div class="calendar-grid">
     <?php foreach (['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] as $wd): ?>
       <div class="calendar-weekday"><?= $wd ?></div>
@@ -60,9 +85,12 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
       <?php if ($tgl === null): ?>
         <div class="calendar-cell empty"></div>
       <?php else: ?>
-        <?php $orang = $cutiBulan[$tgl] ?? []; ?>
-        <div class="calendar-cell<?= $tgl === $todayStr ? ' today' : '' ?><?= !empty($orang) ? ' has-leave' : '' ?>">
+        <?php $orang = $cutiBulan[$tgl] ?? []; $libur = $liburBulan[$tgl] ?? null; ?>
+        <div class="calendar-cell<?= $tgl === $todayStr ? ' today' : '' ?><?= !empty($orang) ? ' has-leave' : '' ?><?= $libur ? ' is-holiday' : '' ?>">
           <div class="calendar-day-num"><?= (int) substr($tgl, 8, 2) ?></div>
+          <?php if ($libur): ?>
+            <div class="calendar-holiday" title="<?= e($libur) ?>"><?= e($libur) ?></div>
+          <?php endif; ?>
           <?php foreach (array_slice($orang, 0, 2) as $o): ?>
             <div class="calendar-chip" title="<?= e($o['nama'] . ' - ' . $o['jenis']) ?>"><?= e($o['nama']) ?></div>
           <?php endforeach; ?>
