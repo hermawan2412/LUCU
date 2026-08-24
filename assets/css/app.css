@@ -115,48 +115,46 @@ a { color: var(--link-blue); }
 
 /* ===== Login ===== */
 
+/* Full-bleed dark hero: seluruh viewport jadi panel ink, kartu login
+   mengambang di tengah. Brand mark pojok kiri-atas, kotak info cuti
+   pojok kiri-bawah - bukan lagi panel terpisah kayak versi split. */
+
 .login-shell {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  background: var(--canvas);
-}
-
-@media (max-width: 860px) {
-  .login-shell { grid-template-columns: 1fr; }
-  .login-brand { min-height: 260px; }
-}
-
-.login-brand {
-  background: var(--ink);
-  color: #fff;
+  position: relative;
+  background:
+    radial-gradient(900px 500px at 12% 8%, rgba(243, 115, 56, 0.14), transparent 60%),
+    radial-gradient(700px 500px at 92% 88%, rgba(243, 115, 56, 0.08), transparent 55%),
+    var(--ink);
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 64px;
-  gap: 20px;
-  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  padding: 32px;
 }
 
-@media (max-width: 860px) {
-  .login-brand { border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.login-topleft {
+  position: absolute;
+  top: 36px;
+  left: 40px;
+  max-width: 320px;
 }
 
-.login-brand .brand-mark .wordmark { color: #fff; font-size: 1.7rem; }
-.login-brand .brand-mark svg { color: var(--signal-light); }
+.login-topleft .brand-mark .wordmark { color: #fff; font-size: 1.35rem; }
+.login-topleft .brand-mark svg { color: var(--signal-light); }
 
-.login-brand .badge {
+.login-topleft .badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--dust);
+  margin-bottom: 10px;
 }
 
-.login-brand .badge::before {
+.login-topleft .badge::before {
   content: "";
   width: 6px;
   height: 6px;
@@ -165,27 +163,15 @@ a { color: var(--link-blue); }
   display: inline-block;
 }
 
-.login-brand h1 {
-  font-size: clamp(2rem, 3.4vw, 2.75rem);
-  font-weight: 500;
-  margin: 6px 0 0;
-  line-height: 1.08;
-  color: #fff;
-  text-wrap: balance;
-}
-
-.login-brand h1 em {
-  font-style: normal;
-  color: var(--signal-light);
-}
-
-.login-brand p {
+.login-tagline {
   color: var(--dust);
-  max-width: 36ch;
-  margin: 0;
-  font-size: 0.98rem;
+  font-size: 0.86rem;
   font-weight: 450;
+  margin: 10px 0 0;
+  line-height: 1.5;
 }
+
+.login-tagline em { font-style: normal; color: var(--signal-light); }
 
 .login-stat {
   display: flex;
@@ -194,9 +180,14 @@ a { color: var(--link-blue); }
   background: var(--surface);
   border-radius: var(--radius);
   padding: 16px 22px;
-  margin-top: 8px;
   width: fit-content;
   box-shadow: var(--shadow-2);
+}
+
+.login-stat-floating {
+  position: absolute;
+  left: 40px;
+  bottom: 36px;
 }
 
 .login-stat-num {
@@ -217,21 +208,25 @@ a { color: var(--link-blue); }
   line-height: 1.4;
 }
 
-.login-form-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-  background: var(--canvas);
-}
-
 .login-card {
   width: 100%;
   max-width: 388px;
   background: var(--surface);
   border-radius: var(--radius);
   padding: 40px 36px;
-  box-shadow: var(--shadow-2);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 720px) {
+  .login-shell { display: block; padding: 40px 20px; }
+
+  .login-topleft { position: static; max-width: none; text-align: center; margin: 0 0 28px; }
+  .login-topleft .badge { display: flex; justify-content: center; margin-bottom: 12px; }
+  .login-topleft .brand-mark { justify-content: center; }
+  .login-tagline { max-width: 32ch; margin: 10px auto 0; }
+
+  .login-card { margin: 0 auto; max-width: 340px; padding: 32px 24px; }
+  .login-stat-floating { position: static; margin: 24px auto 0; max-width: 340px; }
 }
 
 .login-card h2 {
@@ -305,14 +300,19 @@ a { color: var(--link-blue); }
 .alert-success { background: var(--success-bg); color: var(--success); }
 
 .login-footer {
-  margin-top: 22px;
-  font-size: 0.78rem;
-  font-weight: 450;
-  color: var(--dust);
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
   text-align: center;
+  font-size: 0.76rem;
+  font-weight: 450;
+  color: rgba(255, 255, 255, 0.35);
 }
 
-.login-brand .login-footer { color: rgba(255, 255, 255, 0.45); }
+@media (max-width: 720px) {
+  .login-footer { position: static; margin-top: 28px; }
+}
 
 /* ===== App shell ===== */
 
