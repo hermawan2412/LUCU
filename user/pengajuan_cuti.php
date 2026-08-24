@@ -48,6 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors) && $jenis === 'Cuti Tahunan' && $lama > (int) $pegawai['hak_cuti_tahunan']) {
         $errors[] = 'Sisa cuti tahunan tidak mencukupi (sisa: ' . $pegawai['hak_cuti_tahunan'] . ').';
     }
+    if (empty($errors)) {
+        $errors = array_merge($errors, cuti_validasi_jenis($db, $jenis, $lama, $ketLama, $pegawai));
+    }
 
     if (empty($errors)) {
         $chain = cuti_approval_chain($db, (int) $pegawai['id_jabatan']);
@@ -71,19 +74,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->beginTransaction();
             try {
                 db_query($db, "INSERT INTO cuti_pegawai
-                    (id_pegawai, jenis_cuti, alasan_cuti, lama_cuti, ket_lama_cuti, dari_tanggal, sampai_dengan,
+                    (id_pegawai, jenis_cuti, alasan_cuti, lama_cuti, ket_lama_cuti, dari_tanggal, sampai_dengan, dari_tanggal_iso,
                      panmud_kasubag, panitera_sekretaris, ketua,
                      app_panmud_kasubag, app_panitera_sekretaris, app_ketua,
                      status_cuti, ket_status_cuti, sisa_cuti, tgl_pengajuan, masa_kerja, delegasi, alamat_cuti, berkas)
-                    VALUES (?,?,?,?,?,?,?, ?,?,?, ?,?,?, ?,?,?,?,?,?,?,?)",
+                    VALUES (?,?,?,?,?,?,?,?, ?,?,?, ?,?,?, ?,?,?,?,?,?,?,?)",
                     [
-                        $pegawai['id_pegawai'], $jenis, $alasan, $lama, $ketLama, $dariIndo, $sampaiIndo,
+                        $pegawai['id_pegawai'], $jenis, $alasan, $lama, $ketLama, $dariIndo, $sampaiIndo, $dari,
                         $slots['panmud_kasubag']['nip'], $slots['panitera_sekretaris']['nip'], $slots['ketua']['nip'],
                         $slots['panmud_kasubag']['flag'], $slots['panitera_sekretaris']['flag'], $slots['ketua']['flag'],
                         $status, $ketStatus, $pegawai['hak_cuti_tahunan'], $tglIndo, $masaKerja, '', $alamatCuti, '',
                     ]);
 
-                if ($status === 'Disetujui' && $jenis === 'Cuti Tahunan') {
+                if ($status === 'Disetujui' && cuti_apakah_potong_saldo_tahunan($jenis)) {
                     db_query($db, "UPDATE pegawai SET hak_cuti_tahunan = hak_cuti_tahunan - ? WHERE id_pegawai = ?", [$lama, $pegawai['id_pegawai']]);
                 }
 
@@ -130,6 +133,7 @@ layout_header('Ajukan Cuti', 'ajukan');
           <option value="<?= e($type) ?>" <?= ($_POST['jenis_cuti'] ?? '') === $type ? 'selected' : '' ?>><?= e($type) ?></option>
         <?php endforeach; ?>
       </select>
+      <p class="hint">Cuti Besar &amp; Cuti di Luar Tanggungan Negara: minimal masa kerja 5 tahun terus-menerus. Cuti Sakit &gt;14 hari wajib lampirkan surat keterangan dokter (serahkan manual ke bagian kepegawaian).</p>
     </div>
     <div class="field">
       <label for="alasan_cuti">Alasan Cuti</label>
