@@ -18,9 +18,10 @@ $error = flash_get('error');
 <body>
   <div class="login-shell">
     <div class="login-brand">
-      <span class="badge">● <?= e(APP_INSTANSI) ?></span>
-      <h1><?= e(APP_NAME) ?></h1>
-      <p><?= e(APP_FULL_NAME) ?> — layanan pengajuan dan persetujuan cuti pegawai secara daring.</p>
+      <span class="badge"><?= e(APP_INSTANSI) ?></span>
+      <div class="brand-mark"><?= brand_mark_svg(34) ?><span class="wordmark"><?= e(APP_NAME) ?></span></div>
+      <h1><?= e(APP_FULL_NAME) ?><br><em>layanan cuti, tanpa antre.</em></h1>
+      <p>Pengajuan dan persetujuan cuti pegawai secara daring — dari pengajuan sampai disetujui, satu alur, satu sistem.</p>
     </div>
     <div class="login-form-wrap">
       <div class="login-card">

@@ -33,7 +33,13 @@ function layout_header(string $title, string $active = '', string $section = 'us
 </head>
 <body>
   <div class="topbar">
-    <div class="brand"><?= e(APP_NAME) ?> · <?= e(APP_INSTANSI) ?><?= $section === 'admin' ? ' · Admin' : '' ?></div>
+    <div class="brand-mark">
+      <?= brand_mark_svg(24) ?>
+      <span>
+        <span class="wordmark"><?= e(APP_NAME) ?><?= $section === 'admin' ? ' · Admin' : '' ?></span>
+        <span class="instansi"><?= e(APP_INSTANSI) ?></span>
+      </span>
+    </div>
     <nav>
       <?php foreach ($nav as $key => $item): ?>
         <a href="<?= e($item['href']) ?>" class="<?= $active === $key ? 'active' : '' ?>"><?= e($item['label']) ?></a>
