@@ -178,6 +178,36 @@ a { color: var(--link-blue); }
   font-weight: 450;
 }
 
+.login-stat {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px 22px;
+  margin-top: 8px;
+  width: fit-content;
+  box-shadow: var(--shadow-2);
+}
+
+.login-stat-num {
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.login-stat-danger .login-stat-num { color: var(--danger); }
+.login-stat-success .login-stat-num { color: var(--success); }
+
+.login-stat-label {
+  font-size: 0.78rem;
+  font-weight: 450;
+  color: var(--slate);
+  line-height: 1.4;
+}
+
 .login-form-wrap {
   display: flex;
   align-items: center;

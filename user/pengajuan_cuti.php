@@ -74,13 +74,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->beginTransaction();
             try {
                 db_query($db, "INSERT INTO cuti_pegawai
-                    (id_pegawai, jenis_cuti, alasan_cuti, lama_cuti, ket_lama_cuti, dari_tanggal, sampai_dengan, dari_tanggal_iso,
+                    (id_pegawai, jenis_cuti, alasan_cuti, lama_cuti, ket_lama_cuti, dari_tanggal, sampai_dengan, dari_tanggal_iso, sampai_dengan_iso,
                      panmud_kasubag, panitera_sekretaris, ketua,
                      app_panmud_kasubag, app_panitera_sekretaris, app_ketua,
                      status_cuti, ket_status_cuti, sisa_cuti, tgl_pengajuan, masa_kerja, delegasi, alamat_cuti, berkas)
-                    VALUES (?,?,?,?,?,?,?,?, ?,?,?, ?,?,?, ?,?,?,?,?,?,?,?)",
+                    VALUES (?,?,?,?,?,?,?,?,?, ?,?,?, ?,?,?, ?,?,?,?,?,?,?,?)",
                     [
-                        $pegawai['id_pegawai'], $jenis, $alasan, $lama, $ketLama, $dariIndo, $sampaiIndo, $dari,
+                        $pegawai['id_pegawai'], $jenis, $alasan, $lama, $ketLama, $dariIndo, $sampaiIndo, $dari, $sampai,
                         $slots['panmud_kasubag']['nip'], $slots['panitera_sekretaris']['nip'], $slots['ketua']['nip'],
                         $slots['panmud_kasubag']['flag'], $slots['panitera_sekretaris']['flag'], $slots['ketua']['flag'],
                         $status, $ketStatus, $pegawai['hak_cuti_tahunan'], $tglIndo, $masaKerja, '', $alamatCuti, '',

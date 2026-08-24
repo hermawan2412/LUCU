@@ -341,6 +341,28 @@ function cuti_reject(PDO $db, array $row, string $approverNip, string $alasan): 
     return true;
 }
 
+/**
+ * Statistik pegawai yang lagi cuti HARI INI (status Disetujui, tanggal
+ * sekarang jatuh di antara dari_tanggal_iso & sampai_dengan_iso). Dipakai
+ * di kotak info halaman login - gak butuh login buat lihat ini, cuma
+ * angka agregat, gak ada data pribadi.
+ */
+function cuti_statistik_hari_ini(PDO $db): array
+{
+    $total = (int) db_one($db, "SELECT COUNT(*) AS n FROM pegawai")['n'];
+    $sedangCuti = (int) db_one($db, "SELECT COUNT(DISTINCT id_pegawai) AS n FROM cuti_pegawai
+        WHERE status_cuti = 'Disetujui' AND dari_tanggal_iso <= CURDATE() AND sampai_dengan_iso >= CURDATE()")['n'];
+
+    $persen = $total > 0 ? round(($sedangCuti / $total) * 100) : 0;
+
+    return [
+        'sedang_cuti' => $sedangCuti,
+        'total' => $total,
+        'persen' => $persen,
+        'siaga' => $persen >= 30, // >=30% pegawai gak masuk - patut diwaspadai
+    ];
+}
+
 function cuti_status_badge_class(string $status): string
 {
     return match ($status) {

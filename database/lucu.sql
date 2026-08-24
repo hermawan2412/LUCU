@@ -135,6 +135,7 @@ CREATE TABLE `cuti_pegawai` (
   `dari_tanggal` varchar(225) NOT NULL,
   `sampai_dengan` varchar(225) NOT NULL,
   `dari_tanggal_iso` date NOT NULL COMMENT 'sama kayak dari_tanggal tapi format DATE asli, dipakai buat query (cth. cek riwayat Cuti Besar 5 tahun terakhir) - dari_tanggal (teks Indonesia) gak bisa di-sort/filter',
+  `sampai_dengan_iso` date NOT NULL COMMENT 'sama kayak sampai_dengan tapi format DATE asli, dipakai buat cek siapa yg lagi cuti hari ini',
   `panmud_kasubag` varchar(225) DEFAULT NULL,
   `panitera_sekretaris` varchar(225) DEFAULT NULL,
   `ketua` varchar(225) DEFAULT NULL,

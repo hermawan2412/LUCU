@@ -6,6 +6,7 @@ if (auth_check()) {
 }
 
 $error = flash_get('error');
+$statCuti = cuti_statistik_hari_ini($db);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -22,6 +23,14 @@ $error = flash_get('error');
       <div class="brand-mark"><?= brand_mark_svg(34) ?><span class="wordmark"><?= e(APP_NAME) ?></span></div>
       <h1><?= e(APP_FULL_NAME) ?><br><em>layanan cuti, tanpa antre.</em></h1>
       <p>Pengajuan dan persetujuan cuti pegawai secara daring — dari pengajuan sampai disetujui, satu alur, satu sistem.</p>
+
+      <div class="login-stat login-stat-<?= $statCuti['siaga'] ? 'danger' : 'success' ?>">
+        <div class="login-stat-num"><?= $statCuti['persen'] ?>%</div>
+        <div class="login-stat-label">
+          Pegawai sedang cuti hari ini<br>
+          <?= $statCuti['sedang_cuti'] ?> dari <?= $statCuti['total'] ?> pegawai
+        </div>
+      </div>
     </div>
     <div class="login-form-wrap">
       <div class="login-card">
