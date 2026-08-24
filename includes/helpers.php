@@ -10,11 +10,18 @@ function e(?string $value): string
 }
 
 /**
- * Brand mark LUCU: perisai + centang (kesan resmi/disetujui, cocok buat
- * aplikasi approval cuti). Markup statis tepercaya, sengaja gak di-escape.
+ * Brand mark: pakai logo asli (diupload admin lewat Pengaturan) kalau
+ * ada, else fallback SVG perisai + centang (kesan resmi/disetujui,
+ * cocok buat aplikasi approval cuti). $assetPrefix: '' dari root
+ * (index.php), '../' dari dalam folder admin/ atau user/.
  */
-function brand_mark_svg(int $size = 26): string
+function brand_mark_svg(int $size = 26, string $assetPrefix = ''): string
 {
+    if (defined('APP_LOGO_PATH') && APP_LOGO_PATH) {
+        $src = e($assetPrefix . 'assets/img/' . APP_LOGO_PATH);
+        return "<img src=\"$src\" width=\"$size\" height=\"$size\" alt=\"\" style=\"object-fit:contain;\">";
+    }
+
     return '<svg width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M12 2.5L19.5 5.5V11C19.5 15.5 16.5 19 12 21C7.5 19 4.5 15.5 4.5 11V5.5L12 2.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
         <path d="M8.5 11.5L10.8 13.8L15.5 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>

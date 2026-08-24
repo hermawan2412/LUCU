@@ -21,9 +21,6 @@ session_start([
 ]);
 
 $config = require __DIR__ . '/config.php';
-define('APP_NAME', $config['app']['name']);
-define('APP_FULL_NAME', $config['app']['full_name']);
-define('APP_INSTANSI', $config['app']['instansi']);
 
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
@@ -38,3 +35,17 @@ require_once __DIR__ . '/../includes/notifikasi.php';
 require_once __DIR__ . '/../includes/layout.php';
 
 $db = db_connect($config['db']);
+
+// Nama aplikasi/instansi dulu hardcode di config.php, sekarang bisa diedit
+// admin lewat admin/pengaturan.php (tabel `pengaturan`, baris tunggal).
+// config.php dipakai sbg fallback kalau tabel/baris belum ada (mis. baru
+// migrasi dari schema lama sebelum `pengaturan` ditambahkan).
+try {
+    $pengaturan = db_one($db, "SELECT * FROM pengaturan WHERE id_pengaturan = 1");
+} catch (PDOException $e) {
+    $pengaturan = null;
+}
+define('APP_NAME', $pengaturan['nama_aplikasi'] ?? $config['app']['name']);
+define('APP_FULL_NAME', $pengaturan['nama_lengkap'] ?? $config['app']['full_name']);
+define('APP_INSTANSI', $pengaturan['instansi'] ?? $config['app']['instansi']);
+define('APP_LOGO_PATH', $pengaturan['logo_path'] ?? null);

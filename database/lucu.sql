@@ -222,3 +222,21 @@ CREATE TABLE `notifikasi` (
   PRIMARY KEY (`id_notifikasi`),
   KEY `nip` (`nip`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+-- Pengaturan branding aplikasi - satu baris (id=1), diedit admin lewat
+-- admin/pengaturan.php. Sebelumnya nama_aplikasi/instansi hardcode di
+-- config/config.php, sekarang bisa diubah tanpa sentuh file.
+CREATE TABLE `pengaturan` (
+  `id_pengaturan` int(11) UNSIGNED NOT NULL,
+  `nama_aplikasi` varchar(100) NOT NULL,
+  `nama_lengkap` varchar(150) NOT NULL,
+  `instansi` varchar(150) NOT NULL,
+  `logo_path` varchar(255) DEFAULT NULL COMMENT 'relatif ke assets/img/ - fitur upload logo menyusul',
+  `diperbarui_pada` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_pengaturan`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `pengaturan` (`id_pengaturan`, `nama_aplikasi`, `nama_lengkap`, `instansi`) VALUES
+(1, 'LUCU', 'Aplikasi Untuk Cuti', 'Pengadilan Agama Rantau');

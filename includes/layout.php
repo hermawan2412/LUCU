@@ -30,6 +30,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
         'golongan' => ['label' => 'Data Golongan', 'href' => 'data_golongan.php'],
         'kgb' => ['label' => 'KGB', 'href' => 'data_kgb.php'],
         'knp' => ['label' => 'KNP', 'href' => 'data_knp.php'],
+        'pengaturan' => ['label' => 'Pengaturan', 'href' => 'pengaturan.php'],
     ];
     $nav = $section === 'admin' ? $navAdmin : $navUser;
 
@@ -56,7 +57,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
 <body>
   <div class="topbar">
     <div class="brand-mark">
-      <?= brand_mark_svg(24) ?>
+      <?= brand_mark_svg(24, '../') ?>
       <span>
         <span class="wordmark"><?= e(APP_NAME) ?><?= $section === 'admin' ? ' · Admin' : '' ?></span>
         <span class="instansi"><?= e(APP_INSTANSI) ?></span>
