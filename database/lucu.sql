@@ -88,7 +88,10 @@ CREATE TABLE `pegawai` (
   `jenis_asn` enum('PNS','PPPK') NOT NULL DEFAULT 'PNS' COMMENT 'nentuin pejabat pemberi izin cuti akhir: PNS->Ketua, PPPK->jabatan is_pejabat_pppk',
   `unit_kerja` varchar(225) NOT NULL DEFAULT 'Pengadilan Agama Rantau',
   `tmt_pegawai` date DEFAULT NULL,
-  `hak_cuti_tahunan` int(2) NOT NULL DEFAULT 12,
+  `hak_cuti_tahunan` int(2) NOT NULL DEFAULT 12 COMMENT 'sisa cuti tahunan (N) - tahun berjalan',
+  `cuti_tahunan_n1` int(2) NOT NULL DEFAULT 0 COMMENT 'sisa cuti tahunan tahun lalu (N-1), starter diisi admin, selanjutnya di-roll otomatis - lihat cuti_tahunan_rollover_jika_perlu()',
+  `cuti_tahunan_n2` int(2) NOT NULL DEFAULT 0 COMMENT 'sisa cuti tahunan 2 tahun lalu (N-2), sda',
+  `cuti_tahunan_rollover_tahun` int(4) NOT NULL DEFAULT 2026 COMMENT 'tahun terakhir kali N/N-1/N-2 di-roll, cegah rollover dobel',
   `hak_cuti_sakit` int(2) NOT NULL DEFAULT 0,
   `hak_cuti_penting` int(2) NOT NULL DEFAULT 0,
   `no_telp` varchar(15) NOT NULL DEFAULT '',
@@ -243,6 +246,8 @@ CREATE TABLE `pengaturan` (
   `nama_lengkap` varchar(150) NOT NULL,
   `instansi` varchar(150) NOT NULL,
   `logo_path` varchar(255) DEFAULT NULL COMMENT 'relatif ke assets/img/ - fitur upload logo menyusul',
+  `wa_aktif` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'notifikasi WhatsApp via Fonnte on/off - lihat includes/whatsapp.php',
+  `wa_fonnte_token` varchar(100) NOT NULL DEFAULT '' COMMENT 'API token Fonnte (docs.fonnte.com), diisi admin/pengaturan.php',
   `diperbarui_pada` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_pengaturan`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

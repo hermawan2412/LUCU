@@ -1,13 +1,25 @@
 <?php
-// Notifikasi in-app. Bukan WhatsApp/SMS (itu nunggu provider pihak
-// ketiga punya PA Rantau sendiri, lihat catatan modul approval) - ini
-// bell di dalam aplikasi, dipicu otomatis dari alur cuti.
+// Notifikasi in-app (bell) + WhatsApp (Fonnte, opsional - lihat
+// includes/whatsapp.php). 1 titik panggil buat semua alur cuti
+// (pengajuan/approve/reject), jadi WA otomatis ke-cover di mana pun
+// notifikasi_kirim() sudah dipanggil - gak perlu ubah call site lain.
 
 declare(strict_types=1);
 
 function notifikasi_kirim(PDO $db, string $nip, string $pesan, string $url = ''): void
 {
     db_query($db, "INSERT INTO notifikasi (nip, pesan, url) VALUES (?, ?, ?)", [$nip, $pesan, $url]);
+
+    // Best-effort, gak boleh gagalin alur cuti kalau WA error - lihat
+    // catatan silent-fail di wa_kirim().
+    try {
+        $pegawai = db_one($db, "SELECT no_telp FROM pegawai WHERE nip = ?", [$nip]);
+        if ($pegawai !== null) {
+            wa_kirim($db, $pegawai['no_telp'], $pesan);
+        }
+    } catch (Throwable $e) {
+        error_log('Gagal kirim notifikasi WA: ' . $e->getMessage());
+    }
 }
 
 function notifikasi_belum_dibaca_count(PDO $db, string $nip): int

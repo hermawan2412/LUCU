@@ -3,23 +3,55 @@ require_once __DIR__ . '/../config/bootstrap.php';
 auth_require('Admin');
 
 $errors = [];
+$waTestResult = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
+    $action = $_POST['action'] ?? 'identitas';
 
-    $namaAplikasi = trim($_POST['nama_aplikasi'] ?? '');
-    $namaLengkap = trim($_POST['nama_lengkap'] ?? '');
-    $instansi = trim($_POST['instansi'] ?? '');
+    if ($action === 'identitas') {
+        $namaAplikasi = trim($_POST['nama_aplikasi'] ?? '');
+        $namaLengkap = trim($_POST['nama_lengkap'] ?? '');
+        $instansi = trim($_POST['instansi'] ?? '');
 
-    if ($namaAplikasi === '') $errors[] = 'Nama aplikasi wajib diisi.';
-    if ($namaLengkap === '') $errors[] = 'Nama lengkap aplikasi wajib diisi.';
-    if ($instansi === '') $errors[] = 'Nama instansi wajib diisi.';
+        if ($namaAplikasi === '') $errors[] = 'Nama aplikasi wajib diisi.';
+        if ($namaLengkap === '') $errors[] = 'Nama lengkap aplikasi wajib diisi.';
+        if ($instansi === '') $errors[] = 'Nama instansi wajib diisi.';
 
-    if (empty($errors)) {
-        db_query($db, "UPDATE pengaturan SET nama_aplikasi=?, nama_lengkap=?, instansi=? WHERE id_pengaturan = 1",
-            [$namaAplikasi, $namaLengkap, $instansi]);
-        flash_set('success', 'Pengaturan disimpan.');
-        redirect('pengaturan.php');
+        if (empty($errors)) {
+            db_query($db, "UPDATE pengaturan SET nama_aplikasi=?, nama_lengkap=?, instansi=? WHERE id_pengaturan = 1",
+                [$namaAplikasi, $namaLengkap, $instansi]);
+            flash_set('success', 'Pengaturan disimpan.');
+            redirect('pengaturan.php');
+        }
+    } elseif ($action === 'whatsapp') {
+        $waAktif = isset($_POST['wa_aktif']) ? 1 : 0;
+        $waToken = trim($_POST['wa_fonnte_token'] ?? '');
+
+        if ($waAktif && $waToken === '') {
+            $errors[] = 'Token Fonnte wajib diisi kalau notifikasi WhatsApp diaktifkan.';
+        }
+
+        if (empty($errors)) {
+            db_query($db, "UPDATE pengaturan SET wa_aktif=?, wa_fonnte_token=? WHERE id_pengaturan = 1", [$waAktif, $waToken]);
+            flash_set('success', 'Pengaturan WhatsApp disimpan.');
+            redirect('pengaturan.php');
+        }
+    } elseif ($action === 'wa_test') {
+        $noTes = trim($_POST['wa_test_nomor'] ?? '');
+        $tokenTes = trim($_POST['wa_fonnte_token'] ?? '');
+        if ($noTes === '') {
+            $errors[] = 'Nomor tujuan tes wajib diisi.';
+        } elseif ($tokenTes === '') {
+            $errors[] = 'Token Fonnte wajib diisi dulu buat tes kirim (belum tersimpan juga gak apa, langsung dipakai buat tes ini).';
+        } else {
+            // Pakai token dari FORM (belum tentu udah disimpan) - bukan yg
+            // di DB, biar admin bisa tes sebelum "Simpan"/aktifin.
+            $ok = wa_kirim_dengan_token($tokenTes, $noTes, 'Tes notifikasi WhatsApp dari ' . APP_NAME . '. Kalau pesan ini sampai, token sudah benar.');
+            $waTestResult = $ok
+                ? ['ok' => true, 'pesan' => 'Terkirim ke Fonnte. Cek WhatsApp nomor tujuan (bisa nunggu beberapa detik).']
+                : ['ok' => false, 'pesan' => 'Gagal kirim - cek token, atau lihat error_log server buat detail dari Fonnte.'];
+        }
     }
 }
 
@@ -40,6 +72,7 @@ layout_header('Pengaturan', '', 'admin');
   <h2 style="margin:0 0 16px;">Identitas &amp; Judul</h2>
   <form method="POST">
     <?= csrf_field() ?>
+    <input type="hidden" name="action" value="identitas">
     <div class="field">
       <label for="nama_aplikasi">Nama Aplikasi (singkat)</label>
       <input id="nama_aplikasi" name="nama_aplikasi" type="text" required maxlength="100" value="<?= e($p['nama_aplikasi']) ?>">
@@ -62,5 +95,42 @@ layout_header('Pengaturan', '', 'admin');
 <div class="card">
   <h2 style="margin:0 0 8px;">Logo</h2>
   <p class="lead" style="margin-bottom:0;">Upload logo instansi &mdash; menyusul. Sementara ini brand mark pakai ikon perisai bawaan.</p>
+</div>
+
+<div class="card">
+  <h2 style="margin:0 0 4px;">Notifikasi WhatsApp</h2>
+  <p class="lead" style="margin-bottom:16px;">
+    Lewat <a href="https://fonnte.com/" target="_blank" rel="noopener">Fonnte</a> (paket Free: 1.000 pesan/bulan, gratis).
+    Setiap notifikasi in-app (pengajuan baru, disetujui, ditolak) otomatis ikut dikirim WA ke nomor HP pegawai
+    (kolom "No. Telepon" di <a href="data_pegawai.php">Data Pegawai</a>) kalau diaktifkan di sini.
+  </p>
+
+  <?php if ($waTestResult): ?>
+    <div class="alert <?= $waTestResult['ok'] ? 'alert-success' : 'alert-danger' ?>"><?= e($waTestResult['pesan']) ?></div>
+  <?php endif; ?>
+
+  <form method="POST">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="whatsapp">
+    <div class="field">
+      <label>
+        <input type="checkbox" name="wa_aktif" value="1" <?= (int) ($p['wa_aktif'] ?? 0) === 1 ? 'checked' : '' ?> style="width:auto;">
+        Aktifkan notifikasi WhatsApp
+      </label>
+    </div>
+    <div class="field">
+      <label for="wa_fonnte_token">Token Fonnte (API key)</label>
+      <input id="wa_fonnte_token" name="wa_fonnte_token" type="text" maxlength="100" value="<?= e($p['wa_fonnte_token'] ?? '') ?>" placeholder="Dapatkan dari dashboard Fonnte setelah scan QR device">
+      <p class="hint">Daftar &amp; hubungkan nomor WhatsApp kantor di <a href="https://md.fonnte.com/" target="_blank" rel="noopener">dashboard Fonnte</a>, salin token-nya ke sini.</p>
+    </div>
+    <button type="submit" class="btn-primary" style="width:auto;padding:12px 24px;">Simpan</button>
+
+    <div class="field" style="margin-top:20px;border-top:1px solid var(--border,#e5e5e5);padding-top:16px;">
+      <label for="wa_test_nomor">Tes Kirim ke Nomor</label>
+      <input id="wa_test_nomor" name="wa_test_nomor" type="text" placeholder="08xxxxxxxxxx">
+      <p class="hint">Isi token di atas dulu (gak perlu "Simpan" dulu), lalu tekan tombol tes - dipakai langsung dari form ini.</p>
+    </div>
+    <button type="submit" name="action" value="wa_test" formnovalidate class="btn-secondary" style="width:auto;padding:10px 20px;">Kirim Tes</button>
+  </form>
 </div>
 <?php layout_footer(); ?>

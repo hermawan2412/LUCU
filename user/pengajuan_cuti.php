@@ -7,6 +7,8 @@ if ($pegawai === null) {
     flash_set('error', 'Akun Anda belum terhubung ke data pegawai. Hubungi admin.');
     redirect('index.php');
 }
+$pegawai = cuti_tahunan_rollover_jika_perlu($db, $pegawai);
+$kuotaTahunan = cuti_tahunan_kuota_tersedia($pegawai);
 
 $errors = [];
 
@@ -45,8 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors) && $dari > $sampai) {
         $errors[] = '"Sampai dengan" tidak boleh sebelum "Dari tanggal".';
     }
-    if (empty($errors) && $jenis === 'Cuti Tahunan' && $lama > (int) $pegawai['hak_cuti_tahunan']) {
-        $errors[] = 'Sisa cuti tahunan tidak mencukupi (sisa: ' . $pegawai['hak_cuti_tahunan'] . ').';
+    if (empty($errors) && $jenis === 'Cuti Tahunan' && $lama > $kuotaTahunan) {
+        $errors[] = 'Sisa cuti tahunan tidak mencukupi (sisa: ' . $kuotaTahunan . ' hari, termasuk akumulasi tahun sebelumnya).';
     }
     if (empty($errors)) {
         $errors = array_merge($errors, cuti_validasi_jenis($db, $jenis, $lama, $ketLama, $pegawai));
@@ -83,11 +85,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $pegawai['id_pegawai'], $jenis, $alasan, $lama, $ketLama, $dariIndo, $sampaiIndo, $dari, $sampai,
                         $slots['panmud_kasubag']['nip'], $slots['panitera_sekretaris']['nip'], $slots['ketua']['nip'],
                         $slots['panmud_kasubag']['flag'], $slots['panitera_sekretaris']['flag'], $slots['ketua']['flag'],
-                        $status, $ketStatus, $pegawai['hak_cuti_tahunan'], $tglIndo, $masaKerja, '', $alamatCuti, '',
+                        $status, $ketStatus, $kuotaTahunan, $tglIndo, $masaKerja, '', $alamatCuti, '',
                     ]);
 
                 if ($status === 'Disetujui' && cuti_apakah_potong_saldo_tahunan($jenis)) {
-                    db_query($db, "UPDATE pegawai SET hak_cuti_tahunan = hak_cuti_tahunan - ? WHERE id_pegawai = ?", [$lama, $pegawai['id_pegawai']]);
+                    cuti_potong_saldo_tahunan($db, (int) $pegawai['id_pegawai'], $lama);
                 }
 
                 $db->commit();
@@ -112,21 +114,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$adaAkumulasi = (int) $pegawai['cuti_tahunan_n1'] > 0 || (int) $pegawai['cuti_tahunan_n2'] > 0;
 layout_header('Ajukan Cuti', 'ajukan');
 ?>
 <h1>Ajukan Cuti</h1>
 <p class="lead">Persetujuan akan otomatis dirutekan sesuai jabatan Anda: <?= e($pegawai['nama_jabatan']) ?>.</p>
-
 <div class="stat-row">
   <div class="stat-tile tone-green">
-    <div class="num"><?= (int) $pegawai['hak_cuti_tahunan'] ?></div>
-    <div class="label">Sisa Cuti Tahunan (hari)</div>
+    <div class="num"><?= $kuotaTahunan ?></div>
+    <div class="label">Sisa Cuti Tahunan (hari)<?= $adaAkumulasi ? ' &middot; termasuk akumulasi' : '' ?></div>
   </div>
   <div class="stat-tile tone-teal">
     <div class="num" style="font-size:1.1rem"><?= e(cuti_masa_kerja($pegawai['tmt_pegawai'])) ?></div>
     <div class="label">Masa Kerja</div>
   </div>
 </div>
+<?php if ($adaAkumulasi): ?>
+  <p style="font-size:0.85rem;color:var(--text-muted,#666);margin-top:-8px;">
+    Rincian: tahun ini <?= (int) $pegawai['hak_cuti_tahunan'] ?> hari
+    <?php if ((int) $pegawai['cuti_tahunan_n1'] > 0): ?> + tahun lalu <?= (int) $pegawai['cuti_tahunan_n1'] ?> hari<?php endif; ?>
+    <?php if ((int) $pegawai['cuti_tahunan_n2'] > 0): ?> + 2 tahun lalu <?= (int) $pegawai['cuti_tahunan_n2'] ?> hari<?php endif; ?>
+    (sesuai SE Sekma 13/2019 / SK Sekma 212/2024).
+  </p>
+<?php endif; ?>
 
 <div class="card">
   <?php foreach ($errors as $err): ?>

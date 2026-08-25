@@ -8,7 +8,7 @@ if (!auth_check()) {
 }
 
 $id = (int) ($_GET['id'] ?? 0);
-$cuti = db_one($db, "SELECT c.*, p.nama_pegawai, p.nip, p.unit_kerja, p.tmt_pegawai, j.nama_jabatan, g.nama_golongan, p.id_pegawai
+$cuti = db_one($db, "SELECT c.*, p.nama_pegawai, p.nip, p.unit_kerja, p.tmt_pegawai, p.jenis_asn, j.nama_jabatan, g.nama_golongan, p.id_pegawai, p.no_telp
     FROM cuti_pegawai c
     JOIN pegawai p ON p.id_pegawai = c.id_pegawai
     JOIN jabatan j ON j.id_jabatan = p.id_jabatan
@@ -25,119 +25,45 @@ if ($_SESSION['role'] !== 'Admin' && $cuti['nip'] !== ($_SESSION['nip'] ?? null)
     redirect('daftar_cuti.php');
 }
 
-function nama_pejabat_by_nip(PDO $db, ?string $nip): string
+/**
+ * Formulir cuti - keluaran .docx asli (phpoffice/phpword, lihat
+ * includes/cuti_docx.php), bukan HTML print-to-PDF lagi. Struktur & istilah
+ * ngikutin 2 dokumen resmi PA Rantau:
+ * - PNS: templates/cuti.docx AURAT (LAMPIRAN II SE Sekretaris MA RI No 13/2019)
+ * - PPPK: FORMAT CUTI PPPK.dotx (root LUCU) (LAMPIRAN II Kep. Sekretaris MA RI
+ *   No 212/SEK/SK.KP5.3/II/2024)
+ * Kertas F4 (21,59 x 33,02cm), kop & tanggal rata kanan, VII/VIII sejajar
+ * kiri-kanan biar muat 1 halaman - lihat includes/cuti_docx.php buat detail
+ * layout. Field yang di dokumen asli diisi manual petugas kepegawaian
+ * (nomor surat, catatan cuti detail, paraf petugas) dibiarin kosong di sini
+ * juga - LUCU gak punya alur pencatatan surat-menyurat.
+ */
+function pejabat_by_nip(PDO $db, ?string $nip): array
 {
     if ($nip === null) {
-        return '-';
+        return ['nama_pegawai' => '-', 'nip' => '-', 'nama_jabatan' => '-'];
     }
-    $row = db_one($db, "SELECT nama_pegawai FROM pegawai WHERE nip = ?", [$nip]);
-    return $row['nama_pegawai'] ?? '-';
+    $row = db_one($db, "SELECT p.nama_pegawai, p.nip, j.nama_jabatan
+        FROM pegawai p JOIN jabatan j ON j.id_jabatan = p.id_jabatan WHERE p.nip = ?", [$nip]);
+    return $row ?? ['nama_pegawai' => '-', 'nip' => $nip, 'nama_jabatan' => '-'];
 }
 
-$namaPanmud = nama_pejabat_by_nip($db, $cuti['panmud_kasubag']);
-$namaPaniteraSek = nama_pejabat_by_nip($db, $cuti['panitera_sekretaris']);
-$namaKetua = nama_pejabat_by_nip($db, $cuti['ketua']);
-?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Formulir Cuti - <?= e($cuti['nama_pegawai']) ?></title>
-  <link rel="stylesheet" href="../assets/css/app.css">
-  <style>
-    body { background: #fff; font-size: 12.5px; }
-    .doc {
-      max-width: 760px;
-      margin: 24px auto;
-      padding: 32px;
-    }
-    .doc-actions { max-width: 760px; margin: 20px auto 0; text-align: right; }
-    .doc h1 { font-size: 1.15rem; text-align: center; margin: 0 0 2px; text-transform: uppercase; }
-    .doc .subtitle { text-align: center; color: var(--slate); font-size: 0.82rem; margin-bottom: 24px; }
-    .doc table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 12.5px; }
-    .doc table td, .doc table th { border: 1px solid #999; padding: 6px 10px; vertical-align: top; }
-    .doc .section-title { font-weight: 700; margin: 20px 0 6px; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.03em; }
-    .doc .label-col { width: 220px; background: #f7f7f5; font-weight: 500; }
-    .doc .jenis-list span { display: block; }
-    .doc .jenis-list .selected { font-weight: 700; }
-    .doc .jenis-list .selected::before { content: "\2611  "; }
-    .doc .jenis-list .not-selected::before { content: "\2610  "; color: #999; }
-    .signatures { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-top: 28px; text-align: center; }
-    .signatures .sig-box { font-size: 11.5px; }
-    .signatures .sig-name { margin-top: 60px; font-weight: 700; text-decoration: underline; }
-    .signatures .sig-status { margin-top: 4px; }
-    @media print {
-      .no-print { display: none !important; }
-      body { background: #fff; }
-      .doc { margin: 0; max-width: none; padding: 0; }
-    }
-  </style>
-</head>
-<body>
-  <div class="doc-actions no-print">
-    <button onclick="window.print()" class="btn-secondary">Cetak / Simpan sebagai PDF</button>
-  </div>
+// "Atasan Langsung" (bagian VII) = level approval pertama yang beneran ke-assign
+// (panmud_kasubag kalau ada, else panitera_sekretaris, else - kalau rantainya cuma
+// 1 tingkat - sama aja dengan pejabat berwenang). "Pejabat Berwenang" (bagian VIII)
+// = slot 'ketua', yang di LUCU selalu otoritas akhir (Ketua utk PNS, Sekretaris utk
+// PPPK lewat cuti_cap_chain_for_jenis_asn()), bukan berarti jabatannya harfiah Ketua.
+$atasanLangsungNip = $cuti['panmud_kasubag'] ?? $cuti['panitera_sekretaris'] ?? $cuti['ketua'];
+$atasanLangsungLevel = $cuti['panmud_kasubag'] !== null ? 'panmud_kasubag'
+    : ($cuti['panitera_sekretaris'] !== null ? 'panitera_sekretaris' : 'ketua');
+$atasanLangsung = pejabat_by_nip($db, $atasanLangsungNip);
+$pejabatBerwenang = pejabat_by_nip($db, $cuti['ketua']);
 
-  <div class="doc">
-    <h1><?= e(APP_INSTANSI) ?></h1>
-    <p class="subtitle">Formulir Permintaan dan Pemberian Cuti Pegawai</p>
+// Level yang barusan nolak (kalau status Tidak Disetujui) - app_flag level itu gak
+// pernah disentuh cuti_reject(), jadi cuti_current_pending_level() apa adanya masih
+// nunjuk persis level yang nolak.
+$levelPenolak = $cuti['status_cuti'] === 'Tidak Disetujui' ? cuti_current_pending_level($cuti) : null;
 
-    <div class="section-title">I. Data Pegawai</div>
-    <table>
-      <tr><td class="label-col">Nama Lengkap</td><td><?= e($cuti['nama_pegawai']) ?></td></tr>
-      <tr><td class="label-col">NIP</td><td><?= e($cuti['nip']) ?></td></tr>
-      <tr><td class="label-col">Jabatan</td><td><?= e($cuti['nama_jabatan']) ?></td></tr>
-      <tr><td class="label-col">Golongan</td><td><?= e($cuti['nama_golongan']) ?></td></tr>
-      <tr><td class="label-col">Unit Kerja</td><td><?= e($cuti['unit_kerja']) ?></td></tr>
-      <tr><td class="label-col">Masa Kerja</td><td><?= e($cuti['masa_kerja']) ?></td></tr>
-    </table>
+$isPppk = $cuti['jenis_asn'] === 'PPPK';
 
-    <div class="section-title">II. Jenis Cuti yang Diambil</div>
-    <table>
-      <tr><td class="jenis-list">
-        <?php foreach (cuti_leave_types() as $type): ?>
-          <span class="<?= $type === $cuti['jenis_cuti'] ? 'selected' : 'not-selected' ?>"><?= e($type) ?></span>
-        <?php endforeach; ?>
-      </td></tr>
-    </table>
-
-    <div class="section-title">III. Alasan Cuti</div>
-    <table><tr><td><?= e($cuti['alasan_cuti']) ?></td></tr></table>
-
-    <div class="section-title">IV. Lamanya Cuti</div>
-    <table>
-      <tr><td class="label-col">Dari Tanggal</td><td><?= e($cuti['dari_tanggal']) ?></td></tr>
-      <tr><td class="label-col">Sampai Dengan</td><td><?= e($cuti['sampai_dengan']) ?></td></tr>
-      <tr><td class="label-col">Lama</td><td><?= e($cuti['lama_cuti']) ?> <?= e($cuti['ket_lama_cuti']) ?></td></tr>
-      <tr><td class="label-col">Alamat Selama Cuti</td><td><?= e($cuti['alamat_cuti']) ?></td></tr>
-    </table>
-
-    <div class="section-title">V. Status Permohonan</div>
-    <table>
-      <tr><td class="label-col">Tanggal Pengajuan</td><td><?= e($cuti['tgl_pengajuan']) ?></td></tr>
-      <tr><td class="label-col">Status</td><td><strong><?= e($cuti['status_cuti']) ?></strong> &mdash; <?= e($cuti['ket_status_cuti']) ?></td></tr>
-      <tr><td class="label-col">Sisa Cuti Tahunan</td><td><?= e((string) $cuti['sisa_cuti']) ?> hari</td></tr>
-    </table>
-
-    <div class="section-title">VI. Persetujuan</div>
-    <div class="signatures">
-      <div class="sig-box">
-        Atasan Langsung
-        <div class="sig-name"><?= e($namaPanmud) ?></div>
-        <div class="sig-status"><?= $cuti['app_panmud_kasubag'] ? 'Disetujui' : 'Menunggu' ?></div>
-      </div>
-      <div class="sig-box">
-        Panitera / Sekretaris
-        <div class="sig-name"><?= e($namaPaniteraSek) ?></div>
-        <div class="sig-status"><?= $cuti['app_panitera_sekretaris'] ? 'Disetujui' : 'Menunggu' ?></div>
-      </div>
-      <div class="sig-box">
-        Pejabat Pemberi Izin
-        <div class="sig-name"><?= e($namaKetua) ?></div>
-        <div class="sig-status"><?= $cuti['app_ketua'] ? 'Disetujui' : 'Menunggu' ?></div>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
+cuti_docx_stream($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk);

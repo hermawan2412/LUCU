@@ -50,7 +50,7 @@ layout_header('Riwayat Cuti', 'riwayat');
               <td><?= e($row['tgl_pengajuan']) ?></td>
               <td><span class="badge <?= cuti_status_badge_class($row['status_cuti']) ?>"><?= e($row['status_cuti']) ?></span></td>
               <td><?= e($row['ket_status_cuti']) ?></td>
-              <td><a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;" target="_blank">Cetak</a></td>
+              <td><a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">Unduh .docx</a></td>
             </tr>
           <?php endforeach; ?>
         </tbody>

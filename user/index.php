@@ -3,8 +3,17 @@ require_once __DIR__ . '/../config/bootstrap.php';
 auth_require('User');
 
 $pegawai = cuti_get_pegawai_by_nip($db, $_SESSION['nip']);
+if ($pegawai) {
+    $pegawai = cuti_tahunan_rollover_jika_perlu($db, $pegawai);
+}
 $error = flash_get('error');
 $pendingCount = $pegawai ? cuti_pending_count_for_approver($db, $pegawai['nip']) : 0;
+$riwayatTerbaru = $pegawai
+    ? db_all($db, "SELECT * FROM cuti_pegawai WHERE id_pegawai = ? ORDER BY id_cutipegawai DESC LIMIT 5", [$pegawai['id_pegawai']])
+    : [];
+$rekapTahunIni = $pegawai
+    ? cuti_rekap_tahun($db, (int) $pegawai['id_pegawai'], (int) date('Y'))
+    : [];
 
 $bulanParam = $_GET['bulan'] ?? date('Y-m');
 $bulanDate = DateTime::createFromFormat('Y-m-d', $bulanParam . '-01') ?: new DateTime('first day of this month');
@@ -29,13 +38,15 @@ layout_header('Dashboard', 'dashboard');
 
 <?php if ($pegawai): ?>
   <?php
-    $kuotaStatus = kalender_kuota_status((int) $pegawai['hak_cuti_tahunan']);
+    $kuotaTahunan = cuti_tahunan_kuota_tersedia($pegawai);
+    $adaAkumulasi = (int) $pegawai['cuti_tahunan_n1'] > 0 || (int) $pegawai['cuti_tahunan_n2'] > 0;
+    $kuotaStatus = kalender_kuota_status($kuotaTahunan);
     $kuotaTone = match ($kuotaStatus) { 'kritis' => 'tone-red', 'rendah' => 'tone-amber', default => 'tone-green' };
   ?>
   <div class="stat-row">
     <div class="stat-tile <?= $kuotaTone ?>">
-      <div class="num"><?= (int) $pegawai['hak_cuti_tahunan'] ?></div>
-      <div class="label">Sisa Cuti Tahunan &middot; <span class="badge <?= kalender_kuota_badge_class($kuotaStatus) ?>"><?= kalender_kuota_label($kuotaStatus) ?></span></div>
+      <div class="num"><?= $kuotaTahunan ?></div>
+      <div class="label">Sisa Cuti Tahunan<?= $adaAkumulasi ? ' (+akumulasi)' : '' ?> &middot; <span class="badge <?= kalender_kuota_badge_class($kuotaStatus) ?>"><?= kalender_kuota_label($kuotaStatus) ?></span></div>
     </div>
     <div class="stat-tile tone-purple">
       <div class="num" style="font-size:1rem"><?= e($pegawai['nama_jabatan']) ?></div>
@@ -49,6 +60,54 @@ layout_header('Dashboard', 'dashboard');
       <div class="num"><?= $pendingCount ?></div>
       <div class="label">Menunggu Approval Anda</div>
     </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 12px;">Rekap Cuti Saya</h2>
+
+    <?php if ($adaAkumulasi): ?>
+      <p style="margin:0 0 10px;">
+        <strong>Cuti Tahunan:</strong>
+        tahun ini <?= (int) $pegawai['hak_cuti_tahunan'] ?> hari
+        <?php if ((int) $pegawai['cuti_tahunan_n1'] > 0): ?> + tahun lalu <?= (int) $pegawai['cuti_tahunan_n1'] ?> hari<?php endif; ?>
+        <?php if ((int) $pegawai['cuti_tahunan_n2'] > 0): ?> + 2 tahun lalu <?= (int) $pegawai['cuti_tahunan_n2'] ?> hari<?php endif; ?>
+        = <strong><?= $kuotaTahunan ?> hari</strong> bisa dipakai
+        (akumulasi sesuai SE Sekma 13/2019 / SK Sekma 212/2024).
+      </p>
+    <?php endif; ?>
+
+    <div class="stat-row" style="margin-bottom:14px;">
+      <div class="stat-tile">
+        <div class="num"><?= (int) $pegawai['hak_cuti_sakit'] ?></div>
+        <div class="label">Hak Cuti Sakit (hari)</div>
+      </div>
+      <div class="stat-tile">
+        <div class="num"><?= (int) $pegawai['hak_cuti_penting'] ?></div>
+        <div class="label">Hak Cuti Alasan Penting (hari)</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:0.95rem;margin:0 0 8px;">Cuti Terpakai Tahun <?= date('Y') ?></h3>
+    <?php if (empty($rekapTahunIni)): ?>
+      <div class="empty-state">Belum ada cuti disetujui tahun ini.</div>
+    <?php else: ?>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr><th>Jenis Cuti</th><th>Jumlah Pengajuan</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            <?php foreach ($rekapTahunIni as $r): ?>
+              <tr>
+                <td><?= e($r['jenis_cuti']) ?></td>
+                <td><?= (int) $r['jumlah_pengajuan'] ?></td>
+                <td><?= (int) $r['total_lama'] ?> <?= e($r['ket_lama_cuti']) ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
   </div>
 
   <div class="card">
@@ -82,6 +141,39 @@ layout_header('Dashboard', 'dashboard');
         <?php endif; ?>
       <?php endforeach; endforeach; ?>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="calendar-nav">
+      <h2>Riwayat Cuti Terbaru</h2>
+      <a href="daftar_cuti.php" class="btn-secondary">Lihat Semua</a>
+    </div>
+    <?php if (empty($riwayatTerbaru)): ?>
+      <div class="empty-state">Belum ada pengajuan cuti. <a href="pengajuan_cuti.php">Ajukan sekarang</a>.</div>
+    <?php else: ?>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Jenis</th>
+              <th>Tanggal</th>
+              <th>Diajukan</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($riwayatTerbaru as $row): ?>
+              <tr>
+                <td><?= e($row['jenis_cuti']) ?></td>
+                <td><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?></td>
+                <td><?= e($row['tgl_pengajuan']) ?></td>
+                <td><span class="badge <?= cuti_status_badge_class($row['status_cuti']) ?>"><?= e($row['status_cuti']) ?></span></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
   </div>
 
   <div class="card">

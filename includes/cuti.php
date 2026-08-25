@@ -70,6 +70,167 @@ function cuti_masa_kerja_tahun(?string $tmt): int
     return (new DateTime($tmt))->diff(new DateTime())->y;
 }
 
+// ===== Akumulasi cuti tahunan (dasar: SE Sekma 13/2019 poin F.1.d/e utk PNS,
+// SK Sekma 212/2024 poin D.1.c/d utk PPPK) =====
+//
+// Saldo cuti tahunan disimpan 3 bucket per tahun, persis konsep N/N-1/N-2 di
+// formulir cetak: hak_cuti_tahunan (N, tahun berjalan), cuti_tahunan_n1,
+// cuti_tahunan_n2. "Starter" N-1/N-2 diisi manual admin lewat
+// admin/data_pegawai.php pas rollout aplikasi (belum ada histori sebelum
+// itu); selanjutnya di-roll otomatis tiap ganti tahun lewat
+// cuti_tahunan_rollover_jika_perlu().
+//
+// INI VERSI "ATURAN INTI" (v1, dikonfirmasi user 2026-08-25) - sudah cover:
+// - dasar 12 hari/tahun
+// - cap 18 hari kalau N-1 sama sekali gak kepake (SE 13/2019 F.1.d / SK
+//   212/2024 D.1.c)
+// - cap 24 hari kalau N-1 & N-2 sama sekali gak kepake 2 tahun berturut-turut
+//   (SE 13/2019 F.1.e / SK 212/2024 D.1.d)
+// - syarat masa kontrak PPPK: >2 tahun buat cap 18, >3 tahun buat cap 24
+//   (gak ada padanannya di aturan PNS)
+// BELUM cover (sengaja ditunda, v2 kalau dibutuhkan):
+// - cap 6 hari kerja per tahun yang dibawa kalau cuma dipakai SEBAGIAN
+//   (SE 13/2019 F.1.f/g)
+// - sisa yang udah lewat >2 tahun hangus eksplisit (F.1.h) - secara natural
+//   udah "kebuang" karena rollover cuma nyimpen 3 bucket (N/N-1/N-2), jadi
+//   efeknya mirip tanpa presisi rumusnya
+// - penangguhan cuti tahunan oleh pejabat berwenang (F.1.i) - beda alur
+//   approval sendiri, gak diimplementasi
+
+/**
+ * Geser N->N-1->N-2 tiap kali tahun kalender berganti sejak rollover
+ * terakhir buat pegawai ini, isi N dengan jatah baru (12 hari). Dipanggil
+ * lazy di titik-titik yang butuh saldo akurat (dashboard, form pengajuan
+ * cuti) - bukan cron, biar gak ketinggalan kalau app gak jalan pas 1 Jan.
+ * Return array pegawai yang sudah dimutakhirkan (field N/N-1/N-2/tahun
+ * rollover-nya), field lain apa adanya.
+ */
+function cuti_tahunan_rollover_jika_perlu(PDO $db, array $pegawai): array
+{
+    $tahunSekarang = (int) date('Y');
+    $tahunTerakhir = (int) ($pegawai['cuti_tahunan_rollover_tahun'] ?? $tahunSekarang);
+    if ($tahunTerakhir >= $tahunSekarang) {
+        return $pegawai;
+    }
+
+    $n2 = (int) $pegawai['cuti_tahunan_n2'];
+    $n1 = (int) $pegawai['cuti_tahunan_n1'];
+    $n = (int) $pegawai['hak_cuti_tahunan'];
+    // Loop per tahun yg kelewat (bukan cuma sekali), jaga-jaga kalau aplikasi
+    // gak dibuka sama sekali selama >1 pergantian tahun.
+    for ($tahun = $tahunTerakhir; $tahun < $tahunSekarang; $tahun++) {
+        $n2 = $n1;
+        $n1 = $n;
+        $n = 12;
+    }
+
+    db_query($db, "UPDATE pegawai SET hak_cuti_tahunan = ?, cuti_tahunan_n1 = ?, cuti_tahunan_n2 = ?, cuti_tahunan_rollover_tahun = ? WHERE id_pegawai = ?",
+        [$n, $n1, $n2, $tahunSekarang, $pegawai['id_pegawai']]);
+
+    $pegawai['hak_cuti_tahunan'] = $n;
+    $pegawai['cuti_tahunan_n1'] = $n1;
+    $pegawai['cuti_tahunan_n2'] = $n2;
+    $pegawai['cuti_tahunan_rollover_tahun'] = $tahunSekarang;
+    return $pegawai;
+}
+
+/**
+ * Total hari cuti tahunan yang BISA dipakai tahun ini (N + carry dari
+ * N-1/N-2, sudah kena cap). Panggil cuti_tahunan_rollover_jika_perlu() dulu
+ * sebelum ini biar bucket-nya udah tahun berjalan.
+ */
+function cuti_tahunan_kuota_tersedia(array $pegawai): int
+{
+    $n = (int) $pegawai['hak_cuti_tahunan'];
+    $n1 = (int) $pegawai['cuti_tahunan_n1'];
+    $n2 = (int) $pegawai['cuti_tahunan_n2'];
+    $totalMentah = $n + $n1 + $n2;
+
+    $n1PenuhGakKepake = $n1 >= 12;
+    $n2PenuhGakKepake = $n2 >= 12;
+
+    if (($pegawai['jenis_asn'] ?? 'PNS') === 'PPPK') {
+        // SK Sekma 212/2024 D.1.c/d: cap 18 cuma buat masa kontrak >2 tahun,
+        // cap 24 cuma buat >3 tahun. SK gak nyebut apa yg terjadi kalau
+        // syarat belum kepenuhi - asumsi konservatif kita: gak dapet carry
+        // sama sekali (cuma jatah tahun berjalan), sampai syaratnya kepenuhi.
+        //
+        // Sengaja BUKAN cuti_masa_kerja_tahun() - itu diff()->y kepotong ke
+        // tahun penuh (2 thn 11 bln kebaca "2"), jadi orang yg udah lewat
+        // 2 thn tapi belum genap 3 thn kalender bakal salah ke-tolak. Bikin
+        // tolok ukur "udah lewat X tahun sejak TMT" langsung dari tanggal.
+        $tmt = !empty($pegawai['tmt_pegawai']) ? new DateTime($pegawai['tmt_pegawai']) : null;
+        $lewat2Tahun = $tmt !== null && $tmt <= (new DateTime())->modify('-2 years');
+        $lewat3Tahun = $tmt !== null && $tmt <= (new DateTime())->modify('-3 years');
+        if (!$lewat2Tahun) {
+            return $n;
+        }
+        if ($n1PenuhGakKepake && $n2PenuhGakKepake && $lewat3Tahun) {
+            return min($totalMentah, 24);
+        }
+        if ($n1PenuhGakKepake) {
+            return min($totalMentah, 18);
+        }
+        return $totalMentah;
+    }
+
+    // PNS/Hakim
+    if ($n1PenuhGakKepake && $n2PenuhGakKepake) {
+        return min($totalMentah, 24);
+    }
+    if ($n1PenuhGakKepake) {
+        return min($totalMentah, 18);
+    }
+    return $totalMentah;
+}
+
+/**
+ * Potong saldo cuti tahunan $lama hari, dari bucket TERTUA dulu (N-2 -> N-1
+ * -> N) biar yang mau kadaluarsa duluan yg kepake duluan. Dipanggil di
+ * kedua titik yg motong saldo (submit langsung-disetujui & cuti_approve())
+ * - jangan lagi UPDATE hak_cuti_tahunan langsung di situ. Ambil ulang saldo
+ * pegawai + rollover sendiri di sini (bukan terima dari caller) - beberapa
+ * caller cuma pegang row cuti_pegawai, bukan row pegawai.
+ */
+function cuti_potong_saldo_tahunan(PDO $db, int $idPegawai, int $lama): void
+{
+    $pegawai = db_one($db, "SELECT * FROM pegawai WHERE id_pegawai = ?", [$idPegawai]);
+    if ($pegawai === null) {
+        return;
+    }
+    $pegawai = cuti_tahunan_rollover_jika_perlu($db, $pegawai);
+
+    $n2 = (int) $pegawai['cuti_tahunan_n2'];
+    $n1 = (int) $pegawai['cuti_tahunan_n1'];
+    $n = (int) $pegawai['hak_cuti_tahunan'];
+
+    $ambilN2 = min($n2, $lama);
+    $lama -= $ambilN2;
+    $ambilN1 = min($n1, $lama);
+    $lama -= $ambilN1;
+    $ambilN = min($n, $lama);
+    // Sisa $lama setelah ini (harusnya 0 kalau validasi di form udah bener)
+    // gak dipaksa jadi negatif - biar gak nyembunyikan bug validasi.
+
+    db_query($db, "UPDATE pegawai SET cuti_tahunan_n2 = cuti_tahunan_n2 - ?, cuti_tahunan_n1 = cuti_tahunan_n1 - ?, hak_cuti_tahunan = hak_cuti_tahunan - ? WHERE id_pegawai = ?",
+        [$ambilN2, $ambilN1, $ambilN, $idPegawai]);
+}
+
+/**
+ * Rekap cuti (Disetujui) 1 pegawai dalam 1 tahun kalender, dikelompokkan per
+ * jenis_cuti + satuan (Hari/Bulan/Tahun) - gak digabung lintas satuan biar
+ * gak salah jumlah (mis. "3 Hari" + "2 Bulan" gak bisa dijumlah langsung).
+ * Dipakai buat kartu "Rekap Cuti Saya" di dashboard.
+ */
+function cuti_rekap_tahun(PDO $db, int $idPegawai, int $tahun): array
+{
+    return db_all($db, "SELECT jenis_cuti, ket_lama_cuti, COUNT(*) AS jumlah_pengajuan, SUM(lama_cuti) AS total_lama
+        FROM cuti_pegawai
+        WHERE id_pegawai = ? AND status_cuti = 'Disetujui' AND YEAR(dari_tanggal_iso) = ?
+        GROUP BY jenis_cuti, ket_lama_cuti
+        ORDER BY jenis_cuti ASC, ket_lama_cuti ASC", [$idPegawai, $tahun]);
+}
+
 function cuti_pernah_cuti_besar_5_tahun(PDO $db, int $idPegawai): bool
 {
     $row = db_one($db, "SELECT id_cutipegawai FROM cuti_pegawai
@@ -316,7 +477,7 @@ function cuti_approve(PDO $db, array $row, string $approverNip): bool
         if ($nextLevel === null) {
             db_query($db, "UPDATE cuti_pegawai SET status_cuti = 'Disetujui', ket_status_cuti = 'Pengajuan Cuti Disetujui' WHERE id_cutipegawai = ?", [$row['id_cutipegawai']]);
             if (cuti_apakah_potong_saldo_tahunan($row['jenis_cuti'])) {
-                db_query($db, "UPDATE pegawai SET hak_cuti_tahunan = hak_cuti_tahunan - ? WHERE id_pegawai = ?", [$row['lama_cuti'], $row['id_pegawai']]);
+                cuti_potong_saldo_tahunan($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
             }
             notifikasi_kirim($db, $pemohonNip, "Pengajuan {$row['jenis_cuti']} Anda telah disetujui.", 'daftar_cuti.php');
         } else {

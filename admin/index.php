@@ -36,9 +36,18 @@ $todayStr = date('Y-m-d');
 $bulanPrev = (clone $bulanDate)->modify('-1 month')->format('Y-m');
 $bulanNext = (clone $bulanDate)->modify('+1 month')->format('Y-m');
 
-$pegawaiKuota = db_all($db, "SELECT p.id_pegawai, p.nama_pegawai, j.nama_jabatan, p.hak_cuti_tahunan
+// Diambil full row (bukan cuma hak_cuti_tahunan) krn cuti_tahunan_kuota_tersedia()
+// butuh jenis_asn/tmt/N-1/N-2 buat ngitung akumulasi (SE 13/2019 / SK 212/2024).
+// Rollover per-baris (bukan cron) - jumlah pegawai kecil (1 pengadilan), aman.
+$pegawaiKuota = db_all($db, "SELECT p.*, j.nama_jabatan
     FROM pegawai p JOIN jabatan j ON j.id_jabatan = p.id_jabatan
-    ORDER BY p.hak_cuti_tahunan ASC, p.nama_pegawai ASC");
+    ORDER BY p.nama_pegawai ASC");
+foreach ($pegawaiKuota as &$pk) {
+    $pk = cuti_tahunan_rollover_jika_perlu($db, $pk);
+    $pk['kuota_tersedia'] = cuti_tahunan_kuota_tersedia($pk);
+}
+unset($pk);
+usort($pegawaiKuota, fn ($a, $b) => $a['kuota_tersedia'] <=> $b['kuota_tersedia']);
 
 $flashSuccess = flash_get('success');
 $flashError = flash_get('error');
@@ -108,14 +117,14 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
   <p class="lead" style="margin-bottom:16px;">Diurutkan yang paling sedikit dulu.</p>
   <div class="quota-list">
     <?php foreach ($pegawaiKuota as $p): ?>
-      <?php $status = kalender_kuota_status((int) $p['hak_cuti_tahunan']); ?>
+      <?php $status = kalender_kuota_status($p['kuota_tersedia']); ?>
       <div class="quota-row">
         <div>
           <div class="nama"><?= e($p['nama_pegawai']) ?></div>
           <div class="jabatan"><?= e($p['nama_jabatan']) ?></div>
         </div>
         <div class="sisa">
-          <?= (int) $p['hak_cuti_tahunan'] ?> hari
+          <?= $p['kuota_tersedia'] ?> hari
           <span class="badge <?= kalender_kuota_badge_class($status) ?>"><?= kalender_kuota_label($status) ?></span>
         </div>
       </div>

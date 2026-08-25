@@ -22,6 +22,7 @@ session_start([
 
 $config = require __DIR__ . '/config.php';
 
+require_once __DIR__ . '/../vendor/autoload.php'; // phpoffice/phpword - generate .docx asli buat cetak_cuti.php
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/csrf.php';
@@ -31,7 +32,9 @@ require_once __DIR__ . '/../includes/kgb.php';
 require_once __DIR__ . '/../includes/knp.php';
 require_once __DIR__ . '/../includes/kalender.php';
 require_once __DIR__ . '/../includes/libur.php';
+require_once __DIR__ . '/../includes/cuti_docx.php';
 require_once __DIR__ . '/../includes/export.php';
+require_once __DIR__ . '/../includes/whatsapp.php';
 require_once __DIR__ . '/../includes/notifikasi.php';
 require_once __DIR__ . '/../includes/layout.php';
 

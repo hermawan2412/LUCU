@@ -7,7 +7,7 @@ $editing = null;
 
 function pegawai_form_values(array $post, ?array $editing): array
 {
-    $keys = ['nama_pegawai', 'nip', 'id_jabatan', 'id_golongan', 'jenis_asn', 'unit_kerja', 'tmt_pegawai', 'hak_cuti_tahunan', 'hak_cuti_sakit', 'hak_cuti_penting', 'no_telp'];
+    $keys = ['nama_pegawai', 'nip', 'id_jabatan', 'id_golongan', 'jenis_asn', 'unit_kerja', 'tmt_pegawai', 'hak_cuti_tahunan', 'cuti_tahunan_n1', 'cuti_tahunan_n2', 'hak_cuti_sakit', 'hak_cuti_penting', 'no_telp'];
     $out = [];
     foreach ($keys as $k) {
         $out[$k] = $post[$k] ?? ($editing[$k] ?? '');
@@ -34,6 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $unitKerja = trim($_POST['unit_kerja'] ?? '') ?: APP_INSTANSI;
     $tmt = $_POST['tmt_pegawai'] ?? '';
     $hakTahunan = (int) ($_POST['hak_cuti_tahunan'] ?? 0);
+    $cutiN1 = (int) ($_POST['cuti_tahunan_n1'] ?? 0);
+    $cutiN2 = (int) ($_POST['cuti_tahunan_n2'] ?? 0);
     $hakSakit = (int) ($_POST['hak_cuti_sakit'] ?? 0);
     $hakPenting = (int) ($_POST['hak_cuti_penting'] ?? 0);
     $noTelp = trim($_POST['no_telp'] ?? '');
@@ -45,20 +47,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($idGolongan <= 0) $errors[] = 'Golongan wajib dipilih.';
     if (!in_array($jenisAsn, ['PNS', 'PPPK'], true)) $errors[] = 'Jenis ASN tidak valid.';
     if ($tmt !== '' && DateTime::createFromFormat('Y-m-d', $tmt) === false) $errors[] = 'Tanggal TMT tidak valid.';
-    if ($hakTahunan < 0 || $hakSakit < 0 || $hakPenting < 0) $errors[] = 'Hak cuti tidak boleh negatif.';
+    if ($hakTahunan < 0 || $cutiN1 < 0 || $cutiN2 < 0 || $hakSakit < 0 || $hakPenting < 0) $errors[] = 'Hak cuti tidak boleh negatif.';
 
     if (empty($errors)) {
         $tmtValue = $tmt !== '' ? $tmt : null;
+        $tahunIni = (int) date('Y');
         try {
             if ($action === 'create') {
-                db_query($db, "INSERT INTO pegawai (nama_pegawai, nip, id_jabatan, id_golongan, jenis_asn, unit_kerja, tmt_pegawai, hak_cuti_tahunan, hak_cuti_sakit, hak_cuti_penting, no_telp)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                    [$nama, $nip, $idJabatan, $idGolongan, $jenisAsn, $unitKerja, $tmtValue, $hakTahunan, $hakSakit, $hakPenting, $noTelp]);
+                // cuti_tahunan_rollover_tahun diisi tahun ini biar rollover
+                // otomatis gak langsung "makan" starter N-1/N-2 yg baru
+                // diisi admin di tahun yg sama.
+                db_query($db, "INSERT INTO pegawai (nama_pegawai, nip, id_jabatan, id_golongan, jenis_asn, unit_kerja, tmt_pegawai, hak_cuti_tahunan, cuti_tahunan_n1, cuti_tahunan_n2, cuti_tahunan_rollover_tahun, hak_cuti_sakit, hak_cuti_penting, no_telp)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    [$nama, $nip, $idJabatan, $idGolongan, $jenisAsn, $unitKerja, $tmtValue, $hakTahunan, $cutiN1, $cutiN2, $tahunIni, $hakSakit, $hakPenting, $noTelp]);
                 flash_set('success', 'Pegawai ditambahkan.');
                 redirect('data_pegawai.php');
             } elseif ($action === 'update') {
-                db_query($db, "UPDATE pegawai SET nama_pegawai=?, nip=?, id_jabatan=?, id_golongan=?, jenis_asn=?, unit_kerja=?, tmt_pegawai=?, hak_cuti_tahunan=?, hak_cuti_sakit=?, hak_cuti_penting=?, no_telp=? WHERE id_pegawai=?",
-                    [$nama, $nip, $idJabatan, $idGolongan, $jenisAsn, $unitKerja, $tmtValue, $hakTahunan, $hakSakit, $hakPenting, $noTelp, $id]);
+                db_query($db, "UPDATE pegawai SET nama_pegawai=?, nip=?, id_jabatan=?, id_golongan=?, jenis_asn=?, unit_kerja=?, tmt_pegawai=?, hak_cuti_tahunan=?, cuti_tahunan_n1=?, cuti_tahunan_n2=?, hak_cuti_sakit=?, hak_cuti_penting=?, no_telp=? WHERE id_pegawai=?",
+                    [$nama, $nip, $idJabatan, $idGolongan, $jenisAsn, $unitKerja, $tmtValue, $hakTahunan, $cutiN1, $cutiN2, $hakSakit, $hakPenting, $noTelp, $id]);
                 flash_set('success', 'Data pegawai diperbarui.');
                 redirect('data_pegawai.php');
             }
@@ -84,6 +90,11 @@ $list = db_all($db, "SELECT p.*, j.nama_jabatan, g.nama_golongan
     JOIN jabatan j ON j.id_jabatan = p.id_jabatan
     JOIN golongan g ON g.id_golongan = p.id_golongan
     ORDER BY p.nama_pegawai ASC");
+foreach ($list as &$row) {
+    $row = cuti_tahunan_rollover_jika_perlu($db, $row);
+    $row['kuota_tersedia'] = cuti_tahunan_kuota_tersedia($row);
+}
+unset($row);
 $jabatanList = db_all($db, "SELECT id_jabatan, nama_jabatan FROM jabatan ORDER BY nama_jabatan ASC");
 $golonganList = db_all($db, "SELECT id_golongan, nama_golongan, jenis_asn FROM golongan ORDER BY jenis_asn ASC, id_golongan ASC");
 $golonganByJenis = ['PNS' => [], 'PPPK' => []];
@@ -169,12 +180,25 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
 
     <div class="field-row">
       <div class="field">
-        <label for="hak_cuti_tahunan">Hak Cuti Tahunan (hari)</label>
+        <label for="hak_cuti_tahunan">Sisa Cuti Tahunan (hari) &middot; tahun berjalan</label>
         <input id="hak_cuti_tahunan" name="hak_cuti_tahunan" type="number" min="0" value="<?= e((string) ($form['hak_cuti_tahunan'] ?: 12)) ?>">
       </div>
       <div class="field">
         <label for="no_telp">No. Telepon</label>
         <input id="no_telp" name="no_telp" type="text" value="<?= e($form['no_telp']) ?>">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="cuti_tahunan_n1">Starter Sisa Cuti Tahunan Lalu (N-1)</label>
+        <input id="cuti_tahunan_n1" name="cuti_tahunan_n1" type="number" min="0" max="12" value="<?= e((string) ($form['cuti_tahunan_n1'] ?: 0)) ?>">
+        <p class="hint">Isi manual berapa hari sisa cuti tahunan tahun lalu (pas rollout aplikasi, karena belum ada histori). Otomatis di-roll tiap ganti tahun setelah ini.</p>
+      </div>
+      <div class="field">
+        <label for="cuti_tahunan_n2">Starter Sisa Cuti 2 Tahun Lalu (N-2)</label>
+        <input id="cuti_tahunan_n2" name="cuti_tahunan_n2" type="number" min="0" max="12" value="<?= e((string) ($form['cuti_tahunan_n2'] ?: 0)) ?>">
+        <p class="hint">Sama, buat 2 tahun lalu. Akumulasi cuti tahunan ikut SE Sekma 13/2019 (PNS) / SK Sekma 212/2024 (PPPK): 18 hari kalau N-1 gak kepake sama sekali, 24 hari kalau N-1 &amp; N-2 gak kepake sama sekali.</p>
       </div>
     </div>
 
@@ -208,7 +232,7 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
             <td><?= e($row['nama_jabatan']) ?></td>
             <td><?= e($row['nama_golongan']) ?></td>
             <td><span class="badge <?= $row['jenis_asn'] === 'PPPK' ? 'badge-warning' : 'badge-neutral' ?>"><?= e($row['jenis_asn']) ?></span></td>
-            <td><?= (int) $row['hak_cuti_tahunan'] ?></td>
+            <td><?= $row['kuota_tersedia'] ?><?= ((int) $row['cuti_tahunan_n1'] > 0 || (int) $row['cuti_tahunan_n2'] > 0) ? ' <span class="hint" style="display:inline">(+akumulasi)</span>' : '' ?></td>
             <td>
               <a href="?edit=<?= (int) $row['id_pegawai'] ?>" class="btn-secondary" style="padding:5px 10px;">Edit</a>
               <form method="POST" style="display:inline;" onsubmit="return confirm('Hapus data pegawai <?= e(addslashes($row['nama_pegawai'])) ?>? Semua riwayat cuti/KGB/KNP-nya ikut terhapus.');">
