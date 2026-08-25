@@ -96,7 +96,10 @@ CREATE TABLE `pegawai` (
   `hak_cuti_penting` int(2) NOT NULL DEFAULT 0,
   `no_telp` varchar(15) NOT NULL DEFAULT '',
   PRIMARY KEY (`id_pegawai`),
-  UNIQUE KEY `nip_unique` (`nip`),
+  -- (191) - kolomnya varchar(225) tapi indeks utf8mb4 kepanjangan (225*4=900
+  -- byte) buat batas 767 byte di InnoDB row format lama; NIP asli max 18
+  -- digit jadi 191 char lebih dari cukup. Sama kayak pola `user.nip(191)`.
+  UNIQUE KEY `nip_unique` (`nip`(191)),
   KEY `id_jabatan` (`id_jabatan`),
   KEY `id_golongan` (`id_golongan`),
   -- RESTRICT, bukan CASCADE kayak MACOA: MACOA hapus 1 baris golongan/jabatan
