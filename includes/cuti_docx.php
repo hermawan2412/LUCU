@@ -19,6 +19,22 @@
 // ${...} ke tiap placeholder "….") - lihat riwayat sesi 2026-08-25 di memory
 // buat urutan macro per section per jenis (PNS 42 placeholder, PPPK 32),
 // atau tanya ulang ke user dokumen mana yg berubah.
+//
+// 2026-08-26: tambah 3 macro GAMBAR (bukan teks) - ${TTD_PEGAWAI}/
+// ${TTD_ATASAN}/${TTD_BERWENANG}, disisipkan ke paragraf kosong tepat di
+// atas NAMA_PEGAWAI/NAMA_ATASAN/NAMA_BERWENANG (spasi yg emang udah
+// disediain templatenya buat tanda tangan basah). Diisi lewat
+// setImageValue() kalau pegawainya punya tanda_tangan_path (upload lewat
+// user/profil.php atau admin/data_pegawai.php - lihat includes/upload.php),
+// else macronya di-setValue('') biar gak nyisa teks "${TTD_...}" mentah.
+//
+// Juga nambah opsi keluaran .pdf (cuti_pdf_stream()) - convert docx yg
+// sama lewat LibreOffice headless (`soffice --convert-to pdf`), BUKAN
+// PhpWord\Writer\PDF bawaan (dicoba, hasil tabel/border-nya berantakan).
+// Konsekuensinya: server WAJIB punya `soffice` di PATH buat opsi PDF -
+// kalau enggak, cuti_pdf_stream() lempar RuntimeException yg ke-catch di
+// situ sendiri (flash error + redirect, gak nge-crash), tapi tetep dicek
+// dulu pas setup server baru.
 
 declare(strict_types=1);
 
@@ -31,19 +47,40 @@ function cuti_docx_centang(bool $ya): string
 }
 
 /**
- * $cuti: row gabungan cuti_pegawai + pegawai + jabatan + golongan.
- * $atasanLangsung / $pejabatBerwenang: ['nama_pegawai','nip','nama_jabatan'].
+ * Isi macro ${TTD_xxx} pakai gambar tanda tangan kalau pegawainya udah
+ * upload (lihat includes/upload.php), else kosongin macronya (titik-titik
+ * placeholder di template ilang, jadi baris kosong buat tanda tangan basah
+ * manual - bukan nyisain teks "${TTD_...}" mentah di hasil cetak).
+ */
+function cuti_docx_isi_ttd(TemplateProcessor $tp, string $macro, ?string $tandaTanganPath): void
+{
+    $fsPath = tanda_tangan_fs_path($tandaTanganPath);
+    if ($fsPath === null) {
+        $tp->setValue($macro, '');
+        return;
+    }
+    $tp->setImageValue($macro, ['path' => $fsPath, 'width' => 100, 'height' => 50, 'ratio' => false]);
+}
+
+/**
+ * $cuti: row gabungan cuti_pegawai + pegawai + jabatan + golongan (perlu
+ * kolom tanda_tangan_path juga - lihat query di user/cetak_cuti.php).
+ * $atasanLangsung / $pejabatBerwenang: ['nama_pegawai','nip','nama_jabatan','tanda_tangan_path'].
  * $levelPenolak: nama level yg nolak (kalau status Tidak Disetujui) atau null.
  * $atasanLangsungLevel: 'panmud_kasubag' | 'panitera_sekretaris' | 'ketua'.
+ *
+ * Return path file .docx sementara (caller yang stream + unlink) - dipakai
+ * bareng sama cuti_docx_stream() (langsung stream docx-nya) dan
+ * cuti_pdf_stream() (convert dulu ke PDF sebelum di-stream).
  */
-function cuti_docx_stream(
+function cuti_docx_generate(
     array $cuti,
     array $atasanLangsung,
     array $pejabatBerwenang,
     ?string $levelPenolak,
     string $atasanLangsungLevel,
     bool $isPppk
-): void {
+): string {
     Settings::setOutputEscapingEnabled(true); // isi bisa aman ngandung & / < dkk
 
     $templatePath = __DIR__ . '/../templates/' . ($isPppk ? 'cuti_pppk.docx' : 'cuti_pns.docx');
@@ -90,6 +127,10 @@ function cuti_docx_stream(
     $tp->setValue('NAMA_BERWENANG', $pejabatBerwenang['nama_pegawai']);
     $tp->setValue('NIP_BERWENANG', $pejabatBerwenang['nip']);
 
+    cuti_docx_isi_ttd($tp, 'TTD_PEGAWAI', $cuti['tanda_tangan_path'] ?? null);
+    cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $atasanLangsung['tanda_tangan_path'] ?? null);
+    cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $pejabatBerwenang['tanda_tangan_path'] ?? null);
+
     $disetujuiVII = (bool) $cuti[$atasanLangsungLevel];
     $ditolakVII = $levelPenolak === $atasanLangsungLevel;
     $tp->setValue('CK7_DISETUJUI', cuti_docx_centang($disetujuiVII));
@@ -104,9 +145,24 @@ function cuti_docx_stream(
     $tp->setValue('CK8_DITANGGUHKAN', cuti_docx_centang(false));
     $tp->setValue('CK8_TIDAK', cuti_docx_centang($ditolakVIII));
 
-    $namaFile = 'Formulir_Cuti_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', $cuti['nama_pegawai']) . '.docx';
+    return $tp->save(); // TemplateProcessor nulis ke file temp sendiri
+}
 
-    $tmpPath = $tp->save(); // TemplateProcessor nulis ke file temp sendiri
+function cuti_docx_nama_file(array $cuti, string $ext): string
+{
+    return 'Formulir_Cuti_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', $cuti['nama_pegawai']) . '.' . $ext;
+}
+
+function cuti_docx_stream(
+    array $cuti,
+    array $atasanLangsung,
+    array $pejabatBerwenang,
+    ?string $levelPenolak,
+    string $atasanLangsungLevel,
+    bool $isPppk
+): void {
+    $tmpPath = cuti_docx_generate($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk);
+    $namaFile = cuti_docx_nama_file($cuti, 'docx');
 
     header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     header('Content-Disposition: attachment;filename="' . $namaFile . '"');
@@ -114,5 +170,61 @@ function cuti_docx_stream(
     header('Content-Length: ' . filesize($tmpPath));
     readfile($tmpPath);
     unlink($tmpPath);
+    exit;
+}
+
+/**
+ * Convert .docx ke .pdf lewat LibreOffice headless (`soffice --convert-to
+ * pdf`) - ini konverter paling akurat buat layout tabel/border kompleks
+ * kayak formulir ini (dicoba PhpWord\Writer\PDF bawaan dulu, hasilnya
+ * berantakan buat tabel bergaris - LibreOffice jauh lebih presisi krn
+ * emang real office suite renderer, bukan librari PDF generik).
+ *
+ * WAJIB LibreOffice ke-install di server (`soffice` ada di PATH) - kalau
+ * gak ada, lempar RuntimeException biar keliatan jelas di error_log,
+ * bukan diam-diam gagal.
+ */
+function cuti_docx_ke_pdf(string $docxPath): string
+{
+    $outDir = sys_get_temp_dir();
+    $cmd = 'soffice --headless --nologo --nofirststartwizard --convert-to pdf --outdir '
+        . escapeshellarg($outDir) . ' ' . escapeshellarg($docxPath) . ' 2>&1';
+    exec($cmd, $output, $exitCode);
+
+    $expectedPdf = $outDir . '/' . pathinfo($docxPath, PATHINFO_FILENAME) . '.pdf';
+    if ($exitCode !== 0 || !is_file($expectedPdf)) {
+        error_log('Gagal convert docx ke PDF (LibreOffice): ' . implode(' | ', $output));
+        throw new RuntimeException('Konversi ke PDF gagal - LibreOffice belum terpasang di server atau error lain, lihat error_log.');
+    }
+    return $expectedPdf;
+}
+
+function cuti_pdf_stream(
+    array $cuti,
+    array $atasanLangsung,
+    array $pejabatBerwenang,
+    ?string $levelPenolak,
+    string $atasanLangsungLevel,
+    bool $isPppk
+): void {
+    $docxPath = cuti_docx_generate($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk);
+
+    try {
+        $pdfPath = cuti_docx_ke_pdf($docxPath);
+    } catch (RuntimeException $e) {
+        unlink($docxPath);
+        flash_set('error', $e->getMessage());
+        redirect('daftar_cuti.php');
+    }
+
+    $namaFile = cuti_docx_nama_file($cuti, 'pdf');
+
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: attachment;filename="' . $namaFile . '"');
+    header('Cache-Control: max-age=0');
+    header('Content-Length: ' . filesize($pdfPath));
+    readfile($pdfPath);
+    unlink($docxPath);
+    unlink($pdfPath);
     exit;
 }

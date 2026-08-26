@@ -1,0 +1,9 @@
+# File di sini semua hasil upload user (logo, tanda tangan) - jangan
+# pernah dieksekusi sebagai script apa pun, walau ekstensinya di-palsuin.
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|pht|phar)$">
+    Require all denied
+</FilesMatch>
+
+php_flag engine off
+Options -ExecCGI
+AddType text/plain .php .phtml .php3 .php4 .php5 .php7 .pht .phar

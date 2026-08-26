@@ -21,9 +21,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'delete') {
         $id = (int) ($_POST['id_pegawai'] ?? 0);
+        $row = db_one($db, "SELECT tanda_tangan_path FROM pegawai WHERE id_pegawai = ?", [$id]);
+        tanda_tangan_hapus($row['tanda_tangan_path'] ?? null);
         db_query($db, "DELETE FROM pegawai WHERE id_pegawai = ?", [$id]);
         flash_set('success', 'Data pegawai dihapus.');
         redirect('data_pegawai.php');
+    }
+
+    if ($action === 'upload_ttd') {
+        $idTtd = (int) ($_POST['id_pegawai'] ?? 0);
+        $pegawaiTtd = db_one($db, "SELECT tanda_tangan_path FROM pegawai WHERE id_pegawai = ?", [$idTtd]);
+        if ($pegawaiTtd === null) {
+            flash_set('error', 'Pegawai tidak ditemukan.');
+        } else {
+            $hasil = upload_tanda_tangan($_FILES['tanda_tangan'] ?? [], $idTtd);
+            if (!$hasil['ok']) {
+                flash_set('error', $hasil['error']);
+            } else {
+                tanda_tangan_hapus($pegawaiTtd['tanda_tangan_path']);
+                db_query($db, "UPDATE pegawai SET tanda_tangan_path = ? WHERE id_pegawai = ?", [$hasil['filename'], $idTtd]);
+                flash_set('success', 'Tanda tangan disimpan.');
+            }
+        }
+        redirect('data_pegawai.php?edit=' . $idTtd);
+    }
+
+    if ($action === 'hapus_ttd') {
+        $idTtd = (int) ($_POST['id_pegawai'] ?? 0);
+        $pegawaiTtd = db_one($db, "SELECT tanda_tangan_path FROM pegawai WHERE id_pegawai = ?", [$idTtd]);
+        tanda_tangan_hapus($pegawaiTtd['tanda_tangan_path'] ?? null);
+        db_query($db, "UPDATE pegawai SET tanda_tangan_path = NULL WHERE id_pegawai = ?", [$idTtd]);
+        flash_set('success', 'Tanda tangan dihapus.');
+        redirect('data_pegawai.php?edit=' . $idTtd);
     }
 
     $nama = trim($_POST['nama_pegawai'] ?? '');
@@ -216,13 +245,42 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
     <button type="submit" class="btn-primary" style="width:auto;padding:10px 20px;margin-top:8px;"><?= $editing ? 'Simpan' : 'Tambah' ?></button>
     <?php if ($editing): ?><a href="data_pegawai.php" class="btn-secondary">Batal</a><?php endif; ?>
   </form>
+
+  <?php if ($editing): ?>
+    <div style="margin-top:20px;border-top:1px solid var(--border,#e5e5e5);padding-top:16px;">
+      <h3 style="font-size:0.95rem;margin:0 0 10px;">Tanda Tangan</h3>
+      <?php if ($editing['tanda_tangan_path']): ?>
+        <div style="border:1px solid var(--border,#e5e5e5);border-radius:8px;padding:12px;margin-bottom:12px;display:inline-block;">
+          <img src="<?= e(tanda_tangan_url($editing['tanda_tangan_path'])) ?>" alt="Tanda tangan" style="max-width:200px;max-height:100px;display:block;">
+        </div>
+        <form method="POST" style="display:inline-block;margin-left:12px;vertical-align:top;" onsubmit="return confirm('Hapus tanda tangan pegawai ini?');">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="hapus_ttd">
+          <input type="hidden" name="id_pegawai" value="<?= (int) $editing['id_pegawai'] ?>">
+          <button type="submit" class="btn-secondary">Hapus</button>
+        </form>
+      <?php else: ?>
+        <div class="empty-state">Belum ada tanda tangan.</div>
+      <?php endif; ?>
+      <form method="POST" enctype="multipart/form-data" style="margin-top:10px;">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="upload_ttd">
+        <input type="hidden" name="id_pegawai" value="<?= (int) $editing['id_pegawai'] ?>">
+        <div class="field">
+          <input name="tanda_tangan" type="file" accept="image/png,image/jpeg" required>
+          <p class="hint">PNG/JPG maksimal 1MB. Pegawai juga bisa upload sendiri lewat Profil Saya.</p>
+        </div>
+        <button type="submit" class="btn-secondary" style="width:auto;padding:8px 16px;">Upload</button>
+      </form>
+    </div>
+  <?php endif; ?>
 </div>
 
 <div class="card">
   <div style="overflow-x:auto;">
     <table class="data-table">
       <thead>
-        <tr><th>Nama</th><th>NIP</th><th>Jabatan</th><th>Golongan</th><th>ASN</th><th>Sisa Cuti Tahunan</th><th style="width:160px;">Aksi</th></tr>
+        <tr><th>Nama</th><th>NIP</th><th>Jabatan</th><th>Golongan</th><th>ASN</th><th>Sisa Cuti Tahunan</th><th>TTD</th><th style="width:160px;">Aksi</th></tr>
       </thead>
       <tbody>
         <?php foreach ($list as $row): ?>
@@ -233,6 +291,7 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
             <td><?= e($row['nama_golongan']) ?></td>
             <td><span class="badge <?= $row['jenis_asn'] === 'PPPK' ? 'badge-warning' : 'badge-neutral' ?>"><?= e($row['jenis_asn']) ?></span></td>
             <td><?= $row['kuota_tersedia'] ?><?= ((int) $row['cuti_tahunan_n1'] > 0 || (int) $row['cuti_tahunan_n2'] > 0) ? ' <span class="hint" style="display:inline">(+akumulasi)</span>' : '' ?></td>
+            <td><?= $row['tanda_tangan_path'] ? '✅' : '-' ?></td>
             <td>
               <a href="?edit=<?= (int) $row['id_pegawai'] ?>" class="btn-secondary" style="padding:5px 10px;">Edit</a>
               <form method="POST" style="display:inline;" onsubmit="return confirm('Hapus data pegawai <?= e(addslashes($row['nama_pegawai'])) ?>? Semua riwayat cuti/KGB/KNP-nya ikut terhapus.');">

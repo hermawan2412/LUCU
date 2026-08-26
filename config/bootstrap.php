@@ -34,6 +34,7 @@ require_once __DIR__ . '/../includes/kalender.php';
 require_once __DIR__ . '/../includes/libur.php';
 require_once __DIR__ . '/../includes/cuti_docx.php';
 require_once __DIR__ . '/../includes/export.php';
+require_once __DIR__ . '/../includes/upload.php';
 require_once __DIR__ . '/../includes/whatsapp.php';
 require_once __DIR__ . '/../includes/notifikasi.php';
 require_once __DIR__ . '/../includes/layout.php';

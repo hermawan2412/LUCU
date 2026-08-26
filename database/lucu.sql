@@ -95,6 +95,7 @@ CREATE TABLE `pegawai` (
   `hak_cuti_sakit` int(2) NOT NULL DEFAULT 0,
   `hak_cuti_penting` int(2) NOT NULL DEFAULT 0,
   `no_telp` varchar(15) NOT NULL DEFAULT '',
+  `tanda_tangan_path` varchar(255) DEFAULT NULL COMMENT 'relatif ke uploads/ttd/ - gambar tanda tangan buat cetak_cuti.php',
   PRIMARY KEY (`id_pegawai`),
   -- (191) - kolomnya varchar(225) tapi indeks utf8mb4 kepanjangan (225*4=900
   -- byte) buat batas 767 byte di InnoDB row format lama; NIP asli max 18

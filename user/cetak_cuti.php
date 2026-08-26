@@ -8,7 +8,7 @@ if (!auth_check()) {
 }
 
 $id = (int) ($_GET['id'] ?? 0);
-$cuti = db_one($db, "SELECT c.*, p.nama_pegawai, p.nip, p.unit_kerja, p.tmt_pegawai, p.jenis_asn, j.nama_jabatan, g.nama_golongan, p.id_pegawai, p.no_telp
+$cuti = db_one($db, "SELECT c.*, p.nama_pegawai, p.nip, p.unit_kerja, p.tmt_pegawai, p.jenis_asn, j.nama_jabatan, g.nama_golongan, p.id_pegawai, p.no_telp, p.tanda_tangan_path
     FROM cuti_pegawai c
     JOIN pegawai p ON p.id_pegawai = c.id_pegawai
     JOIN jabatan j ON j.id_jabatan = p.id_jabatan
@@ -41,11 +41,11 @@ if ($_SESSION['role'] !== 'Admin' && $cuti['nip'] !== ($_SESSION['nip'] ?? null)
 function pejabat_by_nip(PDO $db, ?string $nip): array
 {
     if ($nip === null) {
-        return ['nama_pegawai' => '-', 'nip' => '-', 'nama_jabatan' => '-'];
+        return ['nama_pegawai' => '-', 'nip' => '-', 'nama_jabatan' => '-', 'tanda_tangan_path' => null];
     }
-    $row = db_one($db, "SELECT p.nama_pegawai, p.nip, j.nama_jabatan
+    $row = db_one($db, "SELECT p.nama_pegawai, p.nip, j.nama_jabatan, p.tanda_tangan_path
         FROM pegawai p JOIN jabatan j ON j.id_jabatan = p.id_jabatan WHERE p.nip = ?", [$nip]);
-    return $row ?? ['nama_pegawai' => '-', 'nip' => $nip, 'nama_jabatan' => '-'];
+    return $row ?? ['nama_pegawai' => '-', 'nip' => $nip, 'nama_jabatan' => '-', 'tanda_tangan_path' => null];
 }
 
 // "Atasan Langsung" (bagian VII) = level approval pertama yang beneran ke-assign
@@ -66,4 +66,10 @@ $levelPenolak = $cuti['status_cuti'] === 'Tidak Disetujui' ? cuti_current_pendin
 
 $isPppk = $cuti['jenis_asn'] === 'PPPK';
 
-cuti_docx_stream($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk);
+// ?format=pdf buat versi PDF (docx di-convert lewat LibreOffice headless -
+// lihat cuti_docx_ke_pdf()), default/lainnya tetap .docx asli.
+if (($_GET['format'] ?? '') === 'pdf') {
+    cuti_pdf_stream($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk);
+} else {
+    cuti_docx_stream($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk);
+}

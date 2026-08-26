@@ -1,5 +1,9 @@
 config/config.php
-uploads/
+uploads/*
+!uploads/.htaccess
+!uploads/ttd/
+uploads/ttd/*
+!uploads/ttd/.gitkeep
 *.log
 error_log
 .DS_Store

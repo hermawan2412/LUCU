@@ -22,6 +22,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
         'ajukan' => ['label' => 'Ajukan Cuti', 'href' => 'pengajuan_cuti.php'],
         'riwayat' => ['label' => 'Riwayat Cuti', 'href' => 'daftar_cuti.php'],
         'approval' => ['label' => 'Approval', 'href' => 'approve_cuti.php'],
+        'profil' => ['label' => 'Profil Saya', 'href' => 'profil.php'],
     ];
     $navAdmin = [
         'dashboard' => ['label' => 'Dashboard', 'href' => 'index.php'],
