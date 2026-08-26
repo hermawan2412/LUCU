@@ -43,7 +43,7 @@ use PhpOffice\PhpWord\TemplateProcessor;
 
 function cuti_docx_centang(bool $ya): string
 {
-    return $ya ? "\u{2612}" : "\u{2610}"; // ☒ / ☐
+    return $ya ? "\u{2611}" : "\u{2610}"; // ☑ / ☐
 }
 
 /**
