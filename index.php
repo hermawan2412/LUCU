@@ -18,6 +18,7 @@ $statCuti = cuti_statistik_hari_ini($db);
 </head>
 <body>
   <div class="login-shell">
+    <div class="login-bg" aria-hidden="true"><span></span><span></span><span></span></div>
     <div class="login-topleft">
       <span class="badge"><?= e(APP_INSTANSI) ?></span>
       <div class="brand-mark"><?= brand_mark_svg(28) ?><span class="wordmark"><?= e(APP_NAME) ?></span></div>
