@@ -15,9 +15,14 @@ error_reporting(E_ALL);
 ini_set('display_errors', '0'); // jangan bocorkan error ke user
 ini_set('log_errors', '1');
 
+// Secure flag otomatis nyala kalau request-nya HTTPS - jangan hardcode true,
+// biar dev lokal (HTTP, tanpa TLS) tetep bisa login.
+$httpsAktif = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+
 session_start([
     'cookie_httponly' => true,
     'cookie_samesite' => 'Lax',
+    'cookie_secure' => $httpsAktif,
 ]);
 
 $config = require __DIR__ . '/config.php';

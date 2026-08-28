@@ -130,6 +130,8 @@ CREATE TABLE `user` (
   `username` varchar(100) NOT NULL,
   `nip` varchar(225) NOT NULL COMMENT 'referensi ke pegawai.nip, bukan buat login',
   `password` varchar(255) NOT NULL COMMENT 'bcrypt hash (password_hash)',
+  `failed_attempts` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'reset ke 0 tiap login sukses',
+  `locked_until` datetime DEFAULT NULL COMMENT 'akun dikunci sementara sampai jam ini kalau gagal login beruntun',
   `role` enum('Admin','User') NOT NULL DEFAULT 'User',
   `foto` varchar(225) DEFAULT NULL,
   PRIMARY KEY (`id_user`),

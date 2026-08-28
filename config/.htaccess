@@ -1,0 +1,5 @@
+# Blok akses langsung ke folder config (kredensial DB dkk). Defense-in-depth -
+# normalnya file .php dieksekusi webserver, bukan disaji sebagai teks, tapi
+# ini jaga-jaga kalau ada webserver misconfig (mis. pindah ke nginx tanpa
+# handler PHP di path ini).
+Require all denied
