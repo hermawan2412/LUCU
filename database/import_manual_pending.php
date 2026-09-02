@@ -1,9 +1,9 @@
 <?php
 // Satu-kali lanjutan import_dari_aurat.php buat 25 pegawai yang jabatan
-// AURAT-nya teks compound (gak string-match langsung ke jabatan
-// terkontrol LUCU). Mapping NIP -> id_jabatan LUCU sudah dicek manual
-// satu-satu terhadap teks jabatan+unit_kerja AURAT (lihat riwayat sesi).
-// Read-only ke AURAT, sama seperti import_dari_aurat.php.
+// AURA-nya teks compound (gak string-match langsung ke jabatan
+// terkontrol RESTU). Mapping NIP -> id_jabatan RESTU sudah dicek manual
+// satu-satu terhadap teks jabatan+unit_kerja AURA (lihat riwayat sesi).
+// Read-only ke AURA, sama seperti import_dari_aurat.php.
 //
 //   php database/import_manual_pending.php [--terapkan]
 
@@ -23,7 +23,7 @@ echo $terapkan ? "MODE: TERAPKAN\n\n" : "MODE: PREVIEW\n\n";
 $dbLucu = db_connect($config['db']);
 $dbAurat = db_connect($config['db_aurat']);
 
-// NIP -> id_jabatan LUCU (dicocokkan manual dari jabatan+unit_kerja AURAT)
+// NIP -> id_jabatan RESTU (dicocokkan manual dari jabatan+unit_kerja AURA)
 $mapping = [
     '197807182006041015' => 17, // Abdul Muluk -> KASUBAG PERENCANAAN, TI DAN PELAPORAN
     '200010182024051002' => 20, // Achmad Adjie Al Muas -> ANALIS PERKARA PERADILAN (Hukum)
@@ -66,7 +66,7 @@ foreach ($mapping as $nip => $idJabatan) {
         FROM pegawai WHERE nip = ? AND status_aktif = 1", [$nip]);
 
     if (!$p) {
-        $gagal[] = "$nip: gak ketemu / gak aktif lagi di AURAT";
+        $gagal[] = "$nip: gak ketemu / gak aktif lagi di AURA";
         continue;
     }
 
@@ -100,5 +100,5 @@ if ($gagal) {
 }
 
 if (!$terapkan) {
-    echo "\nPreview doang. Jalankan --terapkan buat nulis ke LUCU.\n";
+    echo "\nPreview doang. Jalankan --terapkan buat nulis ke RESTU.\n";
 }

@@ -1,4 +1,4 @@
-# LUCU (Aplikasi Untuk Cuti)
+# RESTU (Rekam Elektronik Sistem cuTi Untuk aparatur)
 Pengadilan Agama Rantau — manajemen cuti pegawai online.
 
 Fork/rebuild dari MACOA (PTA Sulawesi Barat), sistem & output dipertahankan sama,

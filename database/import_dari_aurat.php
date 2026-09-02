@@ -1,14 +1,14 @@
 <?php
-// Import satu-kali data pegawai dari AURAT (192.168.100.7, tabel
-// `pegawai`) ke LUCU. Dijalankan manual dari CLI:
+// Import satu-kali data pegawai dari AURA (192.168.100.7, tabel
+// `pegawai`) ke RESTU. Dijalankan manual dari CLI:
 //   php database/import_dari_aurat.php [--terapkan]
 //
-// Tanpa --terapkan: cuma preview (dry-run), gak nulis apapun ke LUCU.
-// READ-ONLY ke AURAT - script ini gak pernah INSERT/UPDATE/DELETE ke
+// Tanpa --terapkan: cuma preview (dry-run), gak nulis apapun ke RESTU.
+// READ-ONLY ke AURA - script ini gak pernah INSERT/UPDATE/DELETE ke
 // koneksi $dbAurat, cuma SELECT.
 //
-// Jabatan AURAT itu teks bebas ("Kepala Subbagian Umum"), sementara
-// LUCU pakai daftar jabatan terkontrol (buat rute approval cuti) -
+// Jabatan AURA itu teks bebas ("Kepala Subbagian Umum"), sementara
+// RESTU pakai daftar jabatan terkontrol (buat rute approval cuti) -
 // jadi dicocokkan by name (case-insensitive). Yang gak ketemu match
 // PASTI, di-skip & dilaporkan - bukan ditebak, biar gak salah rute
 // approval siapa yang harus nyetujuin cuti siapa.
@@ -24,7 +24,7 @@ if (empty($config['db_aurat']['host'])) {
 }
 
 $terapkan = in_array('--terapkan', $argv, true);
-echo $terapkan ? "MODE: TERAPKAN (nulis ke LUCU)\n\n" : "MODE: PREVIEW (dry-run, gak nulis apapun)\n\n";
+echo $terapkan ? "MODE: TERAPKAN (nulis ke RESTU)\n\n" : "MODE: PREVIEW (dry-run, gak nulis apapun)\n\n";
 
 $dbLucu = db_connect($config['db']);
 $dbAurat = db_connect($config['db_aurat']);
@@ -44,7 +44,7 @@ foreach ($jabatanLucu as $j) {
 $pegawaiAurat = db_all($dbAurat, "SELECT nip, nama_lengkap, gelar_depan, gelar_belakang, pangkat, golongan_ruang, jabatan, unit_kerja
     FROM pegawai WHERE status_aktif = 1 ORDER BY nama_lengkap");
 
-echo count($pegawaiAurat) . " pegawai aktif ditemukan di AURAT.\n\n";
+echo count($pegawaiAurat) . " pegawai aktif ditemukan di AURA.\n\n";
 
 $masuk = 0;
 $dilewati = [];
@@ -60,7 +60,7 @@ foreach ($pegawaiAurat as $p) {
         $dilewati[] = [
             'nama' => $nama, 'nip' => $nip,
             'jabatan_aurat' => $p['jabatan'], 'golongan_aurat' => $p['golongan_ruang'],
-            'sebab' => $idJabatan === null ? 'jabatan gak ketemu match di LUCU' : 'golongan gak ketemu match di LUCU',
+            'sebab' => $idJabatan === null ? 'jabatan gak ketemu match di RESTU' : 'golongan gak ketemu match di RESTU',
         ];
         continue;
     }
@@ -82,16 +82,16 @@ echo "\n$masuk pegawai " . ($terapkan ? 'diimport/diperbarui' : 'siap diimport')
 if (!empty($dilewati)) {
     echo "\n" . count($dilewati) . " DILEWATI (jabatan/golongan gak ketemu match otomatis - tambahkan manual lewat admin/data_pegawai.php):\n";
     foreach ($dilewati as $d) {
-        printf("  - %-40s NIP %s | jabatan AURAT: \"%s\" | golongan AURAT: \"%s\" (%s)\n",
+        printf("  - %-40s NIP %s | jabatan AURA: \"%s\" | golongan AURA: \"%s\" (%s)\n",
             $d['nama'], $d['nip'], $d['jabatan_aurat'], $d['golongan_aurat'], $d['sebab']);
     }
 }
 
 if (!$terapkan) {
-    echo "\nIni cuma preview. Jalankan lagi dengan --terapkan buat benar-benar nulis ke LUCU:\n";
+    echo "\nIni cuma preview. Jalankan lagi dengan --terapkan buat benar-benar nulis ke RESTU:\n";
     echo "  php database/import_dari_aurat.php --terapkan\n";
 }
 
-echo "\nCatatan: jenis_asn (PNS/PPPK), TMT, dan hak cuti sakit/penting gak ada di AURAT -\n";
+echo "\nCatatan: jenis_asn (PNS/PPPK), TMT, dan hak cuti sakit/penting gak ada di AURA -\n";
 echo "semua pegawai baru masuk default PNS, TMT kosong. Cek & lengkapi manual kalau perlu\n";
 echo "(khususnya buat pegawai PPPK dan yang butuh cek syarat Cuti Besar/CLTN).\n";

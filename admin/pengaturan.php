@@ -76,7 +76,7 @@ layout_header('Pengaturan', '', 'admin');
     <div class="field">
       <label for="nama_aplikasi">Nama Aplikasi (singkat)</label>
       <input id="nama_aplikasi" name="nama_aplikasi" type="text" required maxlength="100" value="<?= e($p['nama_aplikasi']) ?>">
-      <p class="hint">Muncul di brand mark topbar &amp; tab browser, mis. "LUCU".</p>
+      <p class="hint">Muncul di brand mark topbar &amp; tab browser, mis. "RESTU".</p>
     </div>
     <div class="field">
       <label for="nama_lengkap">Nama Lengkap Aplikasi</label>

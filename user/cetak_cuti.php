@@ -29,14 +29,14 @@ if ($_SESSION['role'] !== 'Admin' && $cuti['nip'] !== ($_SESSION['nip'] ?? null)
  * Formulir cuti - keluaran .docx asli (phpoffice/phpword, lihat
  * includes/cuti_docx.php), bukan HTML print-to-PDF lagi. Struktur & istilah
  * ngikutin 2 dokumen resmi PA Rantau:
- * - PNS: templates/cuti.docx AURAT (LAMPIRAN II SE Sekretaris MA RI No 13/2019)
- * - PPPK: FORMAT CUTI PPPK.dotx (root LUCU) (LAMPIRAN II Kep. Sekretaris MA RI
+ * - PNS: templates/cuti.docx AURA (LAMPIRAN II SE Sekretaris MA RI No 13/2019)
+ * - PPPK: FORMAT CUTI PPPK.dotx (root RESTU) (LAMPIRAN II Kep. Sekretaris MA RI
  *   No 212/SEK/SK.KP5.3/II/2024)
  * Kertas F4 (21,59 x 33,02cm), kop & tanggal rata kanan, VII/VIII sejajar
  * kiri-kanan biar muat 1 halaman - lihat includes/cuti_docx.php buat detail
  * layout. Field yang di dokumen asli diisi manual petugas kepegawaian
  * (nomor surat, catatan cuti detail, paraf petugas) dibiarin kosong di sini
- * juga - LUCU gak punya alur pencatatan surat-menyurat.
+ * juga - RESTU gak punya alur pencatatan surat-menyurat.
  */
 function pejabat_by_nip(PDO $db, ?string $nip): array
 {
@@ -51,7 +51,7 @@ function pejabat_by_nip(PDO $db, ?string $nip): array
 // "Atasan Langsung" (bagian VII) = level approval pertama yang beneran ke-assign
 // (panmud_kasubag kalau ada, else panitera_sekretaris, else - kalau rantainya cuma
 // 1 tingkat - sama aja dengan pejabat berwenang). "Pejabat Berwenang" (bagian VIII)
-// = slot 'ketua', yang di LUCU selalu otoritas akhir (Ketua utk PNS, Sekretaris utk
+// = slot 'ketua', yang di RESTU selalu otoritas akhir (Ketua utk PNS, Sekretaris utk
 // PPPK lewat cuti_cap_chain_for_jenis_asn()), bukan berarti jabatannya harfiah Ketua.
 $atasanLangsungNip = $cuti['panmud_kasubag'] ?? $cuti['panitera_sekretaris'] ?? $cuti['ketua'];
 $atasanLangsungLevel = $cuti['panmud_kasubag'] !== null ? 'panmud_kasubag'

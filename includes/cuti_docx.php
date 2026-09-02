@@ -5,14 +5,14 @@
 // padahal aslinya numpuk ke bawah, kop jadi header malah ilang). Sekarang
 // pakai PhpWord\TemplateProcessor: isi langsung dokumen ASLI yang user edit
 // sendiri (templates/cuti_pns.docx & templates/cuti_pppk.docx, hasil salin
-// dari FORMAT CUTI PNS.docx / FORMAT CUTI PPPK.docx di root LUCU), lewat
+// dari FORMAT CUTI PNS.docx / FORMAT CUTI PPPK.docx di root RESTU), lewat
 // macro ${NAMA_PEGAWAI} dkk yg sudah disisipkan ke setiap sel "…." yang
 // datanya ada di app. Struktur, spasi, kop/header, border, semuanya persis
 // bawaan Word punya user - PHP cuma isi teksnya, gak nyusun ulang layout.
 //
 // Field yg di dokumen asli diisi manual petugas kepegawaian (nomor surat,
 // isian V. CATATAN CUTI - paraf/tahun/sisa/keterangan) sengaja TIDAK disentuh,
-// tetap "…." kosong buat ditulis tangan - LUCU gak punya alur surat-menyurat.
+// tetap "…." kosong buat ditulis tangan - RESTU gak punya alur surat-menyurat.
 //
 // Kalau nanti template docx-nya diedit ulang: JANGAN timpa langsung file di
 // templates/. Re-generate lewat proses yang sama (baca xml, sisipkan macro
