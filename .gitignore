@@ -4,6 +4,9 @@ uploads/*
 !uploads/ttd/
 uploads/ttd/*
 !uploads/ttd/.gitkeep
+!uploads/berkas_cuti/
+uploads/berkas_cuti/*
+!uploads/berkas_cuti/.gitkeep
 assets/img/*
 !assets/img/.gitkeep
 *.log

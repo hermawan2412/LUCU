@@ -94,6 +94,78 @@ function tanda_tangan_fs_path(?string $filename): ?string
 }
 
 // ============================================================
+// Berkas pendukung cuti (surat keterangan dokter) - wajib buat Cuti Sakit
+// >14 hari (lihat cuti_sakit_wajib_dokter() di includes/cuti.php), dipakai
+// dari user/pengajuan_cuti.php. Beda dari TTD/logo: bisa scan dokumen jadi
+// terima PDF juga, bukan cuma gambar. Kolom cuti_pegawai.berkas dulu ada
+// di skema tapi gak pernah kepakai (selalu diisi '' pas insert) - sekarang
+// dipakai beneran buat ini.
+// ============================================================
+
+const UPLOAD_BERKAS_MAX_BYTES = 3_000_000; // 3MB, cukup buat 1 lembar scan/foto
+const UPLOAD_BERKAS_MIME_EXT = ['application/pdf' => 'pdf', 'image/png' => 'png', 'image/jpeg' => 'jpg'];
+
+/**
+ * $idCutiPegawai: id_cutipegawai yang baru di-INSERT (dipanggil pas masih
+ * dalam transaksi yang sama - lastInsertId() sebelum commit tetep valid).
+ * Return ['ok'=>bool, 'error'=>?string, 'filename'=>?string].
+ */
+function upload_berkas_cuti(array $file, int $idCutiPegawai): array
+{
+    if (!isset($file['error']) || is_array($file['error'])) {
+        return ['ok' => false, 'error' => 'Upload tidak valid.'];
+    }
+    if ($file['error'] === UPLOAD_ERR_NO_FILE) {
+        return ['ok' => false, 'error' => 'Belum pilih file.'];
+    }
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        return ['ok' => false, 'error' => 'Upload gagal (kode error ' . $file['error'] . ').'];
+    }
+    if ($file['size'] > UPLOAD_BERKAS_MAX_BYTES) {
+        return ['ok' => false, 'error' => 'Ukuran file maksimal 3MB.'];
+    }
+    if (!is_uploaded_file($file['tmp_name'])) {
+        return ['ok' => false, 'error' => 'Upload tidak valid.'];
+    }
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+    if (!isset(UPLOAD_BERKAS_MIME_EXT[$mime])) {
+        return ['ok' => false, 'error' => 'Format file harus PDF, PNG, atau JPG.'];
+    }
+    $ext = UPLOAD_BERKAS_MIME_EXT[$mime];
+
+    $dir = __DIR__ . '/../uploads/berkas_cuti';
+    if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+        return ['ok' => false, 'error' => 'Folder upload gak bisa dibuat di server.'];
+    }
+
+    foreach (UPLOAD_BERKAS_MIME_EXT as $oldExt) {
+        $old = "$dir/$idCutiPegawai.$oldExt";
+        if (is_file($old)) {
+            unlink($old);
+        }
+    }
+
+    $filename = "$idCutiPegawai.$ext";
+    if (!move_uploaded_file($file['tmp_name'], "$dir/$filename")) {
+        return ['ok' => false, 'error' => 'Gagal menyimpan file di server.'];
+    }
+
+    return ['ok' => true, 'filename' => $filename];
+}
+
+/** URL relatif buat link unduh/lihat. $assetPrefix: '' dari root, '../' dari admin/ atau user/. */
+function berkas_cuti_url(?string $filename, string $assetPrefix = ''): ?string
+{
+    if ($filename === null || $filename === '') {
+        return null;
+    }
+    return $assetPrefix . 'uploads/berkas_cuti/' . rawurlencode($filename);
+}
+
+// ============================================================
 // Logo - admin/pengaturan.php. Dua slot terpisah pakai fungsi yg sama:
 // "logo" (brand mark aplikasi, topbar & login) dan "logo_instansi" (logo
 // PA Rantau, gantiin badge teks di halaman login). Masing-masing SATU

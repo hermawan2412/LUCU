@@ -72,6 +72,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors = array_merge($errors, cuti_validasi_jenis($db, $jenis, $lama, $ketLama, $pegawai));
     }
 
+    // Perka BKN 24/2017: Cuti Sakit >14 hari wajib surat keterangan dokter.
+    // Cek "ada file kepilih apa enggak" di sini (murah, sebelum transaksi
+    // DB) - validasi ISI filenya (MIME/ukuran, lewat upload_berkas_cuti())
+    // baru jalan setelah row ke-insert, butuh id_cutipegawai buat nama file.
+    $fileBerkas = $_FILES['berkas_dokter'] ?? ['error' => UPLOAD_ERR_NO_FILE];
+    $wajibDokter = $jenis === 'Cuti Sakit' && cuti_sakit_wajib_dokter($lama, $ketLama);
+    if (empty($errors) && $wajibDokter && ($fileBerkas['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        $errors[] = 'Cuti Sakit lebih dari 14 hari wajib melampirkan surat keterangan dokter.';
+    }
+
     if (empty($errors)) {
         $chain = cuti_approval_chain($db, (int) $pegawai['id_jabatan']);
         $chain = cuti_cap_chain_for_jenis_asn($db, $chain, $pegawai['jenis_asn'], (int) $pegawai['id_jabatan']);
@@ -113,6 +123,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $slots['panmud_kasubag']['flag'], $slots['panitera_sekretaris']['flag'], $slots['ketua']['flag'],
                         $status, $ketStatus, $kuotaTahunan, $tglIndo, $masaKerja, '', $alamatCuti, '',
                     ]);
+                $newId = (int) $db->lastInsertId();
+
+                // Simpen berkas (surat dokter) kalau ada yg dipilih - wajib
+                // ATAU opsional (jenis lain boleh lampir juga kalau mau).
+                if (($fileBerkas['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                    $hasilBerkas = upload_berkas_cuti($fileBerkas, $newId);
+                    if (!$hasilBerkas['ok']) {
+                        throw new RuntimeException($hasilBerkas['error']);
+                    }
+                    db_query($db, "UPDATE cuti_pegawai SET berkas = ? WHERE id_cutipegawai = ?", [$hasilBerkas['filename'], $newId]);
+                }
 
                 $db->commit();
 
@@ -122,6 +143,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 flash_set('success', 'Pengajuan cuti berhasil dikirim, menunggu penomoran surat oleh Kepegawaian.');
                 redirect('daftar_cuti.php');
+            } catch (RuntimeException $e) {
+                $db->rollBack();
+                $errors[] = $e->getMessage();
             } catch (Throwable $e) {
                 $db->rollBack();
                 error_log('Gagal simpan pengajuan cuti: ' . $e->getMessage());
@@ -160,7 +184,7 @@ layout_header('Ajukan Cuti', 'ajukan');
     <div class="alert alert-danger"><?= e($err) ?></div>
   <?php endforeach; ?>
 
-  <form method="POST">
+  <form method="POST" enctype="multipart/form-data">
     <?= csrf_field() ?>
     <div class="field">
       <label for="jenis_cuti">Jenis Cuti</label>
@@ -171,9 +195,9 @@ layout_header('Ajukan Cuti', 'ajukan');
         <?php endforeach; ?>
       </select>
       <?php if ($pegawai['jenis_asn'] === 'PPPK'): ?>
-        <p class="hint">Status PPPK cuma dapat 3 jenis cuti (PP 49/2018 Psl 76): Tahunan, Sakit, Melahirkan. Cuti Sakit &gt;14 hari wajib lampirkan surat keterangan dokter (serahkan manual ke bagian kepegawaian).</p>
+        <p class="hint">Status PPPK cuma dapat 3 jenis cuti (PP 49/2018 Psl 76): Tahunan, Sakit, Melahirkan. Cuti Sakit &gt;14 hari wajib lampirkan surat keterangan dokter di bawah.</p>
       <?php else: ?>
-        <p class="hint">Cuti Besar &amp; Cuti di Luar Tanggungan Negara: minimal masa kerja 5 tahun terus-menerus. Cuti Sakit &gt;14 hari wajib lampirkan surat keterangan dokter (serahkan manual ke bagian kepegawaian).</p>
+        <p class="hint">Cuti Besar &amp; Cuti di Luar Tanggungan Negara: minimal masa kerja 5 tahun terus-menerus. Cuti Sakit &gt;14 hari wajib lampirkan surat keterangan dokter di bawah.</p>
       <?php endif; ?>
     </div>
     <div class="field">
@@ -215,6 +239,11 @@ layout_header('Ajukan Cuti', 'ajukan');
     <div class="field">
       <label for="alamat_cuti">Alamat Selama Cuti</label>
       <input id="alamat_cuti" name="alamat_cuti" type="text" required value="<?= e($_POST['alamat_cuti'] ?? '') ?>">
+    </div>
+    <div class="field">
+      <label for="berkas_dokter">Surat Keterangan Dokter</label>
+      <input id="berkas_dokter" name="berkas_dokter" type="file" accept="application/pdf,image/png,image/jpeg">
+      <p class="hint">Wajib kalau Cuti Sakit lebih dari 14 hari (Perka BKN 24/2017). PDF/PNG/JPG, maksimal 3MB.</p>
     </div>
     <button type="submit" class="btn-primary" style="width:auto;padding:10px 24px;">Ajukan Cuti</button>
   </form>

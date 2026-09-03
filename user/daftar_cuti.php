@@ -64,6 +64,9 @@ layout_header('Riwayat Cuti', 'riwayat');
               <td>
                 <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.docx</a>
                 <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pdf" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.pdf</a>
+                <?php if (!empty($row['berkas'])): ?>
+                  <a href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">Surat Dokter</a>
+                <?php endif; ?>
               </td>
             </tr>
           <?php endforeach; ?>

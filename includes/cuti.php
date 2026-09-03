@@ -279,6 +279,20 @@ function cuti_potong_saldo_sakit(PDO $db, int $idPegawai, int $lama): string
 }
 
 /**
+ * Perka BKN 24/2017: Cuti Sakit >14 hari wajib lampirkan surat keterangan
+ * dokter (beda dari CUTI_SAKIT_KREDIT_TAHUNAN di atas, yang soal kredit
+ * 14 hari/tahun - ini soal syarat DOKUMEN per pengajuan). Satuan Bulan/
+ * Tahun otomatis kena krn minimal 1 bulan (~30 hari) udah pasti >14 hari.
+ */
+function cuti_sakit_wajib_dokter(int $lama, string $ketLamaCuti): bool
+{
+    if ($ketLamaCuti === 'Hari') {
+        return $lama > 14;
+    }
+    return in_array($ketLamaCuti, ['Bulan', 'Tahun'], true);
+}
+
+/**
  * Rekap cuti (Disetujui) 1 pegawai dalam 1 tahun kalender, dikelompokkan per
  * jenis_cuti + satuan (Hari/Bulan/Tahun) - gak digabung lintas satuan biar
  * gak salah jumlah (mis. "3 Hari" + "2 Bulan" gak bisa dijumlah langsung).

@@ -83,7 +83,12 @@ layout_header('Approval Cuti', 'approval');
               <td><?= e($row['jenis_cuti']) ?></td>
               <td><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?></td>
               <td><?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></td>
-              <td><?= e($row['alasan_cuti']) ?></td>
+              <td>
+                <?= e($row['alasan_cuti']) ?>
+                <?php if (!empty($row['berkas'])): ?>
+                  <br><a href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank" style="font-size:0.78rem;">Lihat Surat Dokter</a>
+                <?php endif; ?>
+              </td>
               <td>
                 <?php if ($rejectId === (int) $row['id_cutipegawai']): ?>
                   <form method="POST" style="display:flex; gap:6px; align-items:center;">

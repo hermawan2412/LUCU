@@ -258,7 +258,7 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
       <h3 style="font-size:0.95rem;margin:0 0 10px;">Tanda Tangan</h3>
       <?php if ($editing['tanda_tangan_path']): ?>
         <div style="border:1px solid var(--border,#e5e5e5);border-radius:8px;padding:12px;margin-bottom:12px;display:inline-block;">
-          <img src="<?= e(tanda_tangan_url($editing['tanda_tangan_path'])) ?>" alt="Tanda tangan" style="max-width:200px;max-height:100px;display:block;">
+          <img src="<?= e(tanda_tangan_url($editing['tanda_tangan_path'], '../')) ?>" alt="Tanda tangan" style="max-width:200px;max-height:100px;display:block;">
         </div>
         <form method="POST" style="display:inline-block;margin-left:12px;vertical-align:top;" onsubmit="return confirm('Hapus tanda tangan pegawai ini?');">
           <?= csrf_field() ?>

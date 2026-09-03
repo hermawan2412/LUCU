@@ -97,7 +97,12 @@ layout_header('Data Cuti', 'cuti', 'admin');
               <td><?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></td>
               <td><?= e($row['tgl_pengajuan']) ?></td>
               <td><span class="badge <?= cuti_status_badge_class($row['status_cuti']) ?>"><?= e($row['status_cuti']) ?></span></td>
-              <td><?= e($row['ket_status_cuti']) ?></td>
+              <td>
+                <?= e($row['ket_status_cuti']) ?>
+                <?php if (!empty($row['berkas'])): ?>
+                  <br><a href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank" style="font-size:0.78rem;">Surat Dokter</a>
+                <?php endif; ?>
+              </td>
               <td style="min-width:220px;">
                 <?php if ($row['status_cuti'] === 'Menunggu Nomor Surat'): ?>
                   <form method="POST" style="display:flex; flex-direction:column; gap:6px;">
