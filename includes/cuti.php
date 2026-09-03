@@ -34,7 +34,9 @@ function cuti_leave_types(string $jenisAsn = 'PNS'): array
         'Cuti Sakit',
         'Cuti Melahirkan',
         'Cuti Karena Alasan Penting',
-        'Cuti Bersama',
+        // 'Cuti Bersama', // dinonaktifkan sementara atas permintaan user (2026-09-03) - tinggal
+        // uncomment buat aktifin lagi. Gak nyentuh checkbox formulir cetak PNS (itu daftar
+        // terpisah, hardcode di cuti_docx.php/template docx-nya, gak baca array ini).
         'Cuti diluar Tanggungan Negara',
     ];
 }
