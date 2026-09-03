@@ -8,14 +8,25 @@ if ($pegawai === null) {
     redirect('index.php');
 }
 
-$riwayat = db_all($db, "SELECT * FROM cuti_pegawai WHERE id_pegawai = ? ORDER BY id_cutipegawai DESC", [$pegawai['id_pegawai']]);
+$jenisFilter = $_GET['jenis'] ?? '';
+$sql = "SELECT * FROM cuti_pegawai WHERE id_pegawai = ?";
+$params = [$pegawai['id_pegawai']];
+if (in_array($jenisFilter, cuti_leave_types($pegawai['jenis_asn']), true)) {
+    $sql .= " AND jenis_cuti = ?";
+    $params[] = $jenisFilter;
+}
+$sql .= " ORDER BY id_cutipegawai DESC";
+$riwayat = db_all($db, $sql, $params);
 $success = flash_get('success');
 $error = flash_get('error');
 
 layout_header('Riwayat Cuti', 'riwayat');
 ?>
 <h1>Riwayat Cuti</h1>
-<p class="lead">Daftar pengajuan cuti Anda beserta status persetujuannya.</p>
+<p class="lead">
+  Daftar pengajuan cuti Anda beserta status persetujuannya.
+  <?php if ($jenisFilter !== ''): ?> Difilter: <strong><?= e($jenisFilter) ?></strong> &middot; <a href="daftar_cuti.php">tampilkan semua</a>.<?php endif; ?>
+</p>
 
 <?php if ($success): ?>
   <div class="alert alert-success"><?= e($success) ?></div>

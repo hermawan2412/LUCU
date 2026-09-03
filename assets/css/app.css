@@ -735,6 +735,11 @@ a { color: var(--link-blue); }
   padding: 20px 22px;
 }
 
+/* Sebagian stat-tile jadi <a> (angka rekap yang bisa diklik buat liat detail
+   datanya) - reset gaya link bawaan browser, transform:none krn <a> default
+   inline gak kena block-layout tanpa ini. */
+a.stat-tile { display: block; text-decoration: none; color: inherit; cursor: pointer; }
+
 .stat-tile .num {
   font-size: 1.9rem;
   font-weight: 500;

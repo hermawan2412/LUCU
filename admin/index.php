@@ -61,12 +61,12 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
 <?php if ($flashError): ?><div class="alert alert-danger"><?= e($flashError) ?></div><?php endif; ?>
 
 <div class="stat-row">
-  <div class="stat-tile tone-blue"><div class="num"><?= (int) $totalPegawai ?></div><div class="label">Total Pegawai</div></div>
-  <div class="stat-tile tone-purple"><div class="num"><?= (int) $totalJabatan ?></div><div class="label">Jabatan</div></div>
-  <div class="stat-tile tone-teal"><div class="num"><?= (int) $totalGolongan ?></div><div class="label">Golongan</div></div>
-  <div class="stat-tile tone-amber"><div class="num"><?= (int) $pengajuanAktif ?></div><div class="label">Cuti Sedang Diajukan</div></div>
-  <div class="stat-tile <?= $kgbOverdue > 0 ? 'tone-red' : 'tone-green' ?>"><div class="num"><?= $kgbOverdue ?></div><div class="label">KGB Jatuh Tempo</div></div>
-  <div class="stat-tile <?= $knpOverdue > 0 ? 'tone-red' : 'tone-green' ?>"><div class="num"><?= $knpOverdue ?></div><div class="label">KNP Jatuh Tempo</div></div>
+  <a href="data_pegawai.php" class="stat-tile tone-blue"><div class="num"><?= (int) $totalPegawai ?></div><div class="label">Total Pegawai</div></a>
+  <a href="data_jabatan.php" class="stat-tile tone-purple"><div class="num"><?= (int) $totalJabatan ?></div><div class="label">Jabatan</div></a>
+  <a href="data_golongan.php" class="stat-tile tone-teal"><div class="num"><?= (int) $totalGolongan ?></div><div class="label">Golongan</div></a>
+  <a href="data_cuti.php?status=Diajukan" class="stat-tile tone-amber"><div class="num"><?= (int) $pengajuanAktif ?></div><div class="label">Cuti Sedang Diajukan</div></a>
+  <a href="data_kgb.php" class="stat-tile <?= $kgbOverdue > 0 ? 'tone-red' : 'tone-green' ?>"><div class="num"><?= $kgbOverdue ?></div><div class="label">KGB Jatuh Tempo</div></a>
+  <a href="data_knp.php" class="stat-tile <?= $knpOverdue > 0 ? 'tone-red' : 'tone-green' ?>"><div class="num"><?= $knpOverdue ?></div><div class="label">KNP Jatuh Tempo</div></a>
 </div>
 
 <div class="card">

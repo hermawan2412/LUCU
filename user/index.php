@@ -44,10 +44,10 @@ layout_header('Dashboard', 'dashboard');
     $kuotaTone = match ($kuotaStatus) { 'kritis' => 'tone-red', 'rendah' => 'tone-amber', default => 'tone-green' };
   ?>
   <div class="stat-row">
-    <div class="stat-tile <?= $kuotaTone ?>">
+    <a href="daftar_cuti.php" class="stat-tile <?= $kuotaTone ?>">
       <div class="num"><?= $kuotaTahunan ?></div>
       <div class="label">Sisa Cuti Tahunan<?= $adaAkumulasi ? ' (+akumulasi)' : '' ?> &middot; <span class="badge <?= kalender_kuota_badge_class($kuotaStatus) ?>"><?= kalender_kuota_label($kuotaStatus) ?></span></div>
-    </div>
+    </a>
     <div class="stat-tile tone-purple">
       <div class="num" style="font-size:1rem"><?= e($pegawai['nama_jabatan']) ?></div>
       <div class="label">Jabatan</div>
@@ -56,10 +56,10 @@ layout_header('Dashboard', 'dashboard');
       <div class="num" style="font-size:1rem"><?= e(cuti_masa_kerja($pegawai['tmt_pegawai'])) ?></div>
       <div class="label">Masa Kerja</div>
     </div>
-    <div class="stat-tile <?= $pendingCount > 0 ? 'tone-blue' : '' ?>">
+    <a href="approve_cuti.php" class="stat-tile <?= $pendingCount > 0 ? 'tone-blue' : '' ?>">
       <div class="num"><?= $pendingCount ?></div>
       <div class="label">Menunggu Approval Anda</div>
-    </div>
+    </a>
   </div>
 
   <div class="card">
@@ -77,14 +77,14 @@ layout_header('Dashboard', 'dashboard');
     <?php endif; ?>
 
     <div class="stat-row" style="margin-bottom:14px;">
-      <div class="stat-tile">
+      <a href="daftar_cuti.php?jenis=Cuti+Sakit" class="stat-tile">
         <div class="num"><?= (int) $pegawai['hak_cuti_sakit'] ?></div>
         <div class="label">Hak Cuti Sakit (hari)</div>
-      </div>
-      <div class="stat-tile">
+      </a>
+      <a href="daftar_cuti.php?jenis=Cuti+Karena+Alasan+Penting" class="stat-tile">
         <div class="num"><?= (int) $pegawai['hak_cuti_penting'] ?></div>
         <div class="label">Hak Cuti Alasan Penting (hari)</div>
-      </div>
+      </a>
     </div>
 
     <h3 style="font-size:0.95rem;margin:0 0 8px;">Cuti Terpakai Tahun <?= date('Y') ?></h3>
@@ -100,7 +100,7 @@ layout_header('Dashboard', 'dashboard');
             <?php foreach ($rekapTahunIni as $r): ?>
               <tr>
                 <td><?= e($r['jenis_cuti']) ?></td>
-                <td><?= (int) $r['jumlah_pengajuan'] ?></td>
+                <td><a href="daftar_cuti.php?jenis=<?= urlencode($r['jenis_cuti']) ?>"><?= (int) $r['jumlah_pengajuan'] ?></a></td>
                 <td><?= (int) $r['total_lama'] ?> <?= e($r['ket_lama_cuti']) ?></td>
               </tr>
             <?php endforeach; ?>
