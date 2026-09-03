@@ -75,6 +75,80 @@
   font-size: 16px;
 }
 
+/* ===== Dark mode =====
+   3 opsi (tombol toggle di topbar, lihat assets/js/app.js): Auto (ikut
+   prefers-color-scheme sistem), Terang (paksa), Gelap (paksa). Pilihan
+   manual disimpan localStorage sbg atribut data-theme di <html> - dicek
+   PALING AWAL lewat inline <script> di <head> (lihat includes/layout.php
+   & index.php) SEBELUM stylesheet ke-apply, biar gak ada kedipan tema
+   salah (FOUC) pas halaman pertama kali dimuat.
+
+   Cuma token warna netral/semantik yg dibalik - --signal/--signal-light/
+   --clay/--font-body/--radius-* TETAP SAMA di kedua tema (identitas brand
+   oranye harus konsisten, bukan bagian dari sistem terang/gelap). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #f0eee7;
+    --charcoal: #c9c5bd;
+    --slate: #9b968d;
+    --dust: #3d3a35;
+
+    --canvas: #161513;
+    --lifted: #1e1c19;
+    --surface: #211f1c;
+    --bone: #2a2723;
+    --border: rgba(255, 255, 255, 0.12);
+    --border-strong: rgba(255, 255, 255, 0.24);
+
+    --link-blue: #7ea6f5;
+
+    --success: #7cc274;
+    --success-bg: #1c2b1a;
+    --warning: #e3ac52;
+    --warning-bg: #302509;
+    --danger: #e8776a;
+    --danger-bg: #301511;
+
+    --pastel-blue-bg: #1b2a40; --pastel-blue: #7aa8ea;
+    --pastel-purple-bg: #29203e; --pastel-purple: #b48eec;
+    --pastel-teal-bg: #12302a; --pastel-teal: #4fd1ae;
+    --pastel-rose-bg: #391b26; --pastel-rose: #ec6f9a;
+
+    --shadow-1: 0 4px 24px rgba(0, 0, 0, 0.35);
+    --shadow-2: 0 24px 48px rgba(0, 0, 0, 0.5);
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #f0eee7;
+  --charcoal: #c9c5bd;
+  --slate: #9b968d;
+  --dust: #3d3a35;
+
+  --canvas: #161513;
+  --lifted: #1e1c19;
+  --surface: #211f1c;
+  --bone: #2a2723;
+  --border: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.24);
+
+  --link-blue: #7ea6f5;
+
+  --success: #7cc274;
+  --success-bg: #1c2b1a;
+  --warning: #e3ac52;
+  --warning-bg: #302509;
+  --danger: #e8776a;
+  --danger-bg: #301511;
+
+  --pastel-blue-bg: #1b2a40; --pastel-blue: #7aa8ea;
+  --pastel-purple-bg: #29203e; --pastel-purple: #b48eec;
+  --pastel-teal-bg: #12302a; --pastel-teal: #4fd1ae;
+  --pastel-rose-bg: #391b26; --pastel-rose: #ec6f9a;
+
+  --shadow-1: 0 4px 24px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 24px 48px rgba(0, 0, 0, 0.5);
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -129,7 +203,11 @@ a { color: var(--link-blue); }
   min-height: 100vh;
   position: relative;
   overflow: hidden; /* tahan blob background biar gak bikin scrollbar */
-  background: var(--ink);
+  /* Hero-nya SENGAJA selalu gelap (bukan ikut tema light/dark) - #141413
+     literal, bukan var(--ink), soalnya --ink dibalik jadi terang di dark
+     mode (dipakai jg sbg teks body) sementara panel hero ini mesti tetap
+     gelap di kedua tema. */
+  background: #141413;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -500,6 +578,29 @@ a { color: var(--link-blue); }
 }
 
 .notif-bell.has-unread svg { animation: bell-ring 2.4s ease-in-out infinite; transform-origin: top center; }
+
+/* Toggle tema: 1 tombol, klik gonta-ganti Auto -> Terang -> Gelap -> Auto
+   (lihat assets/js/app.js). Ikon & label brebeda per state, dikontrol JS
+   lewat data-mode di elemen ini (bukan 3 tombol terpisah). */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--bone);
+  color: var(--ink);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.theme-toggle:hover { background: var(--pastel-purple-bg); color: var(--pastel-purple); transform: scale(1.06); }
+.theme-toggle svg { display: block; }
+.theme-toggle .icon-auto, .theme-toggle .icon-light, .theme-toggle .icon-dark { display: none; }
+.theme-toggle[data-mode="auto"] .icon-auto,
+.theme-toggle[data-mode="light"] .icon-light,
+.theme-toggle[data-mode="dark"] .icon-dark { display: block; }
 
 @keyframes bell-ring {
   0%, 88%, 100% { transform: rotate(0deg); }

@@ -13,6 +13,25 @@ function layout_bell_svg(): string
     </svg>';
 }
 
+/** Tombol toggle tema (Auto/Terang/Gelap) - state awal di-render "auto" krn PHP gak tau localStorage,
+ * app.js langsung koreksi data-mode-nya di awal load sebelum keliatan (lihat theme-init inline script). */
+function layout_theme_toggle_svg(): string
+{
+    return '<button type="button" class="theme-toggle" data-mode="auto" title="Tema" aria-label="Ganti tema">
+        <svg class="icon-auto" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor"/>
+        </svg>
+        <svg class="icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M12 2.5v2.5M12 19v2.5M21.5 12H19M5 12H2.5M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3 5.5 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <svg class="icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+    </button>';
+}
+
 function layout_header(string $title, string $active = '', string $section = 'user'): void
 {
     global $db;
@@ -54,6 +73,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e(APP_NAME) ?> | <?= e($title) ?></title>
+  <script>(function(){try{var m=localStorage.getItem('restu-theme');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m);}catch(e){}})();</script>
   <link rel="stylesheet" href="../assets/css/app.css">
 </head>
 <body>
@@ -72,6 +92,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
       <a href="../logout.php">Keluar</a>
     </nav>
     <div style="display:flex; align-items:center; gap:10px;">
+      <?= layout_theme_toggle_svg() ?>
       <a href="<?= e($bellHref) ?>" class="notif-bell<?= $bellCount > 0 ? ' has-unread' : '' ?>" title="<?= $section === 'admin' ? 'Cuti sedang diajukan' : 'Notifikasi' ?>">
         <?= layout_bell_svg() ?>
         <?php if ($bellCount > 0): ?><span class="notif-count"><?= $bellCount > 9 ? '9+' : $bellCount ?></span><?php endif; ?>
