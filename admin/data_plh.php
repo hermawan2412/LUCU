@@ -11,7 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'delete') {
         $id = (int) ($_POST['id_plh'] ?? 0);
+        $detail = db_one($db, "SELECT j.nama_jabatan, p.nama_pegawai FROM plh_jabatan pl
+            JOIN jabatan j ON j.id_jabatan = pl.id_jabatan
+            JOIN pegawai p ON p.id_pegawai = pl.id_pegawai
+            WHERE pl.id_plh = ?", [$id]);
         db_query($db, "DELETE FROM plh_jabatan WHERE id_plh = ?", [$id]);
+        log_aktivitas($db, 'delete_plh', $detail ? "Hapus penugasan Plh/Plt {$detail['nama_pegawai']} utk {$detail['nama_jabatan']}" : '');
         flash_set('success', 'Penugasan Plh/Plt dihapus.');
         redirect('data_plh.php');
     } else {
@@ -46,11 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($errors) && $action === 'create') {
             db_query($db, "INSERT INTO plh_jabatan (id_jabatan, id_pegawai, jenis, tanggal_mulai, tanggal_selesai, keterangan)
                 VALUES (?,?,?,?,?,?)", [$idJabatan, $idPegawai, $jenis, $mulai, $selesai, $ket ?: null]);
+            log_aktivitas($db, 'create_plh', "Tambah penugasan $jenis (jabatan #$idJabatan, pegawai #$idPegawai, mulai $mulai)");
             flash_set('success', 'Penugasan Plh/Plt ditambahkan.');
             redirect('data_plh.php');
         } elseif (empty($errors) && $action === 'update') {
             db_query($db, "UPDATE plh_jabatan SET id_jabatan=?, id_pegawai=?, jenis=?, tanggal_mulai=?, tanggal_selesai=?, keterangan=? WHERE id_plh=?",
                 [$idJabatan, $idPegawai, $jenis, $mulai, $selesai, $ket ?: null, $id]);
+            log_aktivitas($db, 'update_plh', "Ubah penugasan $jenis id #$id (jabatan #$idJabatan, pegawai #$idPegawai)");
             flash_set('success', 'Penugasan Plh/Plt diperbarui.');
             redirect('data_plh.php');
         }

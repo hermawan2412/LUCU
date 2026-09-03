@@ -21,7 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Golongan masih jadi tujuan $dipakaiKnp catatan KNP, tidak bisa dihapus.";
         } else {
             try {
+                $namaDihapus = db_one($db, "SELECT nama_golongan FROM golongan WHERE id_golongan = ?", [$id])['nama_golongan'] ?? "#$id";
                 db_query($db, "DELETE FROM golongan WHERE id_golongan = ?", [$id]);
+                log_aktivitas($db, 'delete_golongan', "Hapus golongan \"$namaDihapus\"");
                 flash_set('success', 'Golongan dihapus.');
                 redirect('data_golongan.php');
             } catch (PDOException $e) {
@@ -35,11 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if (empty($errors) && $action === 'create') {
             db_query($db, "INSERT INTO golongan (nama_golongan, jenis_asn) VALUES (?, ?)", [$nama, $jenisAsn]);
+            log_aktivitas($db, 'create_golongan', "Tambah golongan \"$nama\" ($jenisAsn)");
             flash_set('success', 'Golongan ditambahkan.');
             redirect('data_golongan.php');
         } elseif (empty($errors) && $action === 'update') {
             $id = (int) ($_POST['id_golongan'] ?? 0);
             db_query($db, "UPDATE golongan SET nama_golongan = ?, jenis_asn = ? WHERE id_golongan = ?", [$nama, $jenisAsn, $id]);
+            log_aktivitas($db, 'update_golongan', "Ubah golongan \"$nama\" ($jenisAsn)");
             flash_set('success', 'Golongan diperbarui.');
             redirect('data_golongan.php');
         }

@@ -594,6 +594,8 @@ function cuti_approve(PDO $db, array $row, string $approverNip, bool $ttdManual 
             notifikasi_kirim($db, $updated[$nextLevel], "Pengajuan {$row['jenis_cuti']} dari {$pemohon['nama_pegawai']} menunggu approval Anda.", 'approve_cuti.php');
         }
 
+        log_aktivitas($db, 'approve_cuti', "Approve level $level, {$row['jenis_cuti']} milik {$pemohon['nama_pegawai']}" . ($nextLevel === null ? ' (final, Disetujui)' : ''));
+
         $db->commit();
         return true;
     } catch (Throwable $e) {
@@ -612,8 +614,9 @@ function cuti_reject(PDO $db, array $row, string $approverNip, string $alasan): 
 
     db_query($db, "UPDATE cuti_pegawai SET status_cuti = 'Tidak Disetujui', ket_status_cuti = ? WHERE id_cutipegawai = ?", [$alasan, $row['id_cutipegawai']]);
 
-    $pemohonNip = db_one($db, "SELECT nip FROM pegawai WHERE id_pegawai = ?", [$row['id_pegawai']])['nip'];
-    notifikasi_kirim($db, $pemohonNip, "Pengajuan {$row['jenis_cuti']} Anda ditolak: $alasan", 'daftar_cuti.php');
+    $pemohon = db_one($db, "SELECT nip, nama_pegawai FROM pegawai WHERE id_pegawai = ?", [$row['id_pegawai']]);
+    notifikasi_kirim($db, $pemohon['nip'], "Pengajuan {$row['jenis_cuti']} Anda ditolak: $alasan", 'daftar_cuti.php');
+    log_aktivitas($db, 'reject_cuti', "Tolak level $level, {$row['jenis_cuti']} milik {$pemohon['nama_pegawai']}: $alasan");
 
     return true;
 }

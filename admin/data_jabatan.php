@@ -48,7 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Jabatan ini ditandai sebagai pemberi izin cuti akhir PPPK, pindahkan tandanya ke jabatan lain dulu sebelum dihapus.';
         } else {
             try {
+                $namaDihapus = db_one($db, "SELECT nama_jabatan FROM jabatan WHERE id_jabatan = ?", [$id])['nama_jabatan'] ?? "#$id";
                 db_query($db, "DELETE FROM jabatan WHERE id_jabatan = ?", [$id]);
+                log_aktivitas($db, 'delete_jabatan', "Hapus jabatan \"$namaDihapus\"");
                 flash_set('success', 'Jabatan dihapus.');
                 redirect('data_jabatan.php');
             } catch (PDOException $e) {
@@ -75,6 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 db_query($db, "UPDATE jabatan SET is_pejabat_pppk = 0");
             }
             db_query($db, "INSERT INTO jabatan (nama_jabatan, id_atasan, is_pejabat_pppk) VALUES (?, ?, ?)", [$nama, $idAtasan, $isPejabatPppk]);
+            log_aktivitas($db, 'create_jabatan', "Tambah jabatan \"$nama\"");
             flash_set('success', 'Jabatan ditambahkan.');
             redirect('data_jabatan.php');
         } elseif (empty($errors) && $action === 'update') {
@@ -82,6 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 db_query($db, "UPDATE jabatan SET is_pejabat_pppk = 0 WHERE id_jabatan != ?", [$id]);
             }
             db_query($db, "UPDATE jabatan SET nama_jabatan = ?, id_atasan = ?, is_pejabat_pppk = ? WHERE id_jabatan = ?", [$nama, $idAtasan, $isPejabatPppk, $id]);
+            log_aktivitas($db, 'update_jabatan', "Ubah jabatan \"$nama\"");
             flash_set('success', 'Jabatan diperbarui.');
             redirect('data_jabatan.php');
         }

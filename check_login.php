@@ -18,9 +18,11 @@ if ($username === '' || $password === '') {
 $user = auth_attempt($db, $username, $password);
 
 if ($user === null) {
+    log_aktivitas($db, 'login_gagal', "Percobaan login username \"$username\"", null, $username);
     flash_set('error', 'Username atau kata sandi salah.');
     redirect('index.php');
 }
 
 auth_login($user);
+log_aktivitas($db, 'login', '', $user['nip'], $user['username']);
 redirect($user['role'] === 'Admin' ? 'admin/index.php' : 'user/index.php');

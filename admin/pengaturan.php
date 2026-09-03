@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($errors)) {
             db_query($db, "UPDATE pengaturan SET nama_aplikasi=?, nama_lengkap=?, instansi=? WHERE id_pengaturan = 1",
                 [$namaAplikasi, $namaLengkap, $instansi]);
+            log_aktivitas($db, 'update_pengaturan', 'Ubah identitas aplikasi/instansi');
             flash_set('success', 'Pengaturan disimpan.');
             redirect('pengaturan.php');
         }
@@ -34,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 logo_hapus($lama); // beda ekstensi dari upload sebelumnya - bersihin filenya
             }
             db_query($db, "UPDATE pengaturan SET logo_path=? WHERE id_pengaturan = 1", [$hasil['filename']]);
+            log_aktivitas($db, 'update_pengaturan', 'Ganti logo aplikasi');
             flash_set('success', 'Logo berhasil diganti.');
             redirect('pengaturan.php');
         }
@@ -41,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $lama = db_one($db, "SELECT logo_path FROM pengaturan WHERE id_pengaturan = 1")['logo_path'] ?? null;
         logo_hapus($lama);
         db_query($db, "UPDATE pengaturan SET logo_path=NULL WHERE id_pengaturan = 1");
+        log_aktivitas($db, 'update_pengaturan', 'Hapus logo aplikasi');
         flash_set('success', 'Logo dihapus, kembali ke ikon bawaan.');
         redirect('pengaturan.php');
     } elseif ($action === 'logo_instansi') {
@@ -53,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 logo_hapus($lama);
             }
             db_query($db, "UPDATE pengaturan SET logo_instansi_path=? WHERE id_pengaturan = 1", [$hasil['filename']]);
+            log_aktivitas($db, 'update_pengaturan', 'Ganti logo instansi');
             flash_set('success', 'Logo instansi berhasil diganti.');
             redirect('pengaturan.php');
         }
@@ -60,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $lama = db_one($db, "SELECT logo_instansi_path FROM pengaturan WHERE id_pengaturan = 1")['logo_instansi_path'] ?? null;
         logo_hapus($lama);
         db_query($db, "UPDATE pengaturan SET logo_instansi_path=NULL WHERE id_pengaturan = 1");
+        log_aktivitas($db, 'update_pengaturan', 'Hapus logo instansi');
         flash_set('success', 'Logo instansi dihapus, kembali ke teks nama instansi.');
         redirect('pengaturan.php');
     } elseif ($action === 'whatsapp') {
@@ -72,6 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($errors)) {
             db_query($db, "UPDATE pengaturan SET wa_aktif=?, wa_fonnte_token=? WHERE id_pengaturan = 1", [$waAktif, $waToken]);
+            log_aktivitas($db, 'update_pengaturan', 'Ubah pengaturan notifikasi WhatsApp (aktif=' . ($waAktif ? 'ya' : 'tidak') . ')');
             flash_set('success', 'Pengaturan WhatsApp disimpan.');
             redirect('pengaturan.php');
         }

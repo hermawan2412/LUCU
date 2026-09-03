@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 db_query($db, "INSERT INTO user (username, nip, password, role) VALUES (?, ?, ?, ?)",
                     [$username, $pegawai['nip'], password_hash($password, PASSWORD_BCRYPT), $role]);
+                log_aktivitas($db, 'create_akun', "Buat akun \"$username\" ($role) buat {$pegawai['nama_pegawai']}");
                 flash_set('success', "Akun \"$username\" dibuat buat {$pegawai['nama_pegawai']}.");
                 redirect('data_user.php');
             }
@@ -39,7 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (strlen($password) < 6) {
             $errors[] = 'Kata sandi minimal 6 karakter.';
         } else {
+            $targetUsername = db_one($db, "SELECT username FROM user WHERE id_user = ?", [$idUser])['username'] ?? "#$idUser";
             db_query($db, "UPDATE user SET password = ? WHERE id_user = ?", [password_hash($password, PASSWORD_BCRYPT), $idUser]);
+            log_aktivitas($db, 'reset_password', "Reset kata sandi akun \"$targetUsername\"");
             flash_set('success', 'Kata sandi direset.');
             redirect('data_user.php');
         }
@@ -48,7 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ((int) $idUser === (int) ($_SESSION['id_user'] ?? 0)) {
             $errors[] = 'Gak bisa hapus akun sendiri yang lagi dipakai login.';
         } else {
+            $targetUsername = db_one($db, "SELECT username FROM user WHERE id_user = ?", [$idUser])['username'] ?? "#$idUser";
             db_query($db, "DELETE FROM user WHERE id_user = ?", [$idUser]);
+            log_aktivitas($db, 'delete_akun', "Hapus akun \"$targetUsername\"");
             flash_set('success', 'Akun dihapus.');
             redirect('data_user.php');
         }

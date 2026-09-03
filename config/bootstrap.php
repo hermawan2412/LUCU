@@ -15,6 +15,19 @@ error_reporting(E_ALL);
 ini_set('display_errors', '0'); // jangan bocorkan error ke user
 ini_set('log_errors', '1');
 
+// error_log() di seluruh app (banyak dipakai buat catch(Throwable) silent-fail
+// - lihat wa_kirim()/notifikasi_kirim()/dst) butuh tujuan file eksplisit.
+// Tanpa ini, ikut default php.ini yang di server ini gak diset sama sekali
+// DAN php-fpm pool `catch_workers_output` default off - artinya SEMUA
+// error_log() app selama ini kebuang gitu aja (dicek 2026-09, gak pernah
+// nyampe mana pun). storage/ diblok akses web lewat nginx (lihat config
+// deploy), sama pola kayak config/includes/database/vendor/templates.
+$logDir = __DIR__ . '/../storage';
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+ini_set('error_log', $logDir . '/app.log');
+
 // Secure flag otomatis nyala kalau request-nya HTTPS - jangan hardcode true,
 // biar dev lokal (HTTP, tanpa TLS) tetep bisa login.
 $httpsAktif = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
@@ -51,6 +64,7 @@ require_once __DIR__ . '/../includes/export.php';
 require_once __DIR__ . '/../includes/upload.php';
 require_once __DIR__ . '/../includes/whatsapp.php';
 require_once __DIR__ . '/../includes/notifikasi.php';
+require_once __DIR__ . '/../includes/log.php';
 require_once __DIR__ . '/../includes/layout.php';
 
 $db = db_connect($config['db']);

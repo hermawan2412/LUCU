@@ -290,6 +290,24 @@ INSERT INTO `pengaturan` (`id_pengaturan`, `nama_aplikasi`, `nama_lengkap`, `ins
 
 -- --------------------------------------------------------
 
+-- Log aktivitas/audit - siapa ngapain kapan (login, CRUD admin, approve/
+-- reject cuti). Cuma bisa diliat lewat admin/data_log.php (Admin-only) -
+-- lihat includes/log.php buat titik panggilnya.
+CREATE TABLE `log_aktivitas` (
+  `id_log` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `nip` varchar(225) DEFAULT NULL COMMENT 'NULL kalau login gagal (username gak ketemu)',
+  `username` varchar(100) NOT NULL,
+  `aksi` varchar(50) NOT NULL COMMENT 'kode singkat mis. login/login_gagal/logout/create_pegawai/approve_cuti',
+  `keterangan` varchar(255) NOT NULL DEFAULT '',
+  `ip_address` varchar(45) NOT NULL DEFAULT '',
+  `dibuat_pada` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_log`),
+  KEY `aksi` (`aksi`),
+  KEY `dibuat_pada` (`dibuat_pada`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
 -- Hari libur nasional, disinkron dari API publik (date.nager.at, dataset
 -- Nager.Date, bukan hardcode di kode - kalender pemerintah berubah tiap
 -- tahun). tahun_sinkron dipakai buat cek "tahun ini udah pernah

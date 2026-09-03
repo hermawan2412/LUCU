@@ -53,6 +53,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
         'kgb' => ['label' => 'KGB', 'href' => 'data_kgb.php'],
         'knp' => ['label' => 'KNP', 'href' => 'data_knp.php'],
         'akun' => ['label' => 'Kelola Akun', 'href' => 'data_user.php'],
+        'log' => ['label' => 'Log', 'href' => 'data_log.php'],
         'pengaturan' => ['label' => 'Pengaturan', 'href' => 'pengaturan.php'],
     ];
     $nav = $section === 'admin' ? $navAdmin : $navUser;

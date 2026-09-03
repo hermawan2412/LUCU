@@ -22,8 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'delete') {
         $id = (int) ($_POST['id_pegawai'] ?? 0);
         $row = db_one($db, "SELECT tanda_tangan_path FROM pegawai WHERE id_pegawai = ?", [$id]);
+        $namaDihapus = db_one($db, "SELECT nama_pegawai FROM pegawai WHERE id_pegawai = ?", [$id])['nama_pegawai'] ?? "#$id";
         tanda_tangan_hapus($row['tanda_tangan_path'] ?? null);
         db_query($db, "DELETE FROM pegawai WHERE id_pegawai = ?", [$id]);
+        log_aktivitas($db, 'delete_pegawai', "Hapus pegawai \"$namaDihapus\"");
         flash_set('success', 'Data pegawai dihapus.');
         redirect('data_pegawai.php');
     }
@@ -89,11 +91,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 db_query($db, "INSERT INTO pegawai (nama_pegawai, nip, id_jabatan, id_golongan, jenis_asn, unit_kerja, tmt_pegawai, hak_cuti_tahunan, cuti_tahunan_n1, cuti_tahunan_n2, cuti_tahunan_rollover_tahun, hak_cuti_sakit, hak_cuti_penting, no_telp)
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     [$nama, $nip, $idJabatan, $idGolongan, $jenisAsn, $unitKerja, $tmtValue, $hakTahunan, $cutiN1, $cutiN2, $tahunIni, $hakSakit, $hakPenting, $noTelp]);
+                log_aktivitas($db, 'create_pegawai', "Tambah pegawai \"$nama\" (NIP $nip)");
                 flash_set('success', 'Pegawai ditambahkan.');
                 redirect('data_pegawai.php');
             } elseif ($action === 'update') {
                 db_query($db, "UPDATE pegawai SET nama_pegawai=?, nip=?, id_jabatan=?, id_golongan=?, jenis_asn=?, unit_kerja=?, tmt_pegawai=?, hak_cuti_tahunan=?, cuti_tahunan_n1=?, cuti_tahunan_n2=?, hak_cuti_sakit=?, hak_cuti_penting=?, no_telp=? WHERE id_pegawai=?",
                     [$nama, $nip, $idJabatan, $idGolongan, $jenisAsn, $unitKerja, $tmtValue, $hakTahunan, $cutiN1, $cutiN2, $hakSakit, $hakPenting, $noTelp, $id]);
+                log_aktivitas($db, 'update_pegawai', "Ubah data pegawai \"$nama\" (NIP $nip)");
                 flash_set('success', 'Data pegawai diperbarui.');
                 redirect('data_pegawai.php');
             }
