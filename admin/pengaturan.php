@@ -24,6 +24,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash_set('success', 'Pengaturan disimpan.');
             redirect('pengaturan.php');
         }
+    } elseif ($action === 'logo') {
+        $hasil = upload_logo($_FILES['logo'] ?? []);
+        if (!$hasil['ok']) {
+            $errors[] = $hasil['error'];
+        } else {
+            $lama = db_one($db, "SELECT logo_path FROM pengaturan WHERE id_pengaturan = 1")['logo_path'] ?? null;
+            if ($lama !== null && $lama !== $hasil['filename']) {
+                logo_hapus($lama); // beda ekstensi dari upload sebelumnya - bersihin filenya
+            }
+            db_query($db, "UPDATE pengaturan SET logo_path=? WHERE id_pengaturan = 1", [$hasil['filename']]);
+            flash_set('success', 'Logo berhasil diganti.');
+            redirect('pengaturan.php');
+        }
+    } elseif ($action === 'logo_hapus') {
+        $lama = db_one($db, "SELECT logo_path FROM pengaturan WHERE id_pengaturan = 1")['logo_path'] ?? null;
+        logo_hapus($lama);
+        db_query($db, "UPDATE pengaturan SET logo_path=NULL WHERE id_pengaturan = 1");
+        flash_set('success', 'Logo dihapus, kembali ke ikon bawaan.');
+        redirect('pengaturan.php');
     } elseif ($action === 'whatsapp') {
         $waAktif = isset($_POST['wa_aktif']) ? 1 : 0;
         $waToken = trim($_POST['wa_fonnte_token'] ?? '');
@@ -93,8 +112,36 @@ layout_header('Pengaturan', '', 'admin');
 </div>
 
 <div class="card">
-  <h2 style="margin:0 0 8px;">Logo</h2>
-  <p class="lead" style="margin-bottom:0;">Upload logo instansi &mdash; menyusul. Sementara ini brand mark pakai ikon perisai bawaan.</p>
+  <h2 style="margin:0 0 16px;">Logo</h2>
+  <p class="lead">Tampil sebagai brand mark di topbar &amp; halaman login, gantiin ikon perisai bawaan.</p>
+
+  <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+    <div style="width:56px; height:56px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border,#e5e5e5); border-radius:8px;">
+      <?= brand_mark_svg(40, '../') ?>
+    </div>
+    <span class="hint" style="margin:0;">
+      <?= APP_LOGO_PATH ? 'Logo saat ini sudah diupload.' : 'Belum ada logo — masih pakai ikon bawaan.' ?>
+    </span>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="logo">
+    <div class="field">
+      <label for="logo">Berkas Logo (PNG atau JPG, maks 2MB)</label>
+      <input id="logo" name="logo" type="file" accept="image/png,image/jpeg" required>
+      <p class="hint">Idealnya persegi (mis. 256&times;256px), latar transparan (PNG) supaya rapi di topbar gelap maupun terang.</p>
+    </div>
+    <button type="submit" class="btn-primary" style="width:auto;padding:12px 24px;">Unggah Logo</button>
+  </form>
+
+  <?php if (APP_LOGO_PATH): ?>
+    <form method="POST" style="margin-top:12px;" onsubmit="return confirm('Hapus logo dan kembali ke ikon bawaan?');">
+      <?= csrf_field() ?>
+      <input type="hidden" name="action" value="logo_hapus">
+      <button type="submit" class="btn-secondary" style="width:auto;padding:10px 20px;">Hapus Logo</button>
+    </form>
+  <?php endif; ?>
 </div>
 
 <div class="card">

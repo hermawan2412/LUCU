@@ -18,7 +18,12 @@ function e(?string $value): string
 function brand_mark_svg(int $size = 26, string $assetPrefix = ''): string
 {
     if (defined('APP_LOGO_PATH') && APP_LOGO_PATH) {
-        $src = e($assetPrefix . 'assets/img/' . APP_LOGO_PATH);
+        $fsPath = __DIR__ . '/../assets/img/' . basename(APP_LOGO_PATH);
+        // Nama file logo tetap ("logo.png") walau gantiin file lama - tanpa
+        // cache-buster browser bisa nampilin logo LAMA dari cache abis
+        // admin ganti logo baru. mtime file sbg query string, gratis & akurat.
+        $versi = is_file($fsPath) ? '?v=' . filemtime($fsPath) : '';
+        $src = e($assetPrefix . 'assets/img/' . APP_LOGO_PATH) . $versi;
         return "<img src=\"$src\" width=\"$size\" height=\"$size\" alt=\"\" style=\"object-fit:contain;\">";
     }
 

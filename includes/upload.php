@@ -92,3 +92,73 @@ function tanda_tangan_fs_path(?string $filename): ?string
     $path = __DIR__ . '/../uploads/ttd/' . basename($filename);
     return is_file($path) ? $path : null;
 }
+
+// ============================================================
+// Logo instansi (brand mark di topbar/login) - admin/pengaturan.php.
+// Satu logo global (bukan per-pegawai kayak tanda tangan), disimpan di
+// assets/img/ dgn nama tetap "logo.{ext}" - upload baru selalu menimpa/
+// mengganti ekstensi yang lama. Pola validasi (MIME asli via finfo, bukan
+// percaya ekstensi/Content-Type) sama persis dgn upload_tanda_tangan().
+// ============================================================
+
+const UPLOAD_LOGO_MAX_BYTES = 2_000_000; // 2MB
+const UPLOAD_LOGO_MIME_EXT = ['image/png' => 'png', 'image/jpeg' => 'jpg'];
+
+/** Return ['ok'=>bool, 'error'=>?string, 'filename'=>?string]. $filename = nama file di assets/img/ (bukan path penuh). */
+function upload_logo(array $file): array
+{
+    if (!isset($file['error']) || is_array($file['error'])) {
+        return ['ok' => false, 'error' => 'Upload tidak valid.'];
+    }
+    if ($file['error'] === UPLOAD_ERR_NO_FILE) {
+        return ['ok' => false, 'error' => 'Belum pilih file.'];
+    }
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        return ['ok' => false, 'error' => 'Upload gagal (kode error ' . $file['error'] . ').'];
+    }
+    if ($file['size'] > UPLOAD_LOGO_MAX_BYTES) {
+        return ['ok' => false, 'error' => 'Ukuran file maksimal 2MB.'];
+    }
+    if (!is_uploaded_file($file['tmp_name'])) {
+        return ['ok' => false, 'error' => 'Upload tidak valid.'];
+    }
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+    if (!isset(UPLOAD_LOGO_MIME_EXT[$mime])) {
+        return ['ok' => false, 'error' => 'Format file harus PNG atau JPG.'];
+    }
+    $ext = UPLOAD_LOGO_MIME_EXT[$mime];
+
+    $dir = __DIR__ . '/../assets/img';
+    if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+        return ['ok' => false, 'error' => 'Folder upload gak bisa dibuat di server.'];
+    }
+
+    // Hapus logo lama (mungkin beda ekstensi dari yang baru).
+    foreach (UPLOAD_LOGO_MIME_EXT as $oldExt) {
+        $old = "$dir/logo.$oldExt";
+        if (is_file($old)) {
+            unlink($old);
+        }
+    }
+
+    $filename = "logo.$ext";
+    if (!move_uploaded_file($file['tmp_name'], "$dir/$filename")) {
+        return ['ok' => false, 'error' => 'Gagal menyimpan file di server.'];
+    }
+
+    return ['ok' => true, 'filename' => $filename];
+}
+
+function logo_hapus(?string $filename): void
+{
+    if ($filename === null || $filename === '') {
+        return;
+    }
+    $path = __DIR__ . '/../assets/img/' . basename($filename);
+    if (is_file($path)) {
+        unlink($path);
+    }
+}
