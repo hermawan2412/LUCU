@@ -19,6 +19,15 @@ ini_set('log_errors', '1');
 // biar dev lokal (HTTP, tanpa TLS) tetep bisa login.
 $httpsAktif = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 
+// Base URL absolut (buat link "Buka" di notifikasi WhatsApp - link relatif
+// gak bisa diklik dari luar aplikasi). Diturunkan dari HTTP_HOST request
+// yang lagi jalan, bukan hardcode - otomatis benar baik di dev (localhost)
+// maupun produksi (restu.pa-rantau.go.id). Kosong kalau dipanggil dari CLI
+// (gak ada request HTTP) - notifikasi_kirim() skip nambahin link kalau gini.
+define('APP_URL', isset($_SERVER['HTTP_HOST'])
+    ? ($httpsAktif ? 'https://' : 'http://') . $_SERVER['HTTP_HOST']
+    : '');
+
 session_start([
     'cookie_httponly' => true,
     'cookie_samesite' => 'Lax',

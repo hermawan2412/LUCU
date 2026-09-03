@@ -15,7 +15,16 @@ function notifikasi_kirim(PDO $db, string $nip, string $pesan, string $url = '')
     try {
         $pegawai = db_one($db, "SELECT no_telp FROM pegawai WHERE nip = ?", [$nip]);
         if ($pegawai !== null) {
-            wa_kirim($db, $pegawai['no_telp'], $pesan);
+            $pesanWa = $pesan;
+            // $url disimpan relatif ke folder user/ (dipakai user/notifikasi.php
+            // buat href di halaman - lihat call site di includes/cuti.php &
+            // user/pengajuan_cuti.php). Buat WA, harus link ABSOLUT biar bisa
+            // langsung diklik dari luar aplikasi (APP_URL kosong kalau
+            // dipanggil dari CLI - skip link, tetep kirim teksnya).
+            if ($url !== '' && APP_URL !== '') {
+                $pesanWa .= "\n\nBuka: " . APP_URL . '/user/' . $url;
+            }
+            wa_kirim($db, $pegawai['no_telp'], $pesanWa);
         }
     } catch (Throwable $e) {
         error_log('Gagal kirim notifikasi WA: ' . $e->getMessage());
