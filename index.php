@@ -14,6 +14,16 @@ $statCuti = cuti_statistik_hari_ini($db);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e(APP_NAME) ?> | Login</title>
+  <!-- og:title/description doang, SENGAJA gak ada og:image - link "Buka: ..."
+       di notifikasi WA (lihat includes/notifikasi.php) ngarah ke halaman yg
+       butuh login, jadi crawler preview WA/link-unfurler bakal ke-redirect
+       ke halaman login INI (satu-satunya halaman yg keliatan tanpa sesi).
+       Tanpa og:image eksplisit, sebagian crawler bisa fallback nebak-nebak
+       ambil <img> gede pertama di halaman (logo instansi 110px) buat
+       thumbnail preview - bikin pesan WA jadi berat/gak minimal. Deklarasi
+       eksplisit di sini nyegah itu, teks doang yang tampil di preview link. -->
+  <meta property="og:title" content="<?= e(APP_NAME) ?>">
+  <meta property="og:description" content="<?= e(APP_FULL_NAME) ?>">
   <link rel="stylesheet" href="assets/css/app.css">
 </head>
 <body>
