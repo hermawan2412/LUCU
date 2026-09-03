@@ -538,11 +538,11 @@ a { color: var(--link-blue); }
 .topbar nav a:hover { color: var(--ink); background: var(--bone); }
 
 .topbar nav a.active {
-  /* var(--canvas), bukan hardcode #fff - --ink kebalik jadi TERANG di dark
-     mode (lihat token block), jadi teks harus ikut kebalik juga biar tetep
-     kontras (sama pola kayak .btn-primary). #fff bikin teks putih ilang di
-     atas pill terang pas dark mode. */
-  color: var(--canvas);
+  /* var(--signal) - brand-orange, sengaja gak ikut kebalik antar tema
+     (lihat token block: --signal dikecualikan dari flip dark mode), jadi
+     teks menu aktif selalu oranye & kontras di kedua tema tanpa perlu
+     override terpisah buat dark mode. */
+  color: var(--signal);
   background: var(--ink);
 }
 
