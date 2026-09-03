@@ -95,8 +95,8 @@ function tanda_tangan_fs_path(?string $filename): ?string
 
 // ============================================================
 // Berkas pendukung cuti (surat keterangan dokter) - wajib buat Cuti Sakit
-// >14 hari (lihat cuti_sakit_wajib_dokter() di includes/cuti.php), dipakai
-// dari user/pengajuan_cuti.php. Beda dari TTD/logo: bisa scan dokumen jadi
+// lebih dari 1 hari (lihat cuti_sakit_wajib_dokter() di includes/cuti.php),
+// dipakai dari user/pengajuan_cuti.php. Beda dari TTD/logo: bisa scan dokumen jadi
 // terima PDF juga, bukan cuma gambar. Kolom cuti_pegawai.berkas dulu ada
 // di skema tapi gak pernah kepakai (selalu diisi '' pas insert) - sekarang
 // dipakai beneran buat ini.

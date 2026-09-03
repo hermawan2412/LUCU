@@ -72,14 +72,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors = array_merge($errors, cuti_validasi_jenis($db, $jenis, $lama, $ketLama, $pegawai));
     }
 
-    // Perka BKN 24/2017: Cuti Sakit >14 hari wajib surat keterangan dokter.
-    // Cek "ada file kepilih apa enggak" di sini (murah, sebelum transaksi
-    // DB) - validasi ISI filenya (MIME/ukuran, lewat upload_berkas_cuti())
-    // baru jalan setelah row ke-insert, butuh id_cutipegawai buat nama file.
+    // SE Sekma 13/2019 F.3.b (PNS) / SK Sekma 212/2024 D.2.b (PPPK): Cuti
+    // Sakit lebih dari 1 hari wajib surat keterangan dokter - lihat
+    // cuti_sakit_wajib_dokter(). Cek "ada file kepilih apa enggak" di sini
+    // (murah, sebelum transaksi DB) - validasi ISI filenya (MIME/ukuran,
+    // lewat upload_berkas_cuti()) baru jalan setelah row ke-insert, butuh
+    // id_cutipegawai buat nama file.
     $fileBerkas = $_FILES['berkas_dokter'] ?? ['error' => UPLOAD_ERR_NO_FILE];
     $wajibDokter = $jenis === 'Cuti Sakit' && cuti_sakit_wajib_dokter($lama, $ketLama);
     if (empty($errors) && $wajibDokter && ($fileBerkas['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-        $errors[] = 'Cuti Sakit lebih dari 14 hari wajib melampirkan surat keterangan dokter.';
+        $errors[] = 'Cuti Sakit lebih dari 1 hari wajib melampirkan surat keterangan dokter.';
     }
 
     if (empty($errors)) {
@@ -195,9 +197,9 @@ layout_header('Ajukan Cuti', 'ajukan');
         <?php endforeach; ?>
       </select>
       <?php if ($pegawai['jenis_asn'] === 'PPPK'): ?>
-        <p class="hint">Status PPPK cuma dapat 3 jenis cuti (PP 49/2018 Psl 76): Tahunan, Sakit, Melahirkan. Cuti Sakit &gt;14 hari wajib lampirkan surat keterangan dokter di bawah.</p>
+        <p class="hint">Status PPPK cuma dapat 3 jenis cuti (PP 49/2018 Psl 76): Tahunan, Sakit, Melahirkan. Cuti Sakit lebih dari 1 hari wajib lampirkan surat keterangan dokter di bawah.</p>
       <?php else: ?>
-        <p class="hint">Cuti Besar &amp; Cuti di Luar Tanggungan Negara: minimal masa kerja 5 tahun terus-menerus. Cuti Sakit &gt;14 hari wajib lampirkan surat keterangan dokter di bawah.</p>
+        <p class="hint">Cuti Besar &amp; Cuti di Luar Tanggungan Negara: minimal masa kerja 5 tahun terus-menerus. Cuti Sakit lebih dari 1 hari wajib lampirkan surat keterangan dokter di bawah.</p>
       <?php endif; ?>
     </div>
     <div class="field">
@@ -243,7 +245,7 @@ layout_header('Ajukan Cuti', 'ajukan');
     <div class="field">
       <label for="berkas_dokter">Surat Keterangan Dokter</label>
       <input id="berkas_dokter" name="berkas_dokter" type="file" accept="application/pdf,image/png,image/jpeg">
-      <p class="hint">Wajib kalau Cuti Sakit lebih dari 14 hari (Perka BKN 24/2017). PDF/PNG/JPG, maksimal 3MB.</p>
+      <p class="hint">Wajib kalau Cuti Sakit lebih dari 1 hari (SE Sekma 13/2019 / SK Sekma 212/2024). PDF/PNG/JPG, maksimal 3MB.</p>
     </div>
     <button type="submit" class="btn-primary" style="width:auto;padding:10px 24px;">Ajukan Cuti</button>
   </form>
