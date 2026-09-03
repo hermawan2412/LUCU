@@ -39,7 +39,6 @@
 declare(strict_types=1);
 
 use PhpOffice\PhpWord\Settings;
-use PhpOffice\PhpWord\TemplateProcessor;
 
 function cuti_docx_centang(bool $ya): string
 {
@@ -52,14 +51,28 @@ function cuti_docx_centang(bool $ya): string
  * placeholder di template ilang, jadi baris kosong buat tanda tangan basah
  * manual - bukan nyisain teks "${TTD_...}" mentah di hasil cetak).
  */
-function cuti_docx_isi_ttd(TemplateProcessor $tp, string $macro, ?string $tandaTanganPath): void
+/**
+ * Wrap "In Front of Text" + rata tengah horizontal (bukan inline lagi) -
+ * lihat includes/RestuTemplateProcessor.php buat alasannya. $tp harus
+ * instance RestuTemplateProcessor (bukan TemplateProcessor polos) supaya
+ * method floating-nya ada.
+ *
+ * $floating=false: fallback ke inline biasa (PhpWord setImageValue() bawaan)
+ * - dipakai KHUSUS buat PARAF_PETUGAS (lihat catatan di pemanggilnya
+ * kenapa floating gak bisa diandalkan di situ).
+ */
+function cuti_docx_isi_ttd(RestuTemplateProcessor $tp, string $macro, ?string $tandaTanganPath, int $widthPx = 100, int $heightPx = 50, bool $floating = true): void
 {
     $fsPath = tanda_tangan_fs_path($tandaTanganPath);
     if ($fsPath === null) {
         $tp->setValue($macro, '');
         return;
     }
-    $tp->setImageValue($macro, ['path' => $fsPath, 'width' => 100, 'height' => 50, 'ratio' => false]);
+    if ($floating) {
+        $tp->setImageValueFloatingCentered($macro, $fsPath, $widthPx, $heightPx);
+    } else {
+        $tp->setImageValue($macro, ['path' => $fsPath, 'width' => $widthPx, 'height' => $heightPx, 'ratio' => false]);
+    }
 }
 
 /**
@@ -79,12 +92,13 @@ function cuti_docx_generate(
     array $pejabatBerwenang,
     ?string $levelPenolak,
     string $atasanLangsungLevel,
-    bool $isPppk
+    bool $isPppk,
+    array $paraf = ['nama_pegawai' => '-', 'tanda_tangan_path' => null]
 ): string {
     Settings::setOutputEscapingEnabled(true); // isi bisa aman ngandung & / < dkk
 
     $templatePath = __DIR__ . '/../templates/' . ($isPppk ? 'cuti_pppk.docx' : 'cuti_pns.docx');
-    $tp = new TemplateProcessor($templatePath);
+    $tp = new RestuTemplateProcessor($templatePath);
 
     $tp->setValue('TANGGAL_SURAT', indonesia_tgl(date('Y-m-d')));
     // Cuma di baris "Yth. ..." ini yang perlu Title Case - nama_jabatan asalnya
@@ -122,6 +136,54 @@ function cuti_docx_generate(
     $tp->setValue('ALAMAT_CUTI', $cuti['alamat_cuti']);
     $tp->setValue('NO_TELP', $cuti['no_telp'] ?: '-');
 
+    // Nomor surat diisi admin.kepegawaian SETELAH pengajuan dibuat (lihat
+    // admin/data_cuti.php) - kosong kalau dicetak sebelum itu (status masih
+    // 'Menunggu Nomor Surat').
+    $tp->setValue('NOMOR_SURAT', $cuti['nomor_surat'] ?: '-');
+
+    // V. Catatan Cuti - auto-isi dari data cuti, TAPI cuma buat baris/kotak
+    // yang beneran relevan sama jenis_cuti pengajuan INI (dokumen ini
+    // sekali-cetak buat satu pengajuan, bukan kartu manual multi-tahun) -
+    // sisanya diblankin (bukan dibiarin "….", karena gak relevan di dokumen
+    // spesifik ini). Paraf petugas selalu diisi kalau admin milih (gak
+    // tergantung jenis_cuti).
+    $rentang = $cuti['dari_tanggal'] . ' s.d. ' . $cuti['sampai_dengan'];
+    if ($isPppk) {
+        // N/N-1/N-2 selalu ditampilkan (saldo TERKINI, bukan snapshot) -
+        // konsisten sama desain lama "selalu full", Keterangan cuma keisi
+        // di baris N kalau pengajuan ini jenisnya Cuti Tahunan.
+        $tp->setValue('CATATAN_N2_SISA', (string) ((int) $cuti['cuti_tahunan_n2']));
+        $tp->setValue('CATATAN_N2_KET', '');
+        $tp->setValue('CATATAN_N1_SISA', (string) ((int) $cuti['cuti_tahunan_n1']));
+        $tp->setValue('CATATAN_N1_KET', '');
+        $tp->setValue('CATATAN_N_SISA', (string) ((int) $cuti['hak_cuti_tahunan']));
+        $tp->setValue('CATATAN_N_KET', $cuti['jenis_cuti'] === 'Cuti Tahunan' ? $rentang : '');
+        $tp->setValue('CATATAN_SAKIT', $cuti['jenis_cuti'] === 'Cuti Sakit' ? $rentang : '');
+        $tp->setValue('CATATAN_MELAHIRKAN', $cuti['jenis_cuti'] === 'Cuti Melahirkan' ? $rentang : '');
+    } else {
+        $adaTahunan = $cuti['jenis_cuti'] === 'Cuti Tahunan';
+        $tp->setValue('CATATAN_TAHUN', $adaTahunan ? substr($cuti['dari_tanggal_iso'], 0, 4) : '');
+        $tp->setValue('CATATAN_SISA', $adaTahunan ? (string) ((int) $cuti['sisa_cuti']) : '');
+        $tp->setValue('CATATAN_KET', $adaTahunan ? $rentang : '');
+        $tp->setValue('CATATAN_BESAR', $cuti['jenis_cuti'] === 'Cuti Besar' ? $rentang : '');
+        $tp->setValue('CATATAN_SAKIT', $cuti['jenis_cuti'] === 'Cuti Sakit' ? $rentang : '');
+        $tp->setValue('CATATAN_MELAHIRKAN', $cuti['jenis_cuti'] === 'Cuti Melahirkan' ? $rentang : '');
+        $tp->setValue('CATATAN_PENTING', $cuti['jenis_cuti'] === 'Cuti Karena Alasan Penting' ? $rentang : '');
+        $tp->setValue('CATATAN_TANGGUNGAN', $cuti['jenis_cuti'] === 'Cuti diluar Tanggungan Negara' ? $rentang : '');
+    }
+    // PARAF_PETUGAS sengaja INLINE, bukan floating - kolom "PARAF PETUGAS
+    // CUTI" di kotak V jauh lebih sempit & vertically-merged (vMerge) dari
+    // box VII/VIII. Dicoba floating (posisi absolut dihitung manual dari
+    // tblGrid) - LibreOffice (pipeline .pdf) render-nya meleset jauh
+    // (ke-lempar ke kolom lain, turun 1 baris) - bug rendering DOCX/LO yg
+    // dikenal luas soal anchor di sel tabel ber-vMerge, bukan salah hitung
+    // koordinat (sudah dicoba 3 pendekatan beda, semua meleset sama). Sel
+    // ini juga udah ada teks di dalamnya ("….") jadi gak ada teks lain buat
+    // "di-depanin" - inline vs floating gak ada beda visual di kasus ini.
+    // Paragraf macro-nya sendiri udah center-aligned (jc=center, dicek pas
+    // suntik macro) jadi tetep ke-tengah di kolomnya biarpun inline.
+    cuti_docx_isi_ttd($tp, 'PARAF_PETUGAS', $paraf['tanda_tangan_path'] ?? null, 70, 35, false);
+
     $tp->setValue('NAMA_ATASAN', $atasanLangsung['nama_pegawai']);
     $tp->setValue('NIP_ATASAN', $atasanLangsung['nip']);
     $tp->setValue('NAMA_BERWENANG', $pejabatBerwenang['nama_pegawai']);
@@ -131,7 +193,11 @@ function cuti_docx_generate(
     cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $atasanLangsung['tanda_tangan_path'] ?? null);
     cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $pejabatBerwenang['tanda_tangan_path'] ?? null);
 
-    $disetujuiVII = (bool) $cuti[$atasanLangsungLevel];
+    // Bug ketemu 2026-09: sebelumnya baca $cuti[$atasanLangsungLevel] (kolom
+    // NIP, SELALU truthy begitu slot ke-assign) bukan app_{level} (flag
+    // approval beneran) - checkbox VII bakal ke-☑ padahal levelnya belum
+    // approve apa-apa. Fixed.
+    $disetujuiVII = (bool) $cuti["app_{$atasanLangsungLevel}"];
     $ditolakVII = $levelPenolak === $atasanLangsungLevel;
     $tp->setValue('CK7_DISETUJUI', cuti_docx_centang($disetujuiVII));
     $tp->setValue('CK7_PERUBAHAN', cuti_docx_centang(false));
@@ -159,9 +225,10 @@ function cuti_docx_stream(
     array $pejabatBerwenang,
     ?string $levelPenolak,
     string $atasanLangsungLevel,
-    bool $isPppk
+    bool $isPppk,
+    array $paraf = ['nama_pegawai' => '-', 'tanda_tangan_path' => null]
 ): void {
-    $tmpPath = cuti_docx_generate($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk);
+    $tmpPath = cuti_docx_generate($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk, $paraf);
     $namaFile = cuti_docx_nama_file($cuti, 'docx');
 
     header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
@@ -205,9 +272,10 @@ function cuti_pdf_stream(
     array $pejabatBerwenang,
     ?string $levelPenolak,
     string $atasanLangsungLevel,
-    bool $isPppk
+    bool $isPppk,
+    array $paraf = ['nama_pegawai' => '-', 'tanda_tangan_path' => null]
 ): void {
-    $docxPath = cuti_docx_generate($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk);
+    $docxPath = cuti_docx_generate($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk, $paraf);
 
     try {
         $pdfPath = cuti_docx_ke_pdf($docxPath);

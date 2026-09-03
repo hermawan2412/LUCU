@@ -172,6 +172,8 @@ CREATE TABLE `cuti_pegawai` (
   `delegasi` varchar(225) NOT NULL DEFAULT '',
   `alamat_cuti` varchar(500) NOT NULL,
   `berkas` varchar(255) NOT NULL DEFAULT '',
+  `nomor_surat` varchar(100) DEFAULT NULL COMMENT 'diisi admin.kepegawaian SETELAH pengajuan dibuat, SEBELUM approval jalan - lihat cuti_mulai_approval_setelah_nomor()',
+  `paraf_nip` varchar(225) DEFAULT NULL COMMENT 'NIP pegawai kepegawaian yg parafnya dipasang di kotak V. Catatan Cuti (pakai tanda_tangan_path pegawai itu, bukan upload terpisah)',
   PRIMARY KEY (`id_cutipegawai`),
   KEY `id_pegawai` (`id_pegawai`),
   CONSTRAINT `cuti_pegawai_ibfk_1` FOREIGN KEY (`id_pegawai`) REFERENCES `pegawai` (`id_pegawai`) ON DELETE CASCADE ON UPDATE CASCADE

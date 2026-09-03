@@ -59,6 +59,7 @@ require_once __DIR__ . '/../includes/kgb.php';
 require_once __DIR__ . '/../includes/knp.php';
 require_once __DIR__ . '/../includes/kalender.php';
 require_once __DIR__ . '/../includes/libur.php';
+require_once __DIR__ . '/../includes/RestuTemplateProcessor.php';
 require_once __DIR__ . '/../includes/cuti_docx.php';
 require_once __DIR__ . '/../includes/export.php';
 require_once __DIR__ . '/../includes/upload.php';

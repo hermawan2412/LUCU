@@ -68,7 +68,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($errors) && $slots === null) {
             $errors[] = 'Pejabat penyetuju belum terdaftar di data pegawai. Hubungi admin.';
         } elseif (empty($errors)) {
-            [$status, $ketStatus] = cuti_status_awal($db, $slots);
+            // Status awal SELALU 'Menunggu Nomor Surat', BUKAN hasil
+            // cuti_status_awal() langsung - approval (termasuk jalur
+            // auto-Disetujui buat rantai kosong) baru mulai jalan setelah
+            // admin.kepegawaian ngisi nomor_surat, lihat
+            // cuti_mulai_approval_setelah_nomor() & admin/data_cuti.php.
+            // panmud_kasubag/panitera_sekretaris/ketua + app_* flag tetap
+            // disimpan sekarang (struktural, bukan progres approval).
+            $status = 'Menunggu Nomor Surat';
+            $ketStatus = 'Menunggu penomoran surat oleh Kepegawaian';
             $tglIndo = indonesia_tgl($tglPengajuan);
             $dariIndo = indonesia_tgl($dari);
             $sampaiIndo = indonesia_tgl($sampai);
@@ -89,26 +97,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $status, $ketStatus, $kuotaTahunan, $tglIndo, $masaKerja, '', $alamatCuti, '',
                     ]);
 
-                if ($status === 'Disetujui') {
-                    if (cuti_apakah_potong_saldo_tahunan($jenis)) {
-                        cuti_potong_saldo_tahunan($db, (int) $pegawai['id_pegawai'], $lama);
-                    } elseif ($jenis === 'Cuti Sakit' && $ketLama === 'Hari') {
-                        cuti_potong_saldo_sakit($db, (int) $pegawai['id_pegawai'], $lama);
-                    }
-                }
-
                 $db->commit();
 
-                foreach (['panmud_kasubag', 'panitera_sekretaris', 'ketua'] as $level) {
-                    if ($slots[$level]['flag'] === 0) {
-                        notifikasi_kirim($db, $slots[$level]['nip'],
-                            "Pengajuan {$jenis} dari {$pegawai['nama_pegawai']} menunggu approval Anda.",
-                            'approve_cuti.php');
-                        break;
-                    }
-                }
+                notifikasi_kirim($db, $pegawai['nip'],
+                    "Pengajuan {$jenis} Anda terkirim, menunggu penomoran surat oleh Kepegawaian.",
+                    'daftar_cuti.php');
 
-                flash_set('success', 'Pengajuan cuti berhasil dikirim.');
+                flash_set('success', 'Pengajuan cuti berhasil dikirim, menunggu penomoran surat oleh Kepegawaian.');
                 redirect('daftar_cuti.php');
             } catch (Throwable $e) {
                 $db->rollBack();

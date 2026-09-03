@@ -8,7 +8,8 @@ if (!auth_check()) {
 }
 
 $id = (int) ($_GET['id'] ?? 0);
-$cuti = db_one($db, "SELECT c.*, p.nama_pegawai, p.nip, p.unit_kerja, p.tmt_pegawai, p.jenis_asn, j.nama_jabatan, g.nama_golongan, p.id_pegawai, p.no_telp, p.tanda_tangan_path
+$cuti = db_one($db, "SELECT c.*, p.nama_pegawai, p.nip, p.unit_kerja, p.tmt_pegawai, p.jenis_asn, j.nama_jabatan, g.nama_golongan, p.id_pegawai, p.no_telp, p.tanda_tangan_path,
+    p.hak_cuti_tahunan, p.cuti_tahunan_n1, p.cuti_tahunan_n2
     FROM cuti_pegawai c
     JOIN pegawai p ON p.id_pegawai = c.id_pegawai
     JOIN jabatan j ON j.id_jabatan = p.id_jabatan
@@ -34,9 +35,9 @@ if ($_SESSION['role'] !== 'Admin' && $cuti['nip'] !== ($_SESSION['nip'] ?? null)
  *   No 212/SEK/SK.KP5.3/II/2024)
  * Kertas F4 (21,59 x 33,02cm), kop & tanggal rata kanan, VII/VIII sejajar
  * kiri-kanan biar muat 1 halaman - lihat includes/cuti_docx.php buat detail
- * layout. Field yang di dokumen asli diisi manual petugas kepegawaian
- * (nomor surat, catatan cuti detail, paraf petugas) dibiarin kosong di sini
- * juga - RESTU gak punya alur pencatatan surat-menyurat.
+ * layout. Nomor surat & Catatan Cuti (kotak V) sekarang auto-isi dari
+ * nomor_surat/paraf_nip (diisi admin.kepegawaian - lihat admin/data_cuti.php)
+ * - lihat cuti_docx_generate() buat logic per-jenis-cuti-nya.
  */
 function pejabat_by_nip(PDO $db, ?string $nip): array
 {
@@ -76,11 +77,12 @@ if (!empty($cuti['ttd_manual_ketua'])) {
 $levelPenolak = $cuti['status_cuti'] === 'Tidak Disetujui' ? cuti_current_pending_level($cuti) : null;
 
 $isPppk = $cuti['jenis_asn'] === 'PPPK';
+$paraf = pejabat_by_nip($db, $cuti['paraf_nip'] ?? null);
 
 // ?format=pdf buat versi PDF (docx di-convert lewat LibreOffice headless -
 // lihat cuti_docx_ke_pdf()), default/lainnya tetap .docx asli.
 if (($_GET['format'] ?? '') === 'pdf') {
-    cuti_pdf_stream($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk);
+    cuti_pdf_stream($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk, $paraf);
 } else {
-    cuti_docx_stream($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk);
+    cuti_docx_stream($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk, $paraf);
 }

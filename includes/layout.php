@@ -67,7 +67,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
         $bellCount = notifikasi_belum_dibaca_count($db, $_SESSION['nip']);
         $bellHref = 'notifikasi.php';
     } elseif ($section === 'admin') {
-        $bellCount = (int) db_one($db, "SELECT COUNT(*) AS n FROM cuti_pegawai WHERE status_cuti = 'Diajukan'")['n'];
+        $bellCount = (int) db_one($db, "SELECT COUNT(*) AS n FROM cuti_pegawai WHERE status_cuti IN ('Diajukan', 'Menunggu Nomor Surat')")['n'];
     }
     ?>
 <!DOCTYPE html>
