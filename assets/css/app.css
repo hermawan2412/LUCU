@@ -531,6 +531,11 @@ a { color: var(--link-blue); }
   display: flex;
   gap: 2px;
   flex-wrap: wrap;
+  /* Center - .topbar border-radius-nya pill (999px), begitu nav-nya
+     wrap ke banyak baris (HP sempit, menu admin bisa sampe 4 baris) item
+     paling pinggir kiri/kanan kepotong lengkungan oval-nya kalau rata kiri
+     (default). Center jauhin item dari sudut lengkung itu. */
+  justify-content: center;
 }
 
 .topbar nav a {
