@@ -33,6 +33,25 @@ function brand_mark_svg(int $size = 26, string $assetPrefix = ''): string
     </svg>';
 }
 
+/**
+ * Logo instansi buat halaman login - gantiin badge teks nama instansi kalau
+ * admin udah upload (admin/pengaturan.php). $size disamain dgn brand_mark_svg()
+ * app biar dua logo keliatan sama besar (permintaan eksplisit user).
+ * Fallback: badge teks + titik oranye yg SUDAH ada dari awal (bukan fitur baru,
+ * cuma dipindah ke sini biar 1 titik keputusan "ada logo atau enggak").
+ */
+function logo_instansi_html(int $size = 64, string $assetPrefix = ''): string
+{
+    if (defined('APP_LOGO_INSTANSI_PATH') && APP_LOGO_INSTANSI_PATH) {
+        $fsPath = __DIR__ . '/../assets/img/' . basename(APP_LOGO_INSTANSI_PATH);
+        $versi = is_file($fsPath) ? '?v=' . filemtime($fsPath) : '';
+        $src = e($assetPrefix . 'assets/img/' . APP_LOGO_INSTANSI_PATH) . $versi;
+        return "<img src=\"$src\" width=\"$size\" height=\"$size\" alt=\"\" style=\"object-fit:contain;\">";
+    }
+
+    return '<span class="badge">' . e(APP_INSTANSI) . '</span>';
+}
+
 function indonesia_tgl(string $tanggal): string
 {
     $namaBulan = [

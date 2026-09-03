@@ -43,6 +43,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         db_query($db, "UPDATE pengaturan SET logo_path=NULL WHERE id_pengaturan = 1");
         flash_set('success', 'Logo dihapus, kembali ke ikon bawaan.');
         redirect('pengaturan.php');
+    } elseif ($action === 'logo_instansi') {
+        $hasil = upload_logo($_FILES['logo_instansi'] ?? [], 'logo_instansi');
+        if (!$hasil['ok']) {
+            $errors[] = $hasil['error'];
+        } else {
+            $lama = db_one($db, "SELECT logo_instansi_path FROM pengaturan WHERE id_pengaturan = 1")['logo_instansi_path'] ?? null;
+            if ($lama !== null && $lama !== $hasil['filename']) {
+                logo_hapus($lama);
+            }
+            db_query($db, "UPDATE pengaturan SET logo_instansi_path=? WHERE id_pengaturan = 1", [$hasil['filename']]);
+            flash_set('success', 'Logo instansi berhasil diganti.');
+            redirect('pengaturan.php');
+        }
+    } elseif ($action === 'logo_instansi_hapus') {
+        $lama = db_one($db, "SELECT logo_instansi_path FROM pengaturan WHERE id_pengaturan = 1")['logo_instansi_path'] ?? null;
+        logo_hapus($lama);
+        db_query($db, "UPDATE pengaturan SET logo_instansi_path=NULL WHERE id_pengaturan = 1");
+        flash_set('success', 'Logo instansi dihapus, kembali ke teks nama instansi.');
+        redirect('pengaturan.php');
     } elseif ($action === 'whatsapp') {
         $waAktif = isset($_POST['wa_aktif']) ? 1 : 0;
         $waToken = trim($_POST['wa_fonnte_token'] ?? '');
@@ -112,12 +131,12 @@ layout_header('Pengaturan', '', 'admin');
 </div>
 
 <div class="card">
-  <h2 style="margin:0 0 16px;">Logo</h2>
+  <h2 style="margin:0 0 16px;">Logo Aplikasi</h2>
   <p class="lead">Tampil sebagai brand mark di topbar &amp; halaman login, gantiin ikon perisai bawaan.</p>
 
   <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
-    <div style="width:56px; height:56px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border,#e5e5e5); border-radius:8px;">
-      <?= brand_mark_svg(40, '../') ?>
+    <div style="width:80px; height:80px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border,#e5e5e5); border-radius:8px;">
+      <?= brand_mark_svg(64, '../') ?>
     </div>
     <span class="hint" style="margin:0;">
       <?= APP_LOGO_PATH ? 'Logo saat ini sudah diupload.' : 'Belum ada logo — masih pakai ikon bawaan.' ?>
@@ -140,6 +159,39 @@ layout_header('Pengaturan', '', 'admin');
       <?= csrf_field() ?>
       <input type="hidden" name="action" value="logo_hapus">
       <button type="submit" class="btn-secondary" style="width:auto;padding:10px 20px;">Hapus Logo</button>
+    </form>
+  <?php endif; ?>
+</div>
+
+<div class="card">
+  <h2 style="margin:0 0 16px;">Logo Instansi</h2>
+  <p class="lead">Tampil di halaman login (gantiin badge teks nama instansi) — ukuran disamakan dengan Logo Aplikasi di atas.</p>
+
+  <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+    <div style="width:80px; height:80px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border,#e5e5e5); border-radius:8px; background:#141413;">
+      <?= logo_instansi_html(64, '../') ?>
+    </div>
+    <span class="hint" style="margin:0;">
+      <?= APP_LOGO_INSTANSI_PATH ? 'Logo instansi saat ini sudah diupload.' : 'Belum ada logo — halaman login masih pakai teks nama instansi.' ?>
+    </span>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="logo_instansi">
+    <div class="field">
+      <label for="logo_instansi">Berkas Logo Instansi (PNG atau JPG, maks 2MB)</label>
+      <input id="logo_instansi" name="logo_instansi" type="file" accept="image/png,image/jpeg" required>
+      <p class="hint">Latar belakangnya gelap (halaman login pakai panel hitam) — PNG latar transparan paling pas.</p>
+    </div>
+    <button type="submit" class="btn-primary" style="width:auto;padding:12px 24px;">Unggah Logo Instansi</button>
+  </form>
+
+  <?php if (APP_LOGO_INSTANSI_PATH): ?>
+    <form method="POST" style="margin-top:12px;" onsubmit="return confirm('Hapus logo instansi dan kembali ke teks nama instansi?');">
+      <?= csrf_field() ?>
+      <input type="hidden" name="action" value="logo_instansi_hapus">
+      <button type="submit" class="btn-secondary" style="width:auto;padding:10px 20px;">Hapus Logo Instansi</button>
     </form>
   <?php endif; ?>
 </div>

@@ -59,3 +59,4 @@ define('APP_NAME', $pengaturan['nama_aplikasi'] ?? $config['app']['name']);
 define('APP_FULL_NAME', $pengaturan['nama_lengkap'] ?? $config['app']['full_name']);
 define('APP_INSTANSI', $pengaturan['instansi'] ?? $config['app']['instansi']);
 define('APP_LOGO_PATH', $pengaturan['logo_path'] ?? null);
+define('APP_LOGO_INSTANSI_PATH', $pengaturan['logo_instansi_path'] ?? null);

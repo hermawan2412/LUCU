@@ -94,18 +94,24 @@ function tanda_tangan_fs_path(?string $filename): ?string
 }
 
 // ============================================================
-// Logo instansi (brand mark di topbar/login) - admin/pengaturan.php.
-// Satu logo global (bukan per-pegawai kayak tanda tangan), disimpan di
-// assets/img/ dgn nama tetap "logo.{ext}" - upload baru selalu menimpa/
-// mengganti ekstensi yang lama. Pola validasi (MIME asli via finfo, bukan
-// percaya ekstensi/Content-Type) sama persis dgn upload_tanda_tangan().
+// Logo - admin/pengaturan.php. Dua slot terpisah pakai fungsi yg sama:
+// "logo" (brand mark aplikasi, topbar & login) dan "logo_instansi" (logo
+// PA Rantau, gantiin badge teks di halaman login). Masing-masing SATU
+// logo global (bukan per-pegawai kayak tanda tangan), disimpan di
+// assets/img/ dgn nama tetap "{baseName}.{ext}" - upload baru selalu
+// menimpa/mengganti ekstensi yang lama. Pola validasi (MIME asli via
+// finfo, bukan percaya ekstensi/Content-Type) sama persis dgn
+// upload_tanda_tangan().
 // ============================================================
 
 const UPLOAD_LOGO_MAX_BYTES = 2_000_000; // 2MB
 const UPLOAD_LOGO_MIME_EXT = ['image/png' => 'png', 'image/jpeg' => 'jpg'];
 
-/** Return ['ok'=>bool, 'error'=>?string, 'filename'=>?string]. $filename = nama file di assets/img/ (bukan path penuh). */
-function upload_logo(array $file): array
+/**
+ * $baseName: "logo" (default, logo aplikasi) atau "logo_instansi".
+ * Return ['ok'=>bool, 'error'=>?string, 'filename'=>?string]. $filename = nama file di assets/img/ (bukan path penuh).
+ */
+function upload_logo(array $file, string $baseName = 'logo'): array
 {
     if (!isset($file['error']) || is_array($file['error'])) {
         return ['ok' => false, 'error' => 'Upload tidak valid.'];
@@ -138,13 +144,13 @@ function upload_logo(array $file): array
 
     // Hapus logo lama (mungkin beda ekstensi dari yang baru).
     foreach (UPLOAD_LOGO_MIME_EXT as $oldExt) {
-        $old = "$dir/logo.$oldExt";
+        $old = "$dir/$baseName.$oldExt";
         if (is_file($old)) {
             unlink($old);
         }
     }
 
-    $filename = "logo.$ext";
+    $filename = "$baseName.$ext";
     if (!move_uploaded_file($file['tmp_name'], "$dir/$filename")) {
         return ['ok' => false, 'error' => 'Gagal menyimpan file di server.'];
     }

@@ -186,7 +186,7 @@ a { color: var(--link-blue); }
   gap: 10px;
 }
 
-.brand-mark svg { flex: none; }
+.brand-mark svg, .brand-mark img { flex: none; }
 
 .brand-mark .wordmark {
   font-weight: 500;
@@ -288,9 +288,16 @@ a { color: var(--link-blue); }
   z-index: 1;
 }
 
+/* Logo instansi (kalau admin sudah upload, lihat logo_instansi_html()) - block
+   biar pasti nge-stack di atas brand-mark, bukan sejajar (img default-nya
+   inline). Ukurannya (width/height) diset langsung dari PHP, disamain
+   dgn brand_mark_svg() app di bawahnya. */
+.login-topleft > img { display: block; margin-bottom: 4px; }
+
 .login-topleft .brand-mark { margin-top: 18px; }
 .login-topleft .brand-mark .wordmark { color: #fff; font-size: 1.2rem; }
 .login-topleft .brand-mark svg { color: var(--signal-light); }
+.login-topleft .brand-mark img { object-fit: contain; }
 
 .login-topleft .badge {
   display: inline-flex;
