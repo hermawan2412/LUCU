@@ -538,7 +538,11 @@ a { color: var(--link-blue); }
 .topbar nav a:hover { color: var(--ink); background: var(--bone); }
 
 .topbar nav a.active {
-  color: #fff;
+  /* var(--canvas), bukan hardcode #fff - --ink kebalik jadi TERANG di dark
+     mode (lihat token block), jadi teks harus ikut kebalik juga biar tetep
+     kontras (sama pola kayak .btn-primary). #fff bikin teks putih ilang di
+     atas pill terang pas dark mode. */
+  color: var(--canvas);
   background: var(--ink);
 }
 
@@ -959,7 +963,7 @@ table.data-table td.num {
 
 .calendar-cell.today .calendar-day-num {
   background: var(--ink);
-  color: #fff;
+  color: var(--canvas); /* bukan #fff - sama alasan .topbar nav a.active */
 }
 
 .calendar-chip {
