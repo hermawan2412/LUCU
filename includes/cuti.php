@@ -420,6 +420,22 @@ function cuti_resolve_pegawai_by_jabatan(PDO $db, int $idJabatan): ?array
 }
 
 /**
+ * Atasan langsung (level pertama rantai approval) buat ditampilkan di
+ * admin/data_pegawai.php - biar hierarki approval keliatan tanpa harus
+ * ngecek satu-satu ke Data Jabatan. Ikut Plh/Plt aktif kalau ada.
+ * Return null kalau jabatannya puncak (auto-approve, mis. Ketua) ATAU
+ * kalau jabatan atasan levelnya kosong (gak ada pegawai/Plh).
+ */
+function cuti_atasan_langsung_pegawai(PDO $db, int $idJabatanPemohon): ?array
+{
+    $chain = cuti_approval_chain($db, $idJabatanPemohon);
+    if (empty($chain)) {
+        return null;
+    }
+    return cuti_resolve_pegawai_by_jabatan($db, $chain[0]);
+}
+
+/**
  * Susun 3 slot approval (panmud_kasubag, panitera_sekretaris, ketua) dari
  * rantai approver. Slot yg gak kepakai (rantai lebih pendek dari 3) ditandai
  * sudah terpenuhi (flag=1, nip=null) - sama polanya kayak MACOA.

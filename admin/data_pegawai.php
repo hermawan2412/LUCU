@@ -123,6 +123,8 @@ foreach ($list as &$row) {
     $row = cuti_tahunan_rollover_jika_perlu($db, $row);
     $row = cuti_sakit_reset_jika_perlu($db, $row);
     $row['kuota_tersedia'] = cuti_tahunan_kuota_tersedia($row);
+    $row['chain_kosong'] = empty(cuti_approval_chain($db, (int) $row['id_jabatan']));
+    $row['atasan_langsung'] = cuti_atasan_langsung_pegawai($db, (int) $row['id_jabatan']);
 }
 unset($row);
 $jabatanList = db_all($db, "SELECT id_jabatan, nama_jabatan FROM jabatan ORDER BY nama_jabatan ASC");
@@ -281,7 +283,7 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
   <div style="overflow-x:auto;">
     <table class="data-table">
       <thead>
-        <tr><th>Nama</th><th>NIP</th><th>Jabatan</th><th>Golongan</th><th>ASN</th><th>Sisa Cuti Tahunan</th><th>TTD</th><th style="width:160px;">Aksi</th></tr>
+        <tr><th>Nama</th><th>NIP</th><th>Jabatan</th><th>Atasan Langsung</th><th>Golongan</th><th>ASN</th><th>Sisa Cuti Tahunan</th><th>TTD</th><th style="width:160px;">Aksi</th></tr>
       </thead>
       <tbody>
         <?php foreach ($list as $row): ?>
@@ -289,6 +291,15 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
             <td><?= e($row['nama_pegawai']) ?></td>
             <td><?= e($row['nip']) ?></td>
             <td><?= e($row['nama_jabatan']) ?></td>
+            <td>
+              <?php if ($row['chain_kosong']): ?>
+                <span class="badge badge-neutral">Puncak (auto-approve)</span>
+              <?php elseif ($row['atasan_langsung'] === null): ?>
+                <span class="badge badge-warning">Jabatan atasan kosong</span>
+              <?php else: ?>
+                <?= e($row['atasan_langsung']['nama_pegawai']) ?>
+              <?php endif; ?>
+            </td>
             <td><?= e($row['nama_golongan']) ?></td>
             <td><span class="badge <?= $row['jenis_asn'] === 'PPPK' ? 'badge-warning' : 'badge-neutral' ?>"><?= e($row['jenis_asn']) ?></span></td>
             <td><?= $row['kuota_tersedia'] ?><?= ((int) $row['cuti_tahunan_n1'] > 0 || (int) $row['cuti_tahunan_n2'] > 0) ? ' <span class="hint" style="display:inline">(+akumulasi)</span>' : '' ?></td>
