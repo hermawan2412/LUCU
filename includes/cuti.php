@@ -398,8 +398,24 @@ function cuti_cap_chain_for_jenis_asn(PDO $db, array $chain, string $jenisAsn, i
     return $chain;
 }
 
+/**
+ * Cari pegawai buat isi slot approval jabatan $idJabatan. Cek dulu ada Plh/Plt
+ * aktif (tanggal_mulai <= hari ini <= tanggal_selesai, atau tanggal_selesai
+ * NULL = belum dicabut) - kalau ada, DIA yang approve, bukan pemegang
+ * jabatan asli. Kalau lebih dari satu Plh aktif (data ganda), ambil yang
+ * paling baru di-assign (id_plh terbesar). Fallback ke pemegang jabatan asli
+ * kalau gak ada Plh aktif sama sekali.
+ */
 function cuti_resolve_pegawai_by_jabatan(PDO $db, int $idJabatan): ?array
 {
+    $plh = db_one($db, "SELECT p.* FROM plh_jabatan pl
+        JOIN pegawai p ON p.id_pegawai = pl.id_pegawai
+        WHERE pl.id_jabatan = ? AND pl.tanggal_mulai <= CURDATE()
+          AND (pl.tanggal_selesai IS NULL OR pl.tanggal_selesai >= CURDATE())
+        ORDER BY pl.id_plh DESC LIMIT 1", [$idJabatan]);
+    if ($plh !== null) {
+        return $plh;
+    }
     return db_one($db, "SELECT * FROM pegawai WHERE id_jabatan = ? LIMIT 1", [$idJabatan]);
 }
 

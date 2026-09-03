@@ -47,6 +47,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
         'dashboard' => ['label' => 'Dashboard', 'href' => 'index.php'],
         'pegawai' => ['label' => 'Data Pegawai', 'href' => 'data_pegawai.php'],
         'jabatan' => ['label' => 'Data Jabatan', 'href' => 'data_jabatan.php'],
+        'plh' => ['label' => 'Data Plh/Plt', 'href' => 'data_plh.php'],
         'golongan' => ['label' => 'Data Golongan', 'href' => 'data_golongan.php'],
         'cuti' => ['label' => 'Data Cuti', 'href' => 'data_cuti.php'],
         'kgb' => ['label' => 'KGB', 'href' => 'data_kgb.php'],

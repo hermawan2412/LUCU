@@ -179,6 +179,28 @@ CREATE TABLE `cuti_pegawai` (
 
 -- --------------------------------------------------------
 
+-- Jabatan dobel/Plh/Plt - dipakai cuti_resolve_pegawai_by_jabatan() buat
+-- ngalihin approval cuti ke pelaksana Plh/Plt selama periode aktif, TANPA
+-- ngubah id_jabatan asli si pelaksana (jabatan aslinya tetap, cuma nambah
+-- wewenang approval jabatan lain buat sementara).
+CREATE TABLE `plh_jabatan` (
+  `id_plh` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_jabatan` int(11) UNSIGNED NOT NULL COMMENT 'jabatan yang di-Plh/Plt-kan (bukan jabatan asli si Plh)',
+  `id_pegawai` int(11) UNSIGNED NOT NULL COMMENT 'pegawai yang jadi Plh/Plt',
+  `jenis` varchar(10) NOT NULL DEFAULT 'Plh' COMMENT 'Plh (Pelaksana Harian) atau Plt (Pelaksana Tugas)',
+  `tanggal_mulai` date NOT NULL,
+  `tanggal_selesai` date DEFAULT NULL COMMENT 'NULL = belum ditentukan / sampai dicabut manual admin',
+  `keterangan` varchar(255) DEFAULT NULL COMMENT 'mis. nomor Surat Perintah PLH dari AURA',
+  `dibuat_pada` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_plh`),
+  KEY `id_jabatan` (`id_jabatan`),
+  KEY `id_pegawai` (`id_pegawai`),
+  CONSTRAINT `plh_jabatan_ibfk_1` FOREIGN KEY (`id_jabatan`) REFERENCES `jabatan` (`id_jabatan`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `plh_jabatan_ibfk_2` FOREIGN KEY (`id_pegawai`) REFERENCES `pegawai` (`id_pegawai`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
 CREATE TABLE `permohonan_cuti` (
   `id_permohonan` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `id_pegawai` int(11) UNSIGNED NOT NULL,
