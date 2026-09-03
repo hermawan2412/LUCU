@@ -96,7 +96,7 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
         <div class="calendar-cell empty"></div>
       <?php else: ?>
         <?php $orang = $cutiBulan[$tgl] ?? []; $libur = $liburBulan[$tgl] ?? null; ?>
-        <div class="calendar-cell<?= $tgl === $todayStr ? ' today' : '' ?><?= !empty($orang) ? ' has-leave' : '' ?><?= $libur ? ' is-holiday' : '' ?>">
+        <div class="calendar-cell<?= $tgl === $todayStr ? ' today' : '' ?><?= !empty($orang) ? ' has-leave' : '' ?><?= $libur ? ' is-holiday' : (kalender_is_weekend($tgl) ? ' is-weekend' : '') ?>">
           <div class="calendar-day-num"><?= (int) substr($tgl, 8, 2) ?></div>
           <?php if ($libur): ?>
             <div class="calendar-holiday" title="<?= e($libur) ?>"><?= e($libur) ?></div>

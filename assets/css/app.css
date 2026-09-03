@@ -937,15 +937,27 @@ table.data-table td.num {
 
 .calendar-cell.on-leave { background: var(--success-bg); }
 
-.calendar-cell.is-holiday { box-shadow: inset 0 0 0 1.5px rgba(207, 69, 0, 0.35); }
+/* Sabtu/Minggu & libur nasional - dua-duanya "bukan hari kerja", disamain
+   merah (var(--danger), ikut kebalik gelap/terang) biar bahasa visualnya
+   konsisten (dulu libur nasional oranye/--signal sendirian, sekarang
+   digabung sama weekend jadi 1 sinyal "gak bisa ajukan cuti di hari ini" -
+   lihat cuti_hari_kerja() di includes/cuti.php). color-mix dipakai di
+   box-shadow karena --danger ikut flip tema, rgba() hardcode bakal salah
+   warna pas dark mode. */
+.calendar-cell.is-weekend,
+.calendar-cell.is-holiday {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--danger) 40%, transparent);
+}
 
-.calendar-cell.is-holiday .calendar-day-num { color: var(--signal); font-weight: 700; }
-.calendar-cell.is-holiday.today .calendar-day-num { background: var(--signal); color: #fff; }
+.calendar-cell.is-weekend .calendar-day-num,
+.calendar-cell.is-holiday .calendar-day-num { color: var(--danger); font-weight: 700; }
+.calendar-cell.is-weekend.today .calendar-day-num,
+.calendar-cell.is-holiday.today .calendar-day-num { background: var(--danger); color: var(--canvas); }
 
 .calendar-holiday {
   font-size: 0.64rem;
   font-weight: 700;
-  color: var(--signal);
+  color: var(--danger);
   line-height: 1.25;
 }
 

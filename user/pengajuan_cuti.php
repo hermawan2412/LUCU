@@ -11,6 +11,23 @@ $pegawai = cuti_tahunan_rollover_jika_perlu($db, $pegawai);
 $pegawai = cuti_sakit_reset_jika_perlu($db, $pegawai);
 $kuotaTahunan = cuti_tahunan_kuota_tersedia($pegawai);
 
+// Pengajuan cuti cuma boleh pas hari kerja (Senin-Jumat, di luar libur
+// nasional) - kebijakan kepegawaian, bukan soal tanggal cuti-nya sendiri
+// (yang bisa aja mencakup weekend di dalam rentangnya). Block total (GET
+// & POST) - bukan cuma validasi field, biar gak bisa di-bypass lewat POST
+// langsung di luar jam kerja.
+if (!hari_kerja_cek($db, date('Y-m-d'))) {
+    layout_header('Ajukan Cuti', 'ajukan');
+    ?>
+    <h1>Ajukan Cuti</h1>
+    <div class="card">
+      <div class="empty-state">Pengajuan cuti cuma bisa dilakukan pada hari kerja (Senin&ndash;Jumat, di luar hari libur nasional/cuti bersama). Coba lagi pada hari kerja berikutnya.</div>
+    </div>
+    <?php
+    layout_footer();
+    exit;
+}
+
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -89,3 +89,26 @@ function libur_bulan(PDO $db, int $tahun, int $bulan): array
     }
     return $map;
 }
+
+/** Cek 1 tanggal ('Y-m-d') - return nama libur kalau ada, null kalau bukan hari libur. */
+function libur_cek_tanggal(PDO $db, string $tanggalIso): ?string
+{
+    $tahun = (int) substr($tanggalIso, 0, 4);
+    libur_pastikan_tersinkron($db, $tahun);
+    $row = db_one($db, "SELECT keterangan FROM hari_libur WHERE tanggal = ?", [$tanggalIso]);
+    return $row['keterangan'] ?? null;
+}
+
+/**
+ * Hari kerja = bukan Sabtu/Minggu DAN bukan hari libur nasional/cuti
+ * bersama. Dipakai buat batesin pengajuan cuti cuma bisa dilakukan pas
+ * hari kerja (lihat user/pengajuan_cuti.php) - bukan buat ngitung lama
+ * cuti (itu tetep hari kalender apa adanya, gak dikurangin weekend/libur).
+ */
+function hari_kerja_cek(PDO $db, string $tanggalIso): bool
+{
+    if (kalender_is_weekend($tanggalIso)) {
+        return false;
+    }
+    return libur_cek_tanggal($db, $tanggalIso) === null;
+}

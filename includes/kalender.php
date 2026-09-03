@@ -29,6 +29,12 @@ function kalender_bulan_grid(int $year, int $month): array
     return array_chunk($cells, 7);
 }
 
+/** Sabtu/Minggu - dipakai bareng hari_libur buat nandain "bukan hari kerja". */
+function kalender_is_weekend(string $tanggalIso): bool
+{
+    return (int) date('N', strtotime($tanggalIso)) >= 6;
+}
+
 /**
  * Peta tanggal -> daftar pegawai yang cuti (Disetujui) di tanggal itu,
  * dalam rentang 1 bulan. $idPegawai buat filter 1 orang aja (dashboard
