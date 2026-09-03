@@ -5,6 +5,7 @@ auth_require('User');
 $pegawai = cuti_get_pegawai_by_nip($db, $_SESSION['nip']);
 if ($pegawai) {
     $pegawai = cuti_tahunan_rollover_jika_perlu($db, $pegawai);
+    $pegawai = cuti_sakit_reset_jika_perlu($db, $pegawai);
 }
 $error = flash_get('error');
 $pendingCount = $pegawai ? cuti_pending_count_for_approver($db, $pegawai['nip']) : 0;

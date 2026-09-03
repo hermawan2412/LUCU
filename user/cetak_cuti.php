@@ -59,6 +59,17 @@ $atasanLangsungLevel = $cuti['panmud_kasubag'] !== null ? 'panmud_kasubag'
 $atasanLangsung = pejabat_by_nip($db, $atasanLangsungNip);
 $pejabatBerwenang = pejabat_by_nip($db, $cuti['ketua']);
 
+// Approver bisa centang "Tunda TTD" pas approve (lihat user/approve_cuti.php) -
+// override tanda_tangan_path KHUSUS buat dokumen ini, TTD di profilnya sendiri
+// gak berubah. ttd_manual_{level} kolomnya per-slot approval (bukan per-role
+// cetak), jadi atasan langsung dicek di level yg BENERAN dia isi.
+if (!empty($cuti["ttd_manual_{$atasanLangsungLevel}"])) {
+    $atasanLangsung['tanda_tangan_path'] = null;
+}
+if (!empty($cuti['ttd_manual_ketua'])) {
+    $pejabatBerwenang['tanda_tangan_path'] = null;
+}
+
 // Level yang barusan nolak (kalau status Tidak Disetujui) - app_flag level itu gak
 // pernah disentuh cuti_reject(), jadi cuti_current_pending_level() apa adanya masih
 // nunjuk persis level yang nolak.

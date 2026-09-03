@@ -44,6 +44,7 @@ $pegawaiKuota = db_all($db, "SELECT p.*, j.nama_jabatan
     ORDER BY p.nama_pegawai ASC");
 foreach ($pegawaiKuota as &$pk) {
     $pk = cuti_tahunan_rollover_jika_perlu($db, $pk);
+    $pk = cuti_sakit_reset_jika_perlu($db, $pk);
     $pk['kuota_tersedia'] = cuti_tahunan_kuota_tersedia($pk);
 }
 unset($pk);

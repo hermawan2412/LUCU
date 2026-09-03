@@ -10,6 +10,16 @@
 
 declare(strict_types=1);
 
+// Kredit cuti sakit TAHUNAN (kebijakan internal kantor, bukan Perka BKN) - beda
+// dari batas "cuti sakit >14 hari butuh surat keterangan tim penguji kesehatan"
+// (Perka BKN 24/2017 Ps.8, itu ambang DOKUMEN, sudah divalidasi terpisah di
+// cuti_validasi_jenis(), gak diubah). Ini soal SALDO: tiap pegawai dijatah
+// segini hari/tahun, motong tiap kali Cuti Sakit ber-satuan Hari disetujui,
+// HANGUS di akhir tahun kalau gak abis (reset ke kredit penuh lagi, TIDAK
+// diakumulasi kayak cuti tahunan N/N-1/N-2). Lewat kredit TETAP disetujui
+// (gak diblok) - cuma dikasih catatan buat kepegawaian proses potongan TUKIN.
+const CUTI_SAKIT_KREDIT_TAHUNAN = 14;
+
 // PNS: 7 jenis cuti per Pasal 3 PP No. 11 Tahun 2017 jo. Perka BKN No. 24
 // Tahun 2017 (beserta perubahannya, Perka BKN No. 7 Tahun 2021). "Cuti
 // Bersama" sebelumnya kelewat - bukan cuti yg diajukan pegawai (ditetapkan
@@ -216,6 +226,56 @@ function cuti_potong_saldo_tahunan(PDO $db, int $idPegawai, int $lama): void
 
     db_query($db, "UPDATE pegawai SET cuti_tahunan_n2 = cuti_tahunan_n2 - ?, cuti_tahunan_n1 = cuti_tahunan_n1 - ?, hak_cuti_tahunan = hak_cuti_tahunan - ? WHERE id_pegawai = ?",
         [$ambilN2, $ambilN1, $ambilN, $idPegawai]);
+}
+
+/**
+ * Reset hak_cuti_sakit ke kredit tahunan penuh (CUTI_SAKIT_KREDIT_TAHUNAN)
+ * kalau tahun berjalan udah ganti sejak reset terakhir. BEDA dari
+ * cuti_tahunan_rollover_jika_perlu(): sisa gak kepake TIDAK dibawa ke tahun
+ * berikutnya (hangus, sesuai kebijakan kantor) - makanya cukup ASSIGN
+ * langsung, gak perlu loop per-tahun-kelewat kayak versi tahunan.
+ */
+function cuti_sakit_reset_jika_perlu(PDO $db, array $pegawai): array
+{
+    $tahunSekarang = (int) date('Y');
+    $tahunTerakhir = (int) ($pegawai['cuti_sakit_reset_tahun'] ?? $tahunSekarang);
+    if ($tahunTerakhir >= $tahunSekarang) {
+        return $pegawai;
+    }
+
+    db_query($db, "UPDATE pegawai SET hak_cuti_sakit = ?, cuti_sakit_reset_tahun = ? WHERE id_pegawai = ?",
+        [CUTI_SAKIT_KREDIT_TAHUNAN, $tahunSekarang, $pegawai['id_pegawai']]);
+
+    $pegawai['hak_cuti_sakit'] = CUTI_SAKIT_KREDIT_TAHUNAN;
+    $pegawai['cuti_sakit_reset_tahun'] = $tahunSekarang;
+    return $pegawai;
+}
+
+/**
+ * Potong saldo kredit cuti sakit tahunan. BEDA dari cuti_potong_saldo_tahunan():
+ * kalau saldo abis, TETAP dipotong sampai minus (gak dicap di 0) - minus itu
+ * sendiri jadi penanda "kelebihan kuota" buat kepegawaian, bukan alasan
+ * nolak pengajuan (itu udah kejadian sebelum fungsi ini dipanggil, kuota
+ * abis bukan syarat validasi pengajuan).
+ * Return catatan tambahan (kosong string kalau gak lebih dari kuota) - biar
+ * caller nempelin ke ket_status_cuti.
+ */
+function cuti_potong_saldo_sakit(PDO $db, int $idPegawai, int $lama): string
+{
+    $pegawai = db_one($db, "SELECT * FROM pegawai WHERE id_pegawai = ?", [$idPegawai]);
+    if ($pegawai === null) {
+        return '';
+    }
+    $pegawai = cuti_sakit_reset_jika_perlu($db, $pegawai);
+    $saldoSebelum = (int) $pegawai['hak_cuti_sakit'];
+
+    db_query($db, "UPDATE pegawai SET hak_cuti_sakit = hak_cuti_sakit - ? WHERE id_pegawai = ?", [$lama, $idPegawai]);
+
+    $saldoSesudah = $saldoSebelum - $lama;
+    if ($saldoSesudah < 0) {
+        return ' (Melebihi kuota cuti sakit ' . abs($saldoSesudah) . ' hari - ada potongan TUKIN)';
+    }
+    return '';
 }
 
 /**
@@ -459,7 +519,13 @@ function cuti_pending_count_for_approver(PDO $db, string $nip): int
  * yang ke-assign di level itu (dicek di sini, bukan cuma dipercaya dari form).
  * Return true kalau berhasil, false kalau approverNip gak berhak atas row ini.
  */
-function cuti_approve(PDO $db, array $row, string $approverNip): bool
+/**
+ * $ttdManual: dicentang approver di form ("tunda TTD digital, cetak dulu TTD
+ * basah") - kesimpen per LEVEL yang lagi diproses ($level), dibaca lagi nanti
+ * di cetak_cuti.php buat nge-override tanda_tangan_path profil approver itu
+ * KHUSUS buat pengajuan ini (gak ngubah TTD di profilnya, cuma dokumen ini).
+ */
+function cuti_approve(PDO $db, array $row, string $approverNip, bool $ttdManual = false): bool
 {
     $level = cuti_current_pending_level($row);
     if ($level === null || $row[$level] !== $approverNip) {
@@ -468,7 +534,7 @@ function cuti_approve(PDO $db, array $row, string $approverNip): bool
 
     $db->beginTransaction();
     try {
-        db_query($db, "UPDATE cuti_pegawai SET app_{$level} = 1 WHERE id_cutipegawai = ?", [$row['id_cutipegawai']]);
+        db_query($db, "UPDATE cuti_pegawai SET app_{$level} = 1, ttd_manual_{$level} = ? WHERE id_cutipegawai = ?", [$ttdManual ? 1 : 0, $row['id_cutipegawai']]);
 
         $updated = cuti_get_by_id($db, (int) $row['id_cutipegawai']);
         $nextLevel = cuti_current_pending_level($updated);
@@ -477,10 +543,17 @@ function cuti_approve(PDO $db, array $row, string $approverNip): bool
         $pemohonNip = $pemohon['nip'];
 
         if ($nextLevel === null) {
-            db_query($db, "UPDATE cuti_pegawai SET status_cuti = 'Disetujui', ket_status_cuti = 'Pengajuan Cuti Disetujui' WHERE id_cutipegawai = ?", [$row['id_cutipegawai']]);
+            $ketFinal = 'Pengajuan Cuti Disetujui';
             if (cuti_apakah_potong_saldo_tahunan($row['jenis_cuti'])) {
                 cuti_potong_saldo_tahunan($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
+            } elseif ($row['jenis_cuti'] === 'Cuti Sakit' && $row['ket_lama_cuti'] === 'Hari') {
+                // Cuma satuan Hari yg kepotong dari kredit 14 hari/tahun - Cuti Sakit
+                // ber-satuan Bulan/Tahun itu jalur sakit-berat terpisah (surat
+                // keterangan tim penguji kesehatan, sudah divalidasi di
+                // cuti_validasi_jenis()), bukan bagian kredit rutin ini.
+                $ketFinal .= cuti_potong_saldo_sakit($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
             }
+            db_query($db, "UPDATE cuti_pegawai SET status_cuti = 'Disetujui', ket_status_cuti = ? WHERE id_cutipegawai = ?", [$ketFinal, $row['id_cutipegawai']]);
             notifikasi_kirim($db, $pemohonNip, "Pengajuan {$row['jenis_cuti']} Anda telah disetujui.", 'daftar_cuti.php');
         } else {
             $jabatan = cuti_nama_jabatan_by_nip($db, $updated[$nextLevel]);

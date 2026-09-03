@@ -92,7 +92,8 @@ CREATE TABLE `pegawai` (
   `cuti_tahunan_n1` int(2) NOT NULL DEFAULT 0 COMMENT 'sisa cuti tahunan tahun lalu (N-1), starter diisi admin, selanjutnya di-roll otomatis - lihat cuti_tahunan_rollover_jika_perlu()',
   `cuti_tahunan_n2` int(2) NOT NULL DEFAULT 0 COMMENT 'sisa cuti tahunan 2 tahun lalu (N-2), sda',
   `cuti_tahunan_rollover_tahun` int(4) NOT NULL DEFAULT 2026 COMMENT 'tahun terakhir kali N/N-1/N-2 di-roll, cegah rollover dobel',
-  `hak_cuti_sakit` int(2) NOT NULL DEFAULT 0,
+  `hak_cuti_sakit` int(2) NOT NULL DEFAULT 14 COMMENT 'kredit cuti sakit TAHUNAN (bukan per-pengajuan) - 14 hari, hangus kalau gak kepake (reset tiap tahun, gak akumulasi kayak cuti tahunan) - lihat cuti_sakit_reset_jika_perlu(). Lewat kuota TETAP disetujui, cuma dikasih catatan potongan TUKIN, gak diblok.',
+  `cuti_sakit_reset_tahun` int(4) NOT NULL DEFAULT 2026 COMMENT 'tahun terakhir hak_cuti_sakit di-reset ke kredit tahunan, cegah reset dobel',
   `hak_cuti_penting` int(2) NOT NULL DEFAULT 0,
   `no_telp` varchar(15) NOT NULL DEFAULT '',
   `tanda_tangan_path` varchar(255) DEFAULT NULL COMMENT 'relatif ke uploads/ttd/ - gambar tanda tangan buat cetak_cuti.php',
@@ -115,13 +116,13 @@ CREATE TABLE `pegawai` (
 -- dan jalur panitera (22 -> 7 -> 5 -> [Ketua/Sekretaris tergantung jenis_asn])
 -- biar alur pengajuan cuti bisa dites lengkap end-to-end, PNS maupun PPPK.
 INSERT INTO `pegawai` (`nama_pegawai`, `nip`, `id_jabatan`, `id_golongan`, `jenis_asn`, `unit_kerja`, `tmt_pegawai`, `hak_cuti_tahunan`, `hak_cuti_sakit`, `hak_cuti_penting`, `no_telp`) VALUES
-('Contoh Ketua, S.H., M.H.', '190000000000000001', 1, 5, 'PNS', 'Pengadilan Agama Rantau', '2015-01-01', 12, 0, 0, ''),
-('Contoh Panitera, S.H.', '190000000000000002', 5, 3, 'PNS', 'Pengadilan Agama Rantau', '2018-03-01', 12, 0, 0, ''),
-('Contoh Sekretaris, S.H.', '190000000000000004', 6, 4, 'PNS', 'Pengadilan Agama Rantau', '2017-05-01', 12, 0, 0, ''),
-('Contoh Kasubag TI, A.Md.', '190000000000000005', 16, 9, 'PNS', 'Pengadilan Agama Rantau', '2019-02-01', 12, 0, 0, ''),
-('Contoh Panmud Hukum, S.H.', '190000000000000007', 7, 3, 'PNS', 'Pengadilan Agama Rantau', '2016-04-01', 12, 0, 0, ''),
-('Contoh Staf, A.Md.', '190000000000000003', 20, 10, 'PNS', 'Pengadilan Agama Rantau', '2021-06-01', 12, 6, 6, ''),
-('Contoh Staf PPPK, A.Md.', '190000000000000006', 22, 10, 'PPPK', 'Pengadilan Agama Rantau', '2022-01-01', 12, 6, 6, '');
+('Contoh Ketua, S.H., M.H.', '190000000000000001', 1, 5, 'PNS', 'Pengadilan Agama Rantau', '2015-01-01', 12, 14, 0, ''),
+('Contoh Panitera, S.H.', '190000000000000002', 5, 3, 'PNS', 'Pengadilan Agama Rantau', '2018-03-01', 12, 14, 0, ''),
+('Contoh Sekretaris, S.H.', '190000000000000004', 6, 4, 'PNS', 'Pengadilan Agama Rantau', '2017-05-01', 12, 14, 0, ''),
+('Contoh Kasubag TI, A.Md.', '190000000000000005', 16, 9, 'PNS', 'Pengadilan Agama Rantau', '2019-02-01', 12, 14, 0, ''),
+('Contoh Panmud Hukum, S.H.', '190000000000000007', 7, 3, 'PNS', 'Pengadilan Agama Rantau', '2016-04-01', 12, 14, 0, ''),
+('Contoh Staf, A.Md.', '190000000000000003', 20, 10, 'PNS', 'Pengadilan Agama Rantau', '2021-06-01', 12, 14, 6, ''),
+('Contoh Staf PPPK, A.Md.', '190000000000000006', 22, 10, 'PPPK', 'Pengadilan Agama Rantau', '2022-01-01', 12, 14, 6, '');
 
 -- --------------------------------------------------------
 
@@ -160,6 +161,9 @@ CREATE TABLE `cuti_pegawai` (
   `app_panmud_kasubag` int(2) NOT NULL DEFAULT 0,
   `app_panitera_sekretaris` int(2) NOT NULL DEFAULT 0,
   `app_ketua` int(2) NOT NULL DEFAULT 0,
+  `ttd_manual_panmud_kasubag` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'dicentang approver saat approve: tunda TTD digital, cetak dulu TTD basah manual - override tanda_tangan_path profil cuma buat pengajuan ini',
+  `ttd_manual_panitera_sekretaris` tinyint(1) NOT NULL DEFAULT 0,
+  `ttd_manual_ketua` tinyint(1) NOT NULL DEFAULT 0,
   `status_cuti` varchar(225) NOT NULL,
   `ket_status_cuti` varchar(225) NOT NULL,
   `sisa_cuti` int(3) NOT NULL,

@@ -20,7 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($row === null) {
         $errors[] = 'Pengajuan tidak ditemukan.';
     } elseif ($action === 'approve') {
-        if (cuti_approve($db, $row, $pegawai['nip'])) {
+        $ttdManual = isset($_POST['ttd_manual']);
+        if (cuti_approve($db, $row, $pegawai['nip'], $ttdManual)) {
             flash_set('success', 'Pengajuan cuti disetujui.');
             redirect('approve_cuti.php');
         }
@@ -48,6 +49,9 @@ layout_header('Approval Cuti', 'approval');
 ?>
 <h1>Approval Cuti</h1>
 <p class="lead">Pengajuan cuti yang menunggu persetujuan Anda sebagai <?= e($pegawai['nama_jabatan']) ?>.</p>
+<?php if (!empty($pegawai['tanda_tangan_path'])): ?>
+  <p class="hint" style="margin-top:-12px;margin-bottom:16px;">Tanda tangan digital Anda otomatis kepakai di formulir cetak. Centang "Tunda TTD" kalau untuk pengajuan tertentu mau tanda tangan basah manual setelah dicetak.</p>
+<?php endif; ?>
 
 <?php if ($success): ?>
   <div class="alert alert-success"><?= e($success) ?></div>
@@ -91,10 +95,16 @@ layout_header('Approval Cuti', 'approval');
                     <a href="approve_cuti.php" class="btn-secondary" style="padding:6px 12px;">Batal</a>
                   </form>
                 <?php else: ?>
-                  <form method="POST" style="display:inline;">
+                  <form method="POST" style="display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap;">
                     <?= csrf_field() ?>
                     <input type="hidden" name="id" value="<?= (int) $row['id_cutipegawai'] ?>">
                     <input type="hidden" name="action" value="approve">
+                    <?php if (!empty($pegawai['tanda_tangan_path'])): ?>
+                      <label style="display:flex; align-items:center; gap:4px; font-size:0.76rem; font-weight:400; white-space:nowrap;">
+                        <input type="checkbox" name="ttd_manual" value="1" style="width:auto;">
+                        Tunda TTD (cetak dulu)
+                      </label>
+                    <?php endif; ?>
                     <button type="submit" class="btn-secondary" style="padding:6px 12px;">Setujui</button>
                   </form>
                   <a href="?tolak=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary" style="padding:6px 12px;">Tolak</a>

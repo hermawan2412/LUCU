@@ -121,6 +121,7 @@ $list = db_all($db, "SELECT p.*, j.nama_jabatan, g.nama_golongan
     ORDER BY p.nama_pegawai ASC");
 foreach ($list as &$row) {
     $row = cuti_tahunan_rollover_jika_perlu($db, $row);
+    $row = cuti_sakit_reset_jika_perlu($db, $row);
     $row['kuota_tersedia'] = cuti_tahunan_kuota_tersedia($row);
 }
 unset($row);

@@ -8,6 +8,7 @@ if ($pegawai === null) {
     redirect('index.php');
 }
 $pegawai = cuti_tahunan_rollover_jika_perlu($db, $pegawai);
+$pegawai = cuti_sakit_reset_jika_perlu($db, $pegawai);
 $kuotaTahunan = cuti_tahunan_kuota_tersedia($pegawai);
 
 $errors = [];
@@ -88,8 +89,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $status, $ketStatus, $kuotaTahunan, $tglIndo, $masaKerja, '', $alamatCuti, '',
                     ]);
 
-                if ($status === 'Disetujui' && cuti_apakah_potong_saldo_tahunan($jenis)) {
-                    cuti_potong_saldo_tahunan($db, (int) $pegawai['id_pegawai'], $lama);
+                if ($status === 'Disetujui') {
+                    if (cuti_apakah_potong_saldo_tahunan($jenis)) {
+                        cuti_potong_saldo_tahunan($db, (int) $pegawai['id_pegawai'], $lama);
+                    } elseif ($jenis === 'Cuti Sakit' && $ketLama === 'Hari') {
+                        cuti_potong_saldo_sakit($db, (int) $pegawai['id_pegawai'], $lama);
+                    }
                 }
 
                 $db->commit();
