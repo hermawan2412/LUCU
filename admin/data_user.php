@@ -123,7 +123,7 @@ layout_header('Kelola Akun', '', 'admin');
 
 <div class="card">
   <h2 style="margin:0 0 16px;">Akun Aktif</h2>
-  <div style="overflow-x:auto;">
+  <div class="table-scroll">
     <table class="data-table">
       <thead><tr><th>Username</th><th>Nama Pegawai</th><th>Role</th><th style="width:220px;">Aksi</th></tr></thead>
       <tbody>

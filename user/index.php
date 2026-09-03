@@ -92,7 +92,7 @@ layout_header('Dashboard', 'dashboard');
     <?php if (empty($rekapTahunIni)): ?>
       <div class="empty-state">Belum ada cuti disetujui tahun ini.</div>
     <?php else: ?>
-      <div style="overflow-x:auto;">
+      <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr><th>Jenis Cuti</th><th>Jumlah Pengajuan</th><th>Total</th></tr>
@@ -152,7 +152,7 @@ layout_header('Dashboard', 'dashboard');
     <?php if (empty($riwayatTerbaru)): ?>
       <div class="empty-state">Belum ada pengajuan cuti. <a href="pengajuan_cuti.php">Ajukan sekarang</a>.</div>
     <?php else: ?>
-      <div style="overflow-x:auto;">
+      <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>

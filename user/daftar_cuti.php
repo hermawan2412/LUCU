@@ -39,7 +39,7 @@ layout_header('Riwayat Cuti', 'riwayat');
   <?php if (empty($riwayat)): ?>
     <div class="empty-state">Belum ada pengajuan cuti. <a href="pengajuan_cuti.php">Ajukan sekarang</a>.</div>
   <?php else: ?>
-    <div style="overflow-x:auto;">
+    <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>

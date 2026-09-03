@@ -88,6 +88,7 @@ layout_header('Data Golongan', 'golongan', 'admin');
 </div>
 
 <div class="card">
+  <div class="table-scroll">
   <table class="data-table">
     <thead><tr><th>Nama Golongan</th><th>Jenis ASN</th><th style="width:160px;">Aksi</th></tr></thead>
     <tbody>
@@ -108,5 +109,6 @@ layout_header('Data Golongan', 'golongan', 'admin');
       <?php endforeach; ?>
     </tbody>
   </table>
+  </div>
 </div>
 <?php layout_footer(); ?>

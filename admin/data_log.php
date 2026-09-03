@@ -44,7 +44,7 @@ layout_header('Log Aktivitas', 'log', 'admin');
 </div>
 
 <div class="card">
-  <div style="overflow-x:auto;">
+  <div class="table-scroll">
     <table class="data-table">
       <thead><tr><th>Waktu</th><th>Username</th><th>Aksi</th><th>Keterangan</th><th>IP</th></tr></thead>
       <tbody>

@@ -64,7 +64,7 @@ layout_header('Approval Cuti', 'approval');
   <?php if (empty($pending)): ?>
     <div class="empty-state">Tidak ada pengajuan yang menunggu approval Anda.</div>
   <?php else: ?>
-    <div style="overflow-x:auto;">
+    <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>

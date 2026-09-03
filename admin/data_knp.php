@@ -139,7 +139,7 @@ layout_header('Data KNP', 'knp', 'admin');
 </div>
 
 <div class="card">
-  <div style="overflow-x:auto;">
+  <div class="table-scroll">
     <table class="data-table">
       <thead>
         <tr><th>Nama</th><th>NIP</th><th>Golongan Skrg</th><th>KNP Terakhir</th><th>KNP Akan Datang</th><th>Tujuan</th><th>Status</th><th>Pensiun</th><th style="width:160px;">Aksi</th></tr>

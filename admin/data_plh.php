@@ -143,6 +143,7 @@ layout_header('Data Plh/Plt', 'plh', 'admin');
 </div>
 
 <div class="card">
+  <div class="table-scroll">
   <table class="data-table">
     <thead><tr><th>Jabatan</th><th>Pelaksana</th><th>Jenis</th><th>Periode</th><th>Keterangan</th><th style="width:160px;">Aksi</th></tr></thead>
     <tbody>
@@ -175,5 +176,6 @@ layout_header('Data Plh/Plt', 'plh', 'admin');
       <?php endif; ?>
     </tbody>
   </table>
+  </div>
 </div>
 <?php layout_footer(); ?>

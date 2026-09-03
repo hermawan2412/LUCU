@@ -284,7 +284,7 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
 </div>
 
 <div class="card">
-  <div style="overflow-x:auto;">
+  <div class="table-scroll">
     <table class="data-table">
       <thead>
         <tr><th>Nama</th><th>NIP</th><th>Jabatan</th><th>Atasan Langsung</th><th>Golongan</th><th>ASN</th><th>Sisa Cuti Tahunan</th><th>TTD</th><th style="width:160px;">Aksi</th></tr>

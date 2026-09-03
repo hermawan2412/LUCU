@@ -113,7 +113,7 @@ layout_header('Data KGB', 'kgb', 'admin');
 </div>
 
 <div class="card">
-  <div style="overflow-x:auto;">
+  <div class="table-scroll">
     <table class="data-table">
       <thead>
         <tr><th>Nama</th><th>NIP</th><th>Jabatan</th><th>Golongan</th><th>KGB Terakhir</th><th>KGB Akan Datang</th><th>Status</th><th style="width:160px;">Aksi</th></tr>

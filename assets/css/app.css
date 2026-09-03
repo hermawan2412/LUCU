@@ -71,6 +71,12 @@
   /* shadow: atmospheric, spread besar, opacity rendah (DESIGN.md §6) */
   --shadow-1: 0 4px 24px rgba(20, 20, 19, 0.05);
   --shadow-2: 0 24px 48px rgba(20, 20, 19, 0.09);
+  /* Buat .table-scroll (bayangan scroll horizontal) - beda dari --shadow-1/2
+     di atas (itu box-shadow ke LUAR elemen, kontras terhadap bg halaman
+     yang lebih gelap lagi di dark mode). Ini radial-gradient di DALAM
+     elemen, kontras terhadap var(--surface) elemen itu sendiri - butuh
+     terang di dark mode (surface-nya udah gelap), bukan ikut gelap. */
+  --scroll-shadow-rgb: 0, 0, 0;
 
   font-size: 16px;
 }
@@ -116,6 +122,7 @@
 
     --shadow-1: 0 4px 24px rgba(0, 0, 0, 0.35);
     --shadow-2: 0 24px 48px rgba(0, 0, 0, 0.5);
+    --scroll-shadow-rgb: 255, 255, 255;
   }
 }
 :root[data-theme="dark"] {
@@ -147,6 +154,7 @@
 
   --shadow-1: 0 4px 24px rgba(0, 0, 0, 0.35);
   --shadow-2: 0 24px 48px rgba(0, 0, 0, 0.5);
+  --scroll-shadow-rgb: 255, 255, 255;
 }
 
 * { box-sizing: border-box; }
@@ -839,6 +847,40 @@ a.stat-tile { display: block; text-decoration: none; color: inherit; cursor: poi
 }
 
 .btn-secondary:hover { background: var(--bone); border-color: var(--ink); }
+
+/*
+ * Wrapper standar buat semua tabel data (dulu inline style="overflow-x:auto"
+ * di tiap halaman, sekarang 1 class biar konsisten) - nambahin sinyal
+ * visual kalau ada kolom lain di luar layar (ketemu pas cek visual mobile:
+ * tabel banyak kolom di HP cuma nampilin 2 kolom pertama tanpa petunjuk
+ * apa pun ada yang harus digeser). Teknik gradient klasik: 2 linear-gradient
+ * (attachment local, ikut scroll bareng konten) nutupin 2 radial-gradient
+ * "bayangan" (attachment scroll, nempel di tepi viewport) - bayangan cuma
+ * kelihatan kalau posisi scroll masih ada konten tersembunyi ke arah itu,
+ * ilang sendiri pas udah mentok kiri/kanan.
+ */
+.table-scroll {
+  overflow-x: auto;
+  /* Semua 4 layer linear-gradient (bukan radial) - sengaja, karena elemen
+     ini TINGGINYA GAK DIBATASI (cuma overflow-x, tabel makin panjang makin
+     tinggi elemennya ikut, ngikut alur scroll HALAMAN bukan scroll internal
+     elemen). radial-gradient (percobaan pertama) farthest-side-nya ngitung
+     jarak dari titik tengah vertikal elemen - buat tabel yang tingginya
+     ribuan px, baris yang jauh dari tengah efeknya jadi transparan total
+     (gak kelihatan sama sekali kalau discreenshot di baris manapun selain
+     persis tengah). linear-gradient cuma variasi di sumbu X, konstan di
+     sumbu Y - selalu kelihatan di baris manapun. */
+  background-image:
+    linear-gradient(to right, var(--surface) 0%, transparent 20px),
+    linear-gradient(to left, var(--surface) 0%, transparent 20px),
+    linear-gradient(to right, rgba(var(--scroll-shadow-rgb), 0.3), transparent 10px),
+    linear-gradient(to left, rgba(var(--scroll-shadow-rgb), 0.3), transparent 10px);
+  background-position: left, right, left, right;
+  background-repeat: no-repeat;
+  background-color: var(--surface);
+  background-size: 20px 100%, 20px 100%, 10px 100%, 10px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
 
 table.data-table {
   width: 100%;

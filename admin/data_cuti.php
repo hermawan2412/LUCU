@@ -74,7 +74,7 @@ layout_header('Data Cuti', 'cuti', 'admin');
   <?php if (empty($list)): ?>
     <div class="empty-state">Gak ada pengajuan cuti<?= $statusFilter !== '' ? ' dengan status "' . e($statusFilter) . '"' : '' ?>.</div>
   <?php else: ?>
-    <div style="overflow-x:auto;">
+    <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>

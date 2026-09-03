@@ -145,6 +145,7 @@ layout_header('Data Jabatan', 'jabatan', 'admin');
 </div>
 
 <div class="card">
+  <div class="table-scroll">
   <table class="data-table">
     <thead><tr><th>Nama Jabatan</th><th>Atasan</th><th>Peran</th><th style="width:160px;">Aksi</th></tr></thead>
     <tbody>
@@ -166,5 +167,6 @@ layout_header('Data Jabatan', 'jabatan', 'admin');
       <?php endforeach; ?>
     </tbody>
   </table>
+  </div>
 </div>
 <?php layout_footer(); ?>
