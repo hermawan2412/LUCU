@@ -1006,6 +1006,12 @@ table.data-table td.num {
 @media (max-width: 720px) {
   .calendar-cell { min-height: 56px; font-size: 0.8rem; }
   .calendar-chip, .calendar-more { display: none; }
+
+  /* .calendar-nav gak punya flex-wrap - judul panjang (mis. admin "Kalender
+     Cuti Tim") + 4 tombol nav (admin punya tombol sinkron Libur ekstra)
+     ketabrakan/numpuk di HP sempit (ketemu pas cek visual mobile). */
+  .calendar-nav { flex-wrap: wrap; }
+  .calendar-nav-links { width: 100%; }
 }
 
 .quota-list { display: flex; flex-direction: column; gap: 2px; }
