@@ -135,8 +135,8 @@ layout_header('Pengaturan', '', 'admin');
   <p class="lead">Tampil sebagai brand mark di topbar &amp; halaman login, gantiin ikon perisai bawaan.</p>
 
   <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
-    <div style="width:80px; height:80px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border,#e5e5e5); border-radius:8px;">
-      <?= brand_mark_svg(64, '../') ?>
+    <div style="width:130px; height:130px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border,#e5e5e5); border-radius:8px;">
+      <?= brand_mark_svg(110, '../') ?>
     </div>
     <span class="hint" style="margin:0;">
       <?= APP_LOGO_PATH ? 'Logo saat ini sudah diupload.' : 'Belum ada logo — masih pakai ikon bawaan.' ?>
@@ -168,8 +168,8 @@ layout_header('Pengaturan', '', 'admin');
   <p class="lead">Tampil di halaman login (gantiin badge teks nama instansi) — ukuran disamakan dengan Logo Aplikasi di atas.</p>
 
   <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
-    <div style="width:80px; height:80px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border,#e5e5e5); border-radius:8px; background:#141413;">
-      <?= logo_instansi_html(64, '../') ?>
+    <div style="width:130px; height:130px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border,#e5e5e5); border-radius:8px; background:#141413;">
+      <?= logo_instansi_html(110, '../') ?>
     </div>
     <span class="hint" style="margin:0;">
       <?= APP_LOGO_INSTANSI_PATH ? 'Logo instansi saat ini sudah diupload.' : 'Belum ada logo — halaman login masih pakai teks nama instansi.' ?>

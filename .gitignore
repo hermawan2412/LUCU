@@ -4,6 +4,8 @@ uploads/*
 !uploads/ttd/
 uploads/ttd/*
 !uploads/ttd/.gitkeep
+assets/img/*
+!assets/img/.gitkeep
 *.log
 error_log
 .DS_Store
