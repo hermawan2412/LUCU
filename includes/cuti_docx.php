@@ -189,14 +189,15 @@ function cuti_docx_generate(
     $tp->setValue('NAMA_BERWENANG', $pejabatBerwenang['nama_pegawai']);
     $tp->setValue('NIP_BERWENANG', $pejabatBerwenang['nip']);
 
-    cuti_docx_isi_ttd($tp, 'TTD_PEGAWAI', $cuti['tanda_tangan_path'] ?? null);
-    cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $atasanLangsung['tanda_tangan_path'] ?? null);
-    cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $pejabatBerwenang['tanda_tangan_path'] ?? null);
-
-    // Bug ketemu 2026-09: sebelumnya baca $cuti[$atasanLangsungLevel] (kolom
-    // NIP, SELALU truthy begitu slot ke-assign) bukan app_{level} (flag
-    // approval beneran) - checkbox VII bakal ke-☑ padahal levelnya belum
-    // approve apa-apa. Fixed.
+    // $cuti[$atasanLangsungLevel] itu kolom NIP (SELALU truthy begitu slot
+    // ke-assign, gak peduli udah approve apa belum) - app_{level} adalah
+    // flag approval BENERAN. Dipakai buat checkbox VII/VIII (bug lama,
+    // sempet ke-☑ padahal belum approve apa-apa) SEKALIGUS buat gambar TTD
+    // di bawah - bug BARU ketemu 2026-09-04: TTD_ATASAN/TTD_BERWENANG
+    // dulu selalu digambar kalau pejabatnya PUNYA tanda_tangan_path,
+    // gak peduli levelnya udah approve apa belum - tanda tangan pejabat
+    // yang BELUM approve bisa nongol di dokumen. Sekarang cuma digambar
+    // kalau levelnya beneran udah app_*=1.
     $disetujuiVII = (bool) $cuti["app_{$atasanLangsungLevel}"];
     $ditolakVII = $levelPenolak === $atasanLangsungLevel;
     $tp->setValue('CK7_DISETUJUI', cuti_docx_centang($disetujuiVII));
@@ -210,6 +211,15 @@ function cuti_docx_generate(
     $tp->setValue('CK8_PERUBAHAN', cuti_docx_centang(false));
     $tp->setValue('CK8_DITANGGUHKAN', cuti_docx_centang(false));
     $tp->setValue('CK8_TIDAK', cuti_docx_centang($ditolakVIII));
+
+    // Ukuran diperkecil dari 100x50 - 50px lebih tinggi dari ruang kosong
+    // yang beneran disediain template (2-3 baris kosong ~9pt di antara
+    // "Hormat Saya,"/baris centang dan nama tercetak), jadi gambar
+    // nembus/nimpa teks nama di bawahnya. Diverifikasi ulang lewat render
+    // LibreOffice sungguhan, bukan cuma diliat di kode.
+    cuti_docx_isi_ttd($tp, 'TTD_PEGAWAI', $cuti['tanda_tangan_path'] ?? null, 80, 32);
+    cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $disetujuiVII ? ($atasanLangsung['tanda_tangan_path'] ?? null) : null, 80, 32);
+    cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $disetujuiVIII ? ($pejabatBerwenang['tanda_tangan_path'] ?? null) : null, 80, 32);
 
     return $tp->save(); // TemplateProcessor nulis ke file temp sendiri
 }

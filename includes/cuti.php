@@ -564,7 +564,7 @@ function cuti_mulai_approval_setelah_nomor(PDO $db, array $row): void
 
     $pemohon = db_one($db, "SELECT nip, nama_pegawai FROM pegawai WHERE id_pegawai = ?", [$row['id_pegawai']]);
     if ($status === 'Disetujui') {
-        cuti_notifikasi_dokumen($db, $row, $pemohon['nip'], "Pengajuan {$row['jenis_cuti']} an. {$pemohon['nama_pegawai']} telah Disetujui.");
+        cuti_notifikasi_dokumen($db, $row, $pemohon['nip'], "Pengajuan {$row['jenis_cuti']} an. {$pemohon['nama_pegawai']} telah Disetujui.", true);
     } else {
         $level = cuti_current_pending_level($row);
         if ($level !== null && $row[$level] !== null) {
@@ -625,17 +625,22 @@ function cuti_pending_count_for_approver(PDO $db, string $nip): int
  * Broadcast progress ke 3 pihak (pengaju, atasan langsung, atasan
  * berwenang) tiap ada approval/reject - beda dari notif actionable
  * "menunggu approval Anda" (itu cuma ke approver berikutnya, link ke
- * approve_cuti.php). Ini link-nya ke DOKUMEN (cetak_cuti.php) biar semua
- * pihak bisa langsung liat/unduh hasil cetak terkini. Dedupe NIP yang sama
- * (mis. HAKIM: atasan langsung == atasan berwenang == Ketua, cuma dapat 1
- * pesan bukan 2).
+ * approve_cuti.php). Dedupe NIP yang sama (mis. HAKIM: atasan langsung ==
+ * atasan berwenang == Ketua, cuma dapat 1 pesan bukan 2).
+ *
+ * $sudahFinal: cetak_cuti.php cuma bisa diakses kalau status_cuti udah
+ * 'Disetujui' PENUH (lihat gate-nya di sana) - jadi link ke DOKUMEN cuma
+ * masuk akal buat notif approval FINAL. Selain itu (approval level
+ * tengah, atau reject/'Tidak Disetujui') link-nya ke daftar_cuti.php doang
+ * (status-info, bukan output dokumen) - biar gak ngasih link yang bakal
+ * ditolak/nyasar kalau diklik.
  */
-function cuti_notifikasi_dokumen(PDO $db, array $row, string $pemohonNip, string $pesan): void
+function cuti_notifikasi_dokumen(PDO $db, array $row, string $pemohonNip, string $pesan, bool $sudahFinal = false): void
 {
     $atasanLangsungNip = $row['panmud_kasubag'] ?? $row['panitera_sekretaris'] ?? $row['ketua'];
     $pejabatBerwenangNip = $row['ketua'];
     $penerima = array_unique(array_filter([$pemohonNip, $atasanLangsungNip, $pejabatBerwenangNip]));
-    $url = 'cetak_cuti.php?id=' . $row['id_cutipegawai'];
+    $url = $sudahFinal ? 'cetak_cuti.php?id=' . $row['id_cutipegawai'] : 'daftar_cuti.php';
     foreach ($penerima as $nip) {
         notifikasi_kirim($db, $nip, $pesan, $url);
     }
@@ -670,7 +675,7 @@ function cuti_approve(PDO $db, array $row, string $approverNip, bool $ttdManual 
                 $ketFinal .= cuti_potong_saldo_sakit($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
             }
             db_query($db, "UPDATE cuti_pegawai SET status_cuti = 'Disetujui', ket_status_cuti = ? WHERE id_cutipegawai = ?", [$ketFinal, $row['id_cutipegawai']]);
-            cuti_notifikasi_dokumen($db, $row, $pemohonNip, "Pengajuan {$row['jenis_cuti']} an. {$pemohon['nama_pegawai']} telah Disetujui.");
+            cuti_notifikasi_dokumen($db, $row, $pemohonNip, "Pengajuan {$row['jenis_cuti']} an. {$pemohon['nama_pegawai']} telah Disetujui.", true);
         } else {
             $jabatan = cuti_nama_jabatan_by_nip($db, $updated[$nextLevel]);
             $ket = "Menunggu Approval $jabatan";

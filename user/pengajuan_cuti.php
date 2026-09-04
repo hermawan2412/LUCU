@@ -65,6 +65,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors) && $dari > $sampai) {
         $errors[] = '"Sampai dengan" tidak boleh sebelum "Dari tanggal".';
     }
+    // Bug ketemu 2026-09-04 (dari dokumen cetak beneran): satuan Hari bisa
+    // mismatch sama rentang tanggal yang dipilih (mis. isi "1 Hari" tapi
+    // tanggal dipilih 4 hari) - lama_cuti dulu murni angka yg diketik user,
+    // gak pernah dicocokin ke tanggal. Sekarang DIHITUNG ULANG dari
+    // rentang tanggal buat satuan Hari (angka yg diketik user diabaikan,
+    // gak mungkin salah lagi) - Bulan/Tahun tetap manual, panjangnya
+    // bervariasi (28-31 hari/bulan, 365-366 hari/tahun), gak bisa dihitung
+    // pasti cuma dari 2 tanggal kalender pendek gini.
+    if (empty($errors) && $ketLama === 'Hari') {
+        $lama = (int) ((strtotime($sampai) - strtotime($dari)) / 86400) + 1;
+    }
     if (empty($errors) && $jenis === 'Cuti Tahunan' && $lama > $kuotaTahunan) {
         $errors[] = 'Sisa cuti tahunan tidak mencukupi (sisa: ' . $kuotaTahunan . ' hari, termasuk akumulasi tahun sebelumnya).';
     }
@@ -210,6 +221,7 @@ layout_header('Ajukan Cuti', 'ajukan');
       <div class="field">
         <label for="lama_cuti">Lama Cuti</label>
         <input id="lama_cuti" name="lama_cuti" type="number" min="1" required value="<?= e($_POST['lama_cuti'] ?? '') ?>">
+        <p class="hint">Khusus satuan Hari, dihitung ulang otomatis dari Dari/Sampai Tanggal - angka di sini cuma dipakai buat satuan Bulan/Tahun.</p>
       </div>
       <div class="field">
         <label for="ket_lamacuti">Satuan</label>

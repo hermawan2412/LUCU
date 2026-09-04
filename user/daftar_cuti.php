@@ -62,8 +62,12 @@ layout_header('Riwayat Cuti', 'riwayat');
               <td><span class="badge <?= cuti_status_badge_class($row['status_cuti']) ?>"><?= e($row['status_cuti']) ?></span></td>
               <td><?= e($row['ket_status_cuti']) ?></td>
               <td>
-                <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.docx</a>
-                <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pdf" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.pdf</a>
+                <?php if ($row['status_cuti'] === 'Disetujui'): ?>
+                  <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.docx</a>
+                  <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pdf" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.pdf</a>
+                <?php else: ?>
+                  <span class="hint">Dokumen tersedia setelah Disetujui</span>
+                <?php endif; ?>
                 <?php if (!empty($row['berkas'])): ?>
                   <a href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">Surat Dokter</a>
                 <?php endif; ?>

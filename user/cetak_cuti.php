@@ -26,6 +26,17 @@ if ($_SESSION['role'] !== 'Admin' && $cuti['nip'] !== ($_SESSION['nip'] ?? null)
     redirect('daftar_cuti.php');
 }
 
+// Dokumen cuma boleh diunduh/dicetak setelah SEPENUHNYA Disetujui (atasan
+// langsung + pejabat berwenang dua-duanya udah approve) - sebelum itu,
+// tanda tangan pejabat yang belum approve gak boleh muncul di dokumen sama
+// sekali (lihat gating di cuti_docx_generate()), jadi mencetak di tengah
+// proses cuma bakal ngasih dokumen kosong/gak lengkap yang membingungkan.
+// Berlaku buat Admin juga - bukan cuma User.
+if ($cuti['status_cuti'] !== 'Disetujui') {
+    flash_set('error', 'Dokumen baru bisa diunduh setelah pengajuan Disetujui sepenuhnya (atasan langsung dan pejabat berwenang sudah approve). Status saat ini: ' . $cuti['status_cuti'] . '.');
+    redirect($_SESSION['role'] === 'Admin' ? '../admin/data_cuti.php' : 'daftar_cuti.php');
+}
+
 /**
  * Formulir cuti - keluaran .docx asli (phpoffice/phpword, lihat
  * includes/cuti_docx.php), bukan HTML print-to-PDF lagi. Struktur & istilah
