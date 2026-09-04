@@ -296,13 +296,25 @@ a { color: var(--link-blue); }
   z-index: 1;
 }
 
-/* Logo instansi (kalau admin sudah upload, lihat logo_instansi_html()) - block
-   biar pasti nge-stack di atas brand-mark, bukan sejajar (img default-nya
-   inline). Ukurannya (width/height) diset langsung dari PHP, disamain
-   dgn brand_mark_svg() app di bawahnya. */
-.login-topleft > img { display: block; margin-bottom: 4px; }
+/* Logo instansi + logo aplikasi berdampingan (bukan numpuk atas-bawah kayak
+   sebelumnya) - garis pemisah tipis di antaranya, khas pola "logo instansi |
+   logo aplikasi" di kop surat resmi. Ukuran (width/height) diset langsung
+   dari PHP - sama gede antara instansi & aplikasi. */
+.login-logos {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
 
-.login-topleft .brand-mark { margin-top: 18px; }
+.login-logos-divider {
+  width: 1.5px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.25);
+  flex: none;
+}
+
 .login-topleft .brand-mark .wordmark { color: #fff; font-size: 1.2rem; }
 .login-topleft .brand-mark svg { color: var(--signal-light); }
 .login-topleft .brand-mark img { object-fit: contain; }
@@ -398,7 +410,11 @@ a { color: var(--link-blue); }
   .login-shell { display: block; padding: 40px 20px; }
 
   .login-topleft { position: static; transform: none; max-width: none; text-align: center; margin: 0 0 28px; }
-  .login-topleft .badge { display: flex; justify-content: center; margin-bottom: 12px; }
+  .login-logos { justify-content: center; }
+  /* Garis pemisah numpang doang di layar lebar - begitu login-logos wrap ke
+     2 baris (logo instansi baris 1, logo aplikasi baris 2), garisnya nyantol
+     sendirian gak jelas di ujung baris 1. Sembunyiin aja kalau udah numpuk. */
+  .login-logos-divider { display: none; }
   .login-topleft .brand-mark { justify-content: center; }
   .login-title { max-width: 36ch; margin: 20px auto 0; font-size: clamp(1.9rem, 6vw, 2.6rem); }
 
@@ -509,7 +525,11 @@ a { color: var(--link-blue); }
   max-width: 1180px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* center, bukan space-between - logo/menu/toggle/info akun dikumpulin di
+     tengah (bukan logo mentok kiri, info akun mentok kanan). flex-wrap
+     bikin tiap baris (pas wrap ke bawah di layar sempit) ikut ke-center
+     sendiri-sendiri. */
+  justify-content: center;
   flex-wrap: wrap;
   gap: 14px;
   position: sticky;

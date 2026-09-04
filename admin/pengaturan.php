@@ -13,14 +13,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $namaAplikasi = trim($_POST['nama_aplikasi'] ?? '');
         $namaLengkap = trim($_POST['nama_lengkap'] ?? '');
         $instansi = trim($_POST['instansi'] ?? '');
+        $tagline = trim($_POST['tagline'] ?? '');
 
         if ($namaAplikasi === '') $errors[] = 'Nama aplikasi wajib diisi.';
         if ($namaLengkap === '') $errors[] = 'Nama lengkap aplikasi wajib diisi.';
         if ($instansi === '') $errors[] = 'Nama instansi wajib diisi.';
+        if ($tagline === '') $errors[] = 'Tagline wajib diisi.';
 
         if (empty($errors)) {
-            db_query($db, "UPDATE pengaturan SET nama_aplikasi=?, nama_lengkap=?, instansi=? WHERE id_pengaturan = 1",
-                [$namaAplikasi, $namaLengkap, $instansi]);
+            db_query($db, "UPDATE pengaturan SET nama_aplikasi=?, nama_lengkap=?, instansi=?, tagline=? WHERE id_pengaturan = 1",
+                [$namaAplikasi, $namaLengkap, $instansi, $tagline]);
             log_aktivitas($db, 'update_pengaturan', 'Ubah identitas aplikasi/instansi');
             flash_set('success', 'Pengaturan disimpan.');
             redirect('pengaturan.php');
@@ -100,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $p = db_one($db, "SELECT * FROM pengaturan WHERE id_pengaturan = 1") ?? [
-    'nama_aplikasi' => APP_NAME, 'nama_lengkap' => APP_FULL_NAME, 'instansi' => APP_INSTANSI,
+    'nama_aplikasi' => APP_NAME, 'nama_lengkap' => APP_FULL_NAME, 'instansi' => APP_INSTANSI, 'tagline' => APP_TAGLINE,
 ];
 $success = flash_get('success');
 
@@ -131,6 +133,11 @@ layout_header('Pengaturan', '', 'admin');
       <label for="instansi">Nama Instansi</label>
       <input id="instansi" name="instansi" type="text" required maxlength="150" value="<?= e($p['instansi']) ?>">
       <p class="hint">Muncul di badge login, footer, dan topbar, mis. "Pengadilan Agama Rantau".</p>
+    </div>
+    <div class="field">
+      <label for="tagline">Tagline</label>
+      <input id="tagline" name="tagline" type="text" required maxlength="150" value="<?= e($p['tagline'] ?? APP_TAGLINE) ?>">
+      <p class="hint">Sub-judul kecil di bawah nama aplikasi di halaman login, mis. "layanan cuti, tanpa antre.".</p>
     </div>
     <button type="submit" class="btn-primary" style="width:auto;padding:12px 24px;">Simpan</button>
   </form>

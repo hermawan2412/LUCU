@@ -279,6 +279,7 @@ CREATE TABLE `pengaturan` (
   `nama_aplikasi` varchar(100) NOT NULL,
   `nama_lengkap` varchar(150) NOT NULL,
   `instansi` varchar(150) NOT NULL,
+  `tagline` varchar(150) NOT NULL DEFAULT 'layanan cuti, tanpa antre.' COMMENT 'sub-judul di halaman login, di bawah nama_lengkap',
   `logo_path` varchar(255) DEFAULT NULL COMMENT 'logo aplikasi (brand mark topbar & login) - relatif ke assets/img/',
   `logo_instansi_path` varchar(255) DEFAULT NULL COMMENT 'logo instansi (PA Rantau) - tampil di halaman login gantiin badge teks, relatif ke assets/img/',
   `wa_aktif` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'notifikasi WhatsApp via Fonnte on/off - lihat includes/whatsapp.php',
