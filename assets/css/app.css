@@ -547,6 +547,19 @@ a { color: var(--link-blue); }
   margin-top: -2px;
 }
 
+.version-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--slate);
+  background: var(--bone);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  align-self: flex-start;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.version-badge:hover { color: var(--ink); background: var(--border); }
+
 .topbar nav {
   display: flex;
   gap: 2px;

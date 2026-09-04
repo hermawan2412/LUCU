@@ -87,6 +87,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
         <span class="wordmark"><?= e(APP_NAME) ?><?= $section === 'admin' ? ' · Admin' : '' ?></span>
         <span class="instansi"><?= e(APP_INSTANSI) ?></span>
       </span>
+      <a href="changelog.php" class="version-badge" title="Lihat riwayat pembaruan">v<?= e(changelog_versi_terbaru()) ?></a>
     </div>
     <nav>
       <?php foreach ($nav as $key => $item): ?>

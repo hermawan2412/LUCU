@@ -66,6 +66,7 @@ require_once __DIR__ . '/../includes/upload.php';
 require_once __DIR__ . '/../includes/whatsapp.php';
 require_once __DIR__ . '/../includes/notifikasi.php';
 require_once __DIR__ . '/../includes/log.php';
+require_once __DIR__ . '/../includes/changelog.php';
 require_once __DIR__ . '/../includes/layout.php';
 
 $db = db_connect($config['db']);
