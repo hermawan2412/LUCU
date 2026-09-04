@@ -52,6 +52,50 @@ function logo_instansi_html(int $size = 64, string $assetPrefix = ''): string
     return '<span class="badge">' . e(APP_INSTANSI) . '</span>';
 }
 
+/**
+ * Thumbnail kecil (maks 300x300, di-resize proporsional) dari logo instansi
+ * yang admin upload, buat og:image di index.php - JANGAN pernah pakai file
+ * logo asli langsung sebagai og:image, WhatsApp/Fonnte fetch dimensi FILE
+ * ASLI (bukan atribut width/height HTML), dan logo upload admin bisa >1MB
+ * resolusi tinggi apa adanya (lihat login-logos di index.php) -> preview WA
+ * jadi berat/gede. Di-cache ke disk (nama file dari mtime sumber, otomatis
+ * regenerate kalau admin ganti logo) biar gak resize ulang tiap request.
+ * Return null kalau logo instansi belum di-set atau filenya rusak/gak
+ * kebaca GD - index.php skip og:image sepenuhnya kalau gini.
+ */
+function og_image_url(string $assetPrefix = ''): ?string
+{
+    if (!defined('APP_LOGO_INSTANSI_PATH') || !APP_LOGO_INSTANSI_PATH) {
+        return null;
+    }
+    $srcPath = __DIR__ . '/../assets/img/' . basename(APP_LOGO_INSTANSI_PATH);
+    if (!is_file($srcPath)) {
+        return null;
+    }
+
+    $cacheName = 'og_' . md5($srcPath) . '_' . filemtime($srcPath) . '.png';
+    $cachePath = __DIR__ . '/../assets/img/' . $cacheName;
+    if (!is_file($cachePath)) {
+        $src = @imagecreatefromstring((string) file_get_contents($srcPath));
+        if ($src === false) {
+            return null;
+        }
+        $w = imagesx($src);
+        $h = imagesy($src);
+        $skala = min(1.0, 300 / max($w, $h)); // cuma diperkecil, gak pernah diperbesar
+        $dw = max(1, (int) round($w * $skala));
+        $dh = max(1, (int) round($h * $skala));
+        $dst = imagecreatetruecolor($dw, $dh);
+        imagesavealpha($dst, true);
+        imagefill($dst, 0, 0, imagecolorallocatealpha($dst, 0, 0, 0, 127));
+        imagecopyresampled($dst, $src, 0, 0, 0, 0, $dw, $dh, $w, $h);
+        imagepng($dst, $cachePath);
+        // imagedestroy() gak dipanggil - no-op sejak PHP 8.0, GC yg beresin.
+    }
+
+    return e($assetPrefix . 'assets/img/' . $cacheName);
+}
+
 function indonesia_tgl(string $tanggal): string
 {
     $namaBulan = [
