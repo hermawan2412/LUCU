@@ -548,17 +548,25 @@ a { color: var(--link-blue); }
 }
 
 .version-badge {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
   font-size: 0.62rem;
   font-weight: 700;
   color: var(--slate);
   background: var(--bone);
-  padding: 2px 8px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
   text-decoration: none;
-  align-self: flex-start;
+  box-shadow: var(--shadow-1);
+  z-index: 9;
   transition: color 0.15s ease, background 0.15s ease;
 }
 .version-badge:hover { color: var(--ink); background: var(--border); }
+
+@media (max-width: 720px) {
+  .version-badge { right: auto; left: 50%; transform: translateX(-50%); }
+}
 
 .topbar nav {
   display: flex;
