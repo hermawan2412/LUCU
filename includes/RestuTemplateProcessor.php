@@ -26,11 +26,20 @@ class RestuTemplateProcessor extends TemplateProcessor
 
     /**
      * Ganti macro ${MACRO} di body dokumen (bukan header/footer - TTD/paraf
-     * RESTU semua di body) jadi gambar floating "In Front of Text", rata
-     * tengah horizontal terhadap kolom, posisi vertikal tetap di baris
-     * paragraf yang sama (posOffset 0) - kira-kira nempatin gambar persis
-     * di tempat placeholder aslinya, cuma sekarang ngambang di atas teks
-     * bukan ikut alur baris.
+     * RESTU semua di body) jadi gambar floating wrap "Top and Bottom", rata
+     * tengah horizontal terhadap kolom. $maxWidthPx/$maxHeightPx itu KOTAK
+     * MAKSIMAL, bukan ukuran paksa - rasio asli gambar dijaga (di-scale
+     * uniform biar pas di kotak itu, gak pernah di-stretch/gepeng), lihat
+     * itung-itungan $cx/$cy di bawah.
+     *
+     * Dulu pakai wrap "In Front of Text" (wp:wrapNone) - gambar ngambang
+     * bebas, gak mindahin teks sama sekali, jadi kalau tinggi gambar lebih
+     * dari ruang paragraf kosong yang disediain template, nembus/nimpa teks
+     * di bawahnya. "Top and Bottom" (wp:wrapTopAndBottom) betulan MENDORONG
+     * paragraf berikutnya turun buat kasih ruang ke gambar - jadi gak akan
+     * numpuk sama teks apa pun, gambar setinggi apa pun, sebagai solusi yg
+     * lebih tahan lama dibanding cuma ngecilin ukuran gambar (fix
+     * sebelumnya, sekarang gak perlu lagi krn wrap-nya sendiri yg jaga).
      *
      * CATATAN: cuma diverifikasi akurat buat paragraf yang HIDUP DI SEL
      * TABEL LEBAR/GAK ber-vMerge (kasus TTD_ATASAN/TTD_BERWENANG/TTD_PEGAWAI
@@ -44,21 +53,25 @@ class RestuTemplateProcessor extends TemplateProcessor
      * TemplateProcessor::setImageValue() bawaan (inline) sebagai gantinya,
      * lihat cuti_docx_isi_ttd($floating=false) di cuti_docx.php.
      */
-    public function setImageValueFloatingCentered(string $macro, string $imgPath, int $widthPx, int $heightPx): void
+    public function setImageValueFloatingCentered(string $macro, string $imgPath, int $maxWidthPx, int $maxHeightPx): void
     {
         $imageData = @getimagesize($imgPath);
         if (!is_array($imageData)) {
             throw new PhpWordException(sprintf('Invalid image: %s', $imgPath));
         }
         $imageMimeType = image_type_to_mime_type($imageData[2]);
+        [$nativeWidth, $nativeHeight] = $imageData;
 
         $partFileName = $this->getMainPartName();
         $rid = 'rId' . $this->getNextRelationsIndex($partFileName);
         $this->tambahGambarKeRelations($partFileName, $rid, $imgPath, $imageMimeType);
 
+        // Scale UNIFORM (rasio dijaga) biar muat di kotak maks, gak pernah
+        // lebih - sama logika kayak CSS object-fit:contain.
+        $skala = min($maxWidthPx / $nativeWidth, $maxHeightPx / $nativeHeight);
         $emuPerPx = 9525; // 96dpi, konversi standar OOXML px->EMU
-        $cx = $widthPx * $emuPerPx;
-        $cy = $heightPx * $emuPerPx;
+        $cx = (int) round($nativeWidth * $skala * $emuPerPx);
+        $cy = (int) round($nativeHeight * $skala * $emuPerPx);
         $docPrId = self::$drawingIdCounter++;
 
         $xmlImage = '<w:drawing>'
@@ -67,7 +80,7 @@ class RestuTemplateProcessor extends TemplateProcessor
             . '<wp:positionH relativeFrom="column"><wp:align>center</wp:align></wp:positionH>'
             . '<wp:positionV relativeFrom="paragraph"><wp:posOffset>0</wp:posOffset></wp:positionV>'
             . '<wp:extent cx="' . $cx . '" cy="' . $cy . '"/>'
-            . '<wp:wrapNone/>'
+            . '<wp:wrapTopAndBottom/>'
             . '<wp:docPr id="' . $docPrId . '" name="Gambar ' . $docPrId . '"/>'
             . '<wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></wp:cNvGraphicFramePr>'
             . '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'

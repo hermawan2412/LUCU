@@ -212,11 +212,11 @@ function cuti_docx_generate(
     $tp->setValue('CK8_DITANGGUHKAN', cuti_docx_centang(false));
     $tp->setValue('CK8_TIDAK', cuti_docx_centang($ditolakVIII));
 
-    // Ukuran diperkecil dari 100x50 - 50px lebih tinggi dari ruang kosong
-    // yang beneran disediain template (2-3 baris kosong ~9pt di antara
-    // "Hormat Saya,"/baris centang dan nama tercetak), jadi gambar
-    // nembus/nimpa teks nama di bawahnya. Diverifikasi ulang lewat render
-    // LibreOffice sungguhan, bukan cuma diliat di kode.
+    // 80x32 itu KOTAK MAKS, bukan ukuran paksa - setImageValueFloatingCentered()
+    // jaga rasio asli gambar (gak di-stretch), dan sejak wrap-nya "Top and
+    // Bottom" (bukan "In Front of Text" lagi) paragraf di bawahnya otomatis
+    // kedorong turun ngasih ruang ke gambar - gak akan numpuk teks lagi
+    // walau gambarnya lebih tinggi dari 32px.
     cuti_docx_isi_ttd($tp, 'TTD_PEGAWAI', $cuti['tanda_tangan_path'] ?? null, 80, 32);
     cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $disetujuiVII ? ($atasanLangsung['tanda_tangan_path'] ?? null) : null, 80, 32);
     cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $disetujuiVIII ? ($pejabatBerwenang['tanda_tangan_path'] ?? null) : null, 80, 32);
