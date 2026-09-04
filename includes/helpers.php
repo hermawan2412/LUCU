@@ -53,27 +53,25 @@ function logo_instansi_html(int $size = 64, string $assetPrefix = ''): string
 }
 
 /**
- * Thumbnail kecil (maks 300x300, di-resize proporsional) dari logo instansi
- * yang admin upload, buat og:image di index.php - JANGAN pernah pakai file
- * logo asli langsung sebagai og:image, WhatsApp/Fonnte fetch dimensi FILE
- * ASLI (bukan atribut width/height HTML), dan logo upload admin bisa >1MB
- * resolusi tinggi apa adanya (lihat login-logos di index.php) -> preview WA
- * jadi berat/gede. Di-cache ke disk (nama file dari mtime sumber, otomatis
- * regenerate kalau admin ganti logo) biar gak resize ulang tiap request.
- * Return null kalau logo instansi belum di-set atau filenya rusak/gak
- * kebaca GD - index.php skip og:image sepenuhnya kalau gini.
+ * Thumbnail kecil (maks $maxBox x $maxBox, di-resize proporsional) dari file
+ * logo admin-upload manapun - dipakai og_image_url() (og:image) dan
+ * favicon_url() (tab browser). JANGAN pernah pakai file logo asli langsung
+ * di konteks itu, logo upload admin bisa >1MB resolusi tinggi apa adanya.
+ * Di-cache ke disk (nama file dari mtime sumber, otomatis regenerate kalau
+ * admin ganti logo) biar gak resize ulang tiap request. Return null kalau
+ * sumbernya belum di-set atau filenya rusak/gak kebaca GD.
  */
-function og_image_url(string $assetPrefix = ''): ?string
+function resize_thumb_cache(?string $sumberPath, string $prefixCache, int $maxBox, string $assetPrefix = ''): ?string
 {
-    if (!defined('APP_LOGO_INSTANSI_PATH') || !APP_LOGO_INSTANSI_PATH) {
+    if (!$sumberPath) {
         return null;
     }
-    $srcPath = __DIR__ . '/../assets/img/' . basename(APP_LOGO_INSTANSI_PATH);
+    $srcPath = __DIR__ . '/../assets/img/' . basename($sumberPath);
     if (!is_file($srcPath)) {
         return null;
     }
 
-    $cacheName = 'og_' . md5($srcPath) . '_' . filemtime($srcPath) . '.png';
+    $cacheName = $prefixCache . '_' . md5($srcPath) . '_' . filemtime($srcPath) . '.png';
     $cachePath = __DIR__ . '/../assets/img/' . $cacheName;
     if (!is_file($cachePath)) {
         $src = @imagecreatefromstring((string) file_get_contents($srcPath));
@@ -82,7 +80,7 @@ function og_image_url(string $assetPrefix = ''): ?string
         }
         $w = imagesx($src);
         $h = imagesy($src);
-        $skala = min(1.0, 300 / max($w, $h)); // cuma diperkecil, gak pernah diperbesar
+        $skala = min(1.0, $maxBox / max($w, $h)); // cuma diperkecil, gak pernah diperbesar
         $dw = max(1, (int) round($w * $skala));
         $dh = max(1, (int) round($h * $skala));
         $dst = imagecreatetruecolor($dw, $dh);
@@ -94,6 +92,19 @@ function og_image_url(string $assetPrefix = ''): ?string
     }
 
     return e($assetPrefix . 'assets/img/' . $cacheName);
+}
+
+function og_image_url(string $assetPrefix = ''): ?string
+{
+    $sumber = defined('APP_LOGO_INSTANSI_PATH') ? APP_LOGO_INSTANSI_PATH : null;
+    return resize_thumb_cache($sumber, 'og', 300, $assetPrefix);
+}
+
+/** Favicon tab browser - pakai logo APLIKASI (bukan logo instansi), mark-only. */
+function favicon_url(string $assetPrefix = ''): ?string
+{
+    $sumber = defined('APP_LOGO_PATH') ? APP_LOGO_PATH : null;
+    return resize_thumb_cache($sumber, 'favicon', 64, $assetPrefix);
 }
 
 function indonesia_tgl(string $tanggal): string

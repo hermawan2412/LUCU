@@ -14,6 +14,9 @@ $statCuti = cuti_statistik_hari_ini($db);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e(APP_NAME) ?> | Login</title>
+  <?php if ($favicon = favicon_url()): ?>
+  <link rel="icon" type="image/png" href="<?= $favicon ?>">
+  <?php endif; ?>
   <!-- Link "Buka: ..." di notifikasi WA (includes/notifikasi.php) ngarah ke
        halaman yg butuh login, jadi crawler preview WA/link-unfurler
        ke-redirect ke halaman login INI (satu-satunya halaman yg keliatan

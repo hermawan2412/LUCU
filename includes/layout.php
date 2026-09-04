@@ -76,6 +76,9 @@ function layout_header(string $title, string $active = '', string $section = 'us
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e(APP_NAME) ?> | <?= e($title) ?></title>
+  <?php if ($favicon = favicon_url('../')): ?>
+  <link rel="icon" type="image/png" href="<?= $favicon ?>">
+  <?php endif; ?>
   <script>(function(){try{var m=localStorage.getItem('restu-theme');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m);}catch(e){}})();</script>
   <link rel="stylesheet" href="../assets/css/app.css">
 </head>
