@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
-auth_require('User');
+auth_require('User', 'Pengelola');
 
 $daftar = notifikasi_daftar($db, $_SESSION['nip'], 20);
 notifikasi_tandai_semua_dibaca($db, $_SESSION['nip']); // dibuka = dianggap dibaca, kayak inbox pada umumnya

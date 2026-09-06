@@ -43,6 +43,11 @@ function layout_header(string $title, string $active = '', string $section = 'us
         'approval' => ['label' => 'Approval', 'href' => 'approve_cuti.php'],
         'profil' => ['label' => 'Profil Saya', 'href' => 'profil.php'],
     ];
+    if ($section === 'user' && ($_SESSION['role'] ?? '') === 'Pengelola') {
+        // Kebalikan dari link "Ajukan Cuti Saya" di sisi admin - biar bisa
+        // balik ke dashboard admin tanpa lewat logout/URL manual.
+        $navUser['dashboard_admin'] = ['label' => 'Dashboard Admin', 'href' => '../admin/index.php'];
+    }
     $navAdmin = [
         'dashboard' => ['label' => 'Dashboard', 'href' => 'index.php'],
         'pegawai' => ['label' => 'Data Pegawai', 'href' => 'data_pegawai.php'],
@@ -57,11 +62,16 @@ function layout_header(string $title, string $active = '', string $section = 'us
         'log' => ['label' => 'Log', 'href' => 'data_log.php'],
         'pengaturan' => ['label' => 'Pengaturan', 'href' => 'pengaturan.php'],
     ];
-    if ($section === 'admin' && ($_SESSION['role'] ?? '') !== 'Admin') {
+    if ($section === 'admin' && ($_SESSION['role'] ?? '') === 'Pengelola') {
         // Role Pengelola: semua menu admin KECUALI Log & Pengaturan (lihat
         // auth_require() di tiap admin/*.php - ini cuma nyembunyiin menu,
         // guard sebenernya tetap di server-side per halaman).
         unset($navAdmin['log'], $navAdmin['pengaturan']);
+        // Pengelola "rangkap" akun pegawai beneran (bukan akun generik kayak
+        // Admin) - dia sendiri juga bisa punya cuti buat diajukan. Link ini
+        // nyebrang ke area user/*.php, yang sekarang juga nerima role
+        // Pengelola (lihat auth_require() di tiap user/*.php).
+        $navAdmin['cuti_saya'] = ['label' => 'Ajukan Cuti Saya', 'href' => '../user/pengajuan_cuti.php'];
     }
     if (!FITUR_KGB_KNP_AKTIF) {
         unset($navAdmin['kgb'], $navAdmin['knp']);
