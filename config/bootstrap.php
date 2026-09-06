@@ -86,3 +86,10 @@ define('APP_INSTANSI', $pengaturan['instansi'] ?? $config['app']['instansi']);
 define('APP_TAGLINE', $pengaturan['tagline'] ?? 'layanan cuti, tanpa antre.');
 define('APP_LOGO_PATH', $pengaturan['logo_path'] ?? null);
 define('APP_LOGO_INSTANSI_PATH', $pengaturan['logo_instansi_path'] ?? null);
+
+// Dimatikan sementara atas permintaan user (2026-09-06) - gak dihapus, tinggal
+// balikin ke true kapan aja. Dipakai includes/layout.php (sembunyiin nav),
+// admin/index.php (sembunyiin stat-tile/quick-link), admin/data_kgb.php,
+// admin/data_knp.php, admin/export_kgb.php, admin/export_knp.php (blok akses
+// langsung lewat URL, bukan cuma disembunyiin di UI).
+define('FITUR_KGB_KNP_AKTIF', false);

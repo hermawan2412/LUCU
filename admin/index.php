@@ -16,10 +16,14 @@ $totalPegawai = db_one($db, "SELECT COUNT(*) AS n FROM pegawai")['n'];
 $totalJabatan = db_one($db, "SELECT COUNT(*) AS n FROM jabatan")['n'];
 $totalGolongan = db_one($db, "SELECT COUNT(*) AS n FROM golongan")['n'];
 $pengajuanAktif = db_one($db, "SELECT COUNT(*) AS n FROM cuti_pegawai WHERE status_cuti = 'Diajukan'")['n'];
-$kgbList = kgb_daftar_terbaru_per_pegawai($db);
-$kgbOverdue = count(array_filter($kgbList, fn($r) => kgb_status($r['kgb_datang']) === 'overdue'));
-$knpList = knp_daftar_terbaru_per_pegawai($db);
-$knpOverdue = count(array_filter($knpList, fn($r) => knp_status($r['knp_datang']) === 'overdue'));
+$kgbOverdue = 0;
+$knpOverdue = 0;
+if (FITUR_KGB_KNP_AKTIF) {
+    $kgbList = kgb_daftar_terbaru_per_pegawai($db);
+    $kgbOverdue = count(array_filter($kgbList, fn($r) => kgb_status($r['kgb_datang']) === 'overdue'));
+    $knpList = knp_daftar_terbaru_per_pegawai($db);
+    $knpOverdue = count(array_filter($knpList, fn($r) => knp_status($r['knp_datang']) === 'overdue'));
+}
 
 // Kalender tim - bulan berjalan, bisa geser lewat ?bulan=YYYY-MM
 $bulanParam = $_GET['bulan'] ?? date('Y-m');
@@ -66,8 +70,10 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
   <a href="data_jabatan.php" class="stat-tile tone-purple"><div class="num"><?= (int) $totalJabatan ?></div><div class="label">Jabatan</div></a>
   <a href="data_golongan.php" class="stat-tile tone-teal"><div class="num"><?= (int) $totalGolongan ?></div><div class="label">Golongan</div></a>
   <a href="data_cuti.php?status=Diajukan" class="stat-tile tone-amber"><div class="num"><?= (int) $pengajuanAktif ?></div><div class="label">Cuti Sedang Diajukan</div></a>
+  <?php if (FITUR_KGB_KNP_AKTIF): ?>
   <a href="data_kgb.php" class="stat-tile <?= $kgbOverdue > 0 ? 'tone-red' : 'tone-green' ?>"><div class="num"><?= $kgbOverdue ?></div><div class="label">KGB Jatuh Tempo</div></a>
   <a href="data_knp.php" class="stat-tile <?= $knpOverdue > 0 ? 'tone-red' : 'tone-green' ?>"><div class="num"><?= $knpOverdue ?></div><div class="label">KNP Jatuh Tempo</div></a>
+  <?php endif; ?>
 </div>
 
 <div class="card">
@@ -144,8 +150,10 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
   <p><a href="data_pegawai.php" class="btn-secondary">Kelola Data Pegawai</a>
      <a href="data_jabatan.php" class="btn-secondary">Kelola Data Jabatan</a>
      <a href="data_golongan.php" class="btn-secondary">Kelola Data Golongan</a>
+     <?php if (FITUR_KGB_KNP_AKTIF): ?>
      <a href="data_kgb.php" class="btn-secondary">Kelola KGB<?= $kgbOverdue > 0 ? " ($kgbOverdue)" : '' ?></a>
      <a href="data_knp.php" class="btn-secondary">Kelola KNP<?= $knpOverdue > 0 ? " ($knpOverdue)" : '' ?></a>
+     <?php endif; ?>
      <a href="export_cuti.php" class="btn-secondary">Export Data Cuti (CSV)</a></p>
 </div>
 <?php layout_footer(); ?>
