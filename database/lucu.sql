@@ -168,6 +168,7 @@ CREATE TABLE `cuti_pegawai` (
   `ket_status_cuti` varchar(225) NOT NULL,
   `sisa_cuti` int(3) NOT NULL,
   `tgl_pengajuan` varchar(20) NOT NULL,
+  `waktu_pengajuan` datetime NOT NULL DEFAULT current_timestamp() COMMENT 'jam:menit:detik submit beneran (auto DB, gak bisa diisi manual) - beda dari tgl_pengajuan yang cuma tanggal isian bebas di form. Dipakai buat urutan antrian kalender (lihat kalender_cuti_bulan()) & ditampilin di kolom Diajukan biar antriannya keliatan jelas ke pengguna.',
   `masa_kerja` varchar(20) NOT NULL,
   `delegasi` varchar(225) NOT NULL DEFAULT '',
   `alamat_cuti` varchar(500) NOT NULL,
