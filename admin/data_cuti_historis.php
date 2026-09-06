@@ -9,9 +9,8 @@ auth_require('Admin', 'Pengelola');
 // di-set net oleh admin pas rollout, mempertimbangkan histori ini. Kalau
 // asumsi itu berubah di kemudian hari, cuti_potong_saldo_tahunan() (includes/cuti.php)
 // udah ada tinggal dipanggil di sini.
-// String penanda baris hasil fitur ini (bukan pengajuan biasa) - dipakai di
-// INSERT & query riwayat di bawah, satu sumber biar gak ketikan dobel meleset.
-const CUTI_HISTORIS_KETERANGAN = 'Data historis - diinput manual, cuti sebelum RESTU berjalan';
+// CUTI_HISTORIS_KETERANGAN (penanda baris hasil fitur ini) sekarang di
+// includes/cuti.php, bukan di sini - dipakai juga sama database/reset_uji_coba.php.
 
 $errors = [];
 

@@ -20,6 +20,15 @@ declare(strict_types=1);
 // (gak diblok) - cuma dikasih catatan buat kepegawaian proses potongan TUKIN.
 const CUTI_SAKIT_KREDIT_TAHUNAN = 14;
 
+// Penanda baris cuti_pegawai hasil fitur "Cuti Historis" (admin/data_cuti_historis.php)
+// - cuti yang udah kelar sebelum RESTU jalan, diinput manual, status langsung
+// Disetujui TANPA pernah motong saldo. Ditaro di sini (bukan cuma di file
+// admin-nya) karena dipakai lintas file: admin/data_cuti_historis.php sendiri,
+// DAN database/reset_uji_coba.php (WAJIB skip baris ini dari refund+delete -
+// baris ini gak pernah motong saldo, jadi kalau ikut ke-refund malah nambahin
+// saldo yang gak seharusnya nambah).
+const CUTI_HISTORIS_KETERANGAN = 'Data historis - diinput manual, cuti sebelum RESTU berjalan';
+
 // PNS: 7 jenis cuti per Pasal 3 PP No. 11 Tahun 2017 jo. Perka BKN No. 24
 // Tahun 2017 (beserta perubahannya, Perka BKN No. 7 Tahun 2021). "Cuti
 // Bersama" sebelumnya kelewat - bukan cuti yg diajukan pegawai (ditetapkan

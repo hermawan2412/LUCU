@@ -35,8 +35,18 @@ if (date('Y-m-d') > '2026-09-30') {
 $rows = db_all($db, "SELECT * FROM cuti_pegawai");
 $refund = 0;
 $hapusBerkas = 0;
+$historisDilewati = 0;
 
 foreach ($rows as $row) {
+    // Baris Cuti Historis (admin/data_cuti_historis.php) BUKAN data uji coba -
+    // itu catatan cuti beneran sebelum RESTU jalan, statusnya Disetujui tapi
+    // gak pernah motong saldo pas dibuat. Kalau ikut di-refund di sini,
+    // saldo pegawainya malah NAMBAH gak semestinya (refund atas potongan yang
+    // gak pernah ada). Skip total - gak di-refund, gak ikut kehapus.
+    if ($row['ket_status_cuti'] === CUTI_HISTORIS_KETERANGAN) {
+        $historisDilewati++;
+        continue;
+    }
     if ($row['status_cuti'] === 'Disetujui') {
         if (cuti_apakah_potong_saldo_tahunan($row['jenis_cuti'])) {
             db_query($db, "UPDATE pegawai SET hak_cuti_tahunan = hak_cuti_tahunan + ? WHERE id_pegawai = ?",
@@ -57,7 +67,8 @@ foreach ($rows as $row) {
     }
 }
 
-db_query($db, "DELETE FROM cuti_pegawai");
+db_query($db, "DELETE FROM cuti_pegawai WHERE ket_status_cuti != ?", [CUTI_HISTORIS_KETERANGAN]);
 
-echo "[" . date('c') . "] Reset uji coba selesai: " . count($rows) . " baris cuti_pegawai dihapus, "
-    . "$refund kredit di-refund, $hapusBerkas berkas surat dokter dibersihkan.\n";
+echo "[" . date('c') . "] Reset uji coba selesai: " . (count($rows) - $historisDilewati) . " baris cuti_pegawai dihapus, "
+    . "$refund kredit di-refund, $hapusBerkas berkas surat dokter dibersihkan, "
+    . "$historisDilewati baris Cuti Historis DIPERTAHANKAN (bukan data uji coba).\n";
