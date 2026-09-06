@@ -714,6 +714,16 @@ function cuti_reject(PDO $db, array $row, string $approverNip, string $alasan): 
 }
 
 /**
+ * Ambang siaga bareng buat tiap indikator persentase cuti di app ini
+ * (stat hari ini di login, per-tanggal di kalender tim) - >30% pegawai
+ * kena tanggal yang sama = merah, selain itu hijau.
+ */
+function cuti_persen_siaga(int $persen): bool
+{
+    return $persen > 30;
+}
+
+/**
  * Statistik pegawai yang lagi cuti HARI INI (status Disetujui, tanggal
  * sekarang jatuh di antara dari_tanggal_iso & sampai_dengan_iso). Dipakai
  * di kotak info halaman login - gak butuh login buat lihat ini, cuma
@@ -725,13 +735,13 @@ function cuti_statistik_hari_ini(PDO $db): array
     $sedangCuti = (int) db_one($db, "SELECT COUNT(DISTINCT id_pegawai) AS n FROM cuti_pegawai
         WHERE status_cuti = 'Disetujui' AND dari_tanggal_iso <= CURDATE() AND sampai_dengan_iso >= CURDATE()")['n'];
 
-    $persen = $total > 0 ? round(($sedangCuti / $total) * 100) : 0;
+    $persen = $total > 0 ? (int) round(($sedangCuti / $total) * 100) : 0;
 
     return [
         'sedang_cuti' => $sedangCuti,
         'total' => $total,
         'persen' => $persen,
-        'siaga' => $persen >= 30, // >=30% pegawai gak masuk - patut diwaspadai
+        'siaga' => cuti_persen_siaga($persen),
     ];
 }
 

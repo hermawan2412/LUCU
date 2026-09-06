@@ -1066,6 +1066,14 @@ table.data-table td.num {
   color: var(--canvas); /* bukan #fff - sama alasan .topbar nav a.active */
 }
 
+.calendar-persen {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  align-self: flex-start;
+}
+
 .calendar-chip {
   font-size: 0.66rem;
   font-weight: 500;

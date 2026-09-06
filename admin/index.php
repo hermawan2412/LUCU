@@ -95,9 +95,16 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
       <?php if ($tgl === null): ?>
         <div class="calendar-cell empty"></div>
       <?php else: ?>
-        <?php $orang = $cutiBulan[$tgl] ?? []; $libur = $liburBulan[$tgl] ?? null; ?>
+        <?php
+          $orang = $cutiBulan[$tgl] ?? [];
+          $libur = $liburBulan[$tgl] ?? null;
+          $persenHari = $totalPegawai > 0 ? (int) round(count($orang) / $totalPegawai * 100) : 0;
+        ?>
         <div class="calendar-cell<?= $tgl === $todayStr ? ' today' : '' ?><?= !empty($orang) ? ' has-leave' : '' ?><?= $libur ? ' is-holiday' : (kalender_is_weekend($tgl) ? ' is-weekend' : '') ?>">
           <div class="calendar-day-num"><?= (int) substr($tgl, 8, 2) ?></div>
+          <?php if (!empty($orang)): ?>
+            <div class="calendar-persen badge <?= cuti_persen_siaga($persenHari) ? 'badge-danger' : 'badge-success' ?>" title="<?= count($orang) ?> dari <?= $totalPegawai ?> pegawai cuti tanggal ini"><?= $persenHari ?>%</div>
+          <?php endif; ?>
           <?php if ($libur): ?>
             <div class="calendar-holiday" title="<?= e($libur) ?>"><?= e($libur) ?></div>
           <?php endif; ?>
