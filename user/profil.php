@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
-auth_require('User');
+auth_require('User', 'Pengelola');
 
 $pegawai = cuti_get_pegawai_by_nip($db, $_SESSION['nip']);
 if ($pegawai === null) {
