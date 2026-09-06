@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
-auth_require('Admin');
+auth_require('Admin', 'Pengelola');
 
 $list = db_all($db, "SELECT p.*, j.nama_jabatan, g.nama_golongan
     FROM pegawai p

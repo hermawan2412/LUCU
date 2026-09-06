@@ -25,4 +25,4 @@ if ($user === null) {
 
 auth_login($user);
 log_aktivitas($db, 'login', '', $user['nip'], $user['username']);
-redirect($user['role'] === 'Admin' ? 'admin/index.php' : 'user/index.php');
+redirect(auth_is_staff() ? 'admin/index.php' : 'user/index.php');

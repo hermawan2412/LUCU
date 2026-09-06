@@ -1,8 +1,9 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
 
-// Diakses User (cuma punya sendiri) atau Admin (siapa aja). Bukan
-// auth_require() biasa karena butuh 2 role + cek kepemilikan.
+// Diakses User (cuma punya sendiri) atau Admin/Pengelola (siapa aja, buat
+// keperluan arsip kepegawaian). Bukan auth_require() biasa karena butuh
+// beberapa role + cek kepemilikan.
 if (!auth_check()) {
     redirect('../index.php');
 }
@@ -18,10 +19,10 @@ $cuti = db_one($db, "SELECT c.*, p.nama_pegawai, p.nip, p.unit_kerja, p.tmt_pega
 
 if ($cuti === null) {
     flash_set('error', 'Data cuti tidak ditemukan.');
-    redirect($_SESSION['role'] === 'Admin' ? '../admin/index.php' : 'daftar_cuti.php');
+    redirect(auth_is_staff() ? '../admin/index.php' : 'daftar_cuti.php');
 }
 
-if ($_SESSION['role'] !== 'Admin' && $cuti['nip'] !== ($_SESSION['nip'] ?? null)) {
+if (!auth_is_staff() && $cuti['nip'] !== ($_SESSION['nip'] ?? null)) {
     flash_set('error', 'Anda tidak berhak mencetak dokumen ini.');
     redirect('daftar_cuti.php');
 }
@@ -34,7 +35,7 @@ if ($_SESSION['role'] !== 'Admin' && $cuti['nip'] !== ($_SESSION['nip'] ?? null)
 // Berlaku buat Admin juga - bukan cuma User.
 if ($cuti['status_cuti'] !== 'Disetujui') {
     flash_set('error', 'Dokumen baru bisa diunduh setelah pengajuan Disetujui sepenuhnya (atasan langsung dan pejabat berwenang sudah approve). Status saat ini: ' . $cuti['status_cuti'] . '.');
-    redirect($_SESSION['role'] === 'Admin' ? '../admin/data_cuti.php' : 'daftar_cuti.php');
+    redirect(auth_is_staff() ? '../admin/data_cuti.php' : 'daftar_cuti.php');
 }
 
 /**

@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
-auth_require('Admin');
+auth_require('Admin', 'Pengelola');
 
 // Approve/reject tetap cuma lewat approve_cuti.php (oleh approver yg
 // beneran di rute jabatan.id_atasan) - satu-satunya aksi admin di sini
