@@ -16,60 +16,78 @@ $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
+    $action = $_POST['action'] ?? 'simpan';
 
-    $idPegawai = (int) ($_POST['id_pegawai'] ?? 0);
-    $jenis = $_POST['jenis_cuti'] ?? '';
-    $dari = $_POST['dari_tanggal'] ?? '';
-    $sampai = $_POST['sampai_dengan'] ?? '';
-    $ketLama = $_POST['ket_lamacuti'] ?? '';
-    $alasan = trim($_POST['alasan_cuti'] ?? '');
-    $alamatCuti = trim($_POST['alamat_cuti'] ?? '') ?: '-';
-    $nomorSurat = trim($_POST['nomor_surat'] ?? '') ?: null;
-
-    $pegawai = $idPegawai > 0 ? db_one($db, "SELECT * FROM pegawai WHERE id_pegawai = ?", [$idPegawai]) : null;
-
-    if ($pegawai === null) {
-        $errors[] = 'Pegawai tidak ditemukan.';
-    } elseif (!in_array($jenis, cuti_leave_types($pegawai['jenis_asn']), true)) {
-        $errors[] = "Jenis cuti \"$jenis\" tidak valid untuk status ASN pegawai ini ({$pegawai['jenis_asn']}).";
-    }
-    if (!in_array($ketLama, ['Hari', 'Bulan', 'Tahun'], true)) {
-        $errors[] = 'Satuan lama cuti tidak valid.';
-    }
-    foreach (['dari_tanggal' => $dari, 'sampai_dengan' => $sampai] as $field => $val) {
-        if ($val === '' || DateTime::createFromFormat('Y-m-d', $val) === false) {
-            $errors[] = "Tanggal ($field) tidak valid.";
+    if ($action === 'hapus') {
+        $idHapus = (int) ($_POST['id_cutipegawai'] ?? 0);
+        // Cuma boleh hapus baris yang BENERAN hasil fitur ini - jaga-jaga id
+        // dimanipulasi manual di request, jangan sampe nghapus cuti beneran
+        // lewat endpoint ini.
+        $row = db_one($db, "SELECT c.*, p.nama_pegawai FROM cuti_pegawai c JOIN pegawai p ON p.id_pegawai = c.id_pegawai
+            WHERE c.id_cutipegawai = ? AND c.ket_status_cuti = ?", [$idHapus, CUTI_HISTORIS_KETERANGAN]);
+        if ($row === null) {
+            $errors[] = 'Data historis tidak ditemukan (atau bukan baris hasil fitur ini).';
+        } else {
+            db_query($db, "DELETE FROM cuti_pegawai WHERE id_cutipegawai = ?", [$idHapus]);
+            log_aktivitas($db, 'hapus_cuti_historis', "Hapus cuti historis #$idHapus ({$row['jenis_cuti']}, {$row['nama_pegawai']}, {$row['dari_tanggal']} s/d {$row['sampai_dengan']})");
+            flash_set('success', "Cuti historis {$row['nama_pegawai']} ({$row['jenis_cuti']}) dihapus.");
+            redirect('data_cuti_historis.php');
         }
-    }
-    if (empty($errors) && $dari > $sampai) {
-        $errors[] = '"Sampai dengan" tidak boleh sebelum "Dari tanggal".';
-    }
-    if ($alasan === '') {
-        $errors[] = 'Alasan/keterangan wajib diisi (mis. "Cuti sebelum RESTU berjalan").';
-    }
+    } elseif ($action === 'simpan') {
+        $idPegawai = (int) ($_POST['id_pegawai'] ?? 0);
+        $jenis = $_POST['jenis_cuti'] ?? '';
+        $dari = $_POST['dari_tanggal'] ?? '';
+        $sampai = $_POST['sampai_dengan'] ?? '';
+        $ketLama = $_POST['ket_lamacuti'] ?? '';
+        $alasan = trim($_POST['alasan_cuti'] ?? '');
+        $alamatCuti = trim($_POST['alamat_cuti'] ?? '') ?: '-';
+        $nomorSurat = trim($_POST['nomor_surat'] ?? '') ?: null;
 
-    if (empty($errors)) {
-        $lama = $ketLama === 'Hari' ? ((int) ((strtotime($sampai) - strtotime($dari)) / 86400) + 1) : (int) ($_POST['lama_cuti'] ?? 1);
-        $pegawai = cuti_tahunan_rollover_jika_perlu($db, $pegawai);
-        $sisaSnapshot = $jenis === 'Cuti Tahunan' ? cuti_tahunan_kuota_tersedia($pegawai) : 0;
+        $pegawai = $idPegawai > 0 ? db_one($db, "SELECT * FROM pegawai WHERE id_pegawai = ?", [$idPegawai]) : null;
 
-        db_query($db, "INSERT INTO cuti_pegawai
-            (id_pegawai, jenis_cuti, alasan_cuti, lama_cuti, ket_lama_cuti, dari_tanggal, sampai_dengan, dari_tanggal_iso, sampai_dengan_iso,
-             app_panmud_kasubag, app_panitera_sekretaris, app_ketua,
-             status_cuti, ket_status_cuti, sisa_cuti, tgl_pengajuan, masa_kerja, delegasi, alamat_cuti, berkas, nomor_surat)
-            VALUES (?,?,?,?,?,?,?,?,?, 1,1,1, 'Disetujui', ?, ?, ?, ?, '', ?, '', ?)",
-            [
-                $pegawai['id_pegawai'], $jenis, $alasan, $lama, $ketLama,
-                indonesia_tgl($dari), indonesia_tgl($sampai), $dari, $sampai,
-                CUTI_HISTORIS_KETERANGAN,
-                $sisaSnapshot, indonesia_tgl($dari), cuti_masa_kerja($pegawai['tmt_pegawai']),
-                $alamatCuti, $nomorSurat,
-            ]);
-        $newId = (int) $db->lastInsertId();
+        if ($pegawai === null) {
+            $errors[] = 'Pegawai tidak ditemukan.';
+        } elseif (!in_array($jenis, cuti_leave_types($pegawai['jenis_asn']), true)) {
+            $errors[] = "Jenis cuti \"$jenis\" tidak valid untuk status ASN pegawai ini ({$pegawai['jenis_asn']}).";
+        }
+        if (!in_array($ketLama, ['Hari', 'Bulan', 'Tahun'], true)) {
+            $errors[] = 'Satuan lama cuti tidak valid.';
+        }
+        foreach (['dari_tanggal' => $dari, 'sampai_dengan' => $sampai] as $field => $val) {
+            if ($val === '' || DateTime::createFromFormat('Y-m-d', $val) === false) {
+                $errors[] = "Tanggal ($field) tidak valid.";
+            }
+        }
+        if (empty($errors) && $dari > $sampai) {
+            $errors[] = '"Sampai dengan" tidak boleh sebelum "Dari tanggal".';
+        }
+        if ($alasan === '') {
+            $errors[] = 'Alasan/keterangan wajib diisi (mis. "Cuti sebelum RESTU berjalan").';
+        }
 
-        log_aktivitas($db, 'inject_cuti_historis', "Input cuti historis #$newId ($jenis, {$pegawai['nama_pegawai']}, $dari s/d $sampai)");
-        flash_set('success', "Cuti historis {$pegawai['nama_pegawai']} ($jenis, " . indonesia_tgl($dari) . ' s/d ' . indonesia_tgl($sampai) . ') berhasil dicatat.');
-        redirect('data_cuti_historis.php');
+        if (empty($errors)) {
+            $lama = $ketLama === 'Hari' ? ((int) ((strtotime($sampai) - strtotime($dari)) / 86400) + 1) : (int) ($_POST['lama_cuti'] ?? 1);
+            $pegawai = cuti_tahunan_rollover_jika_perlu($db, $pegawai);
+            $sisaSnapshot = $jenis === 'Cuti Tahunan' ? cuti_tahunan_kuota_tersedia($pegawai) : 0;
+
+            db_query($db, "INSERT INTO cuti_pegawai
+                (id_pegawai, jenis_cuti, alasan_cuti, lama_cuti, ket_lama_cuti, dari_tanggal, sampai_dengan, dari_tanggal_iso, sampai_dengan_iso,
+                 app_panmud_kasubag, app_panitera_sekretaris, app_ketua,
+                 status_cuti, ket_status_cuti, sisa_cuti, tgl_pengajuan, masa_kerja, delegasi, alamat_cuti, berkas, nomor_surat)
+                VALUES (?,?,?,?,?,?,?,?,?, 1,1,1, 'Disetujui', ?, ?, ?, ?, '', ?, '', ?)",
+                [
+                    $pegawai['id_pegawai'], $jenis, $alasan, $lama, $ketLama,
+                    indonesia_tgl($dari), indonesia_tgl($sampai), $dari, $sampai,
+                    CUTI_HISTORIS_KETERANGAN,
+                    $sisaSnapshot, indonesia_tgl($dari), cuti_masa_kerja($pegawai['tmt_pegawai']),
+                    $alamatCuti, $nomorSurat,
+                ]);
+            $newId = (int) $db->lastInsertId();
+
+            log_aktivitas($db, 'inject_cuti_historis', "Input cuti historis #$newId ($jenis, {$pegawai['nama_pegawai']}, $dari s/d $sampai)");
+            flash_set('success', "Cuti historis {$pegawai['nama_pegawai']} ($jenis, " . indonesia_tgl($dari) . ' s/d ' . indonesia_tgl($sampai) . ') berhasil dicatat.');
+            redirect('data_cuti_historis.php');
+        }
     }
 }
 
@@ -91,6 +109,7 @@ layout_header('Cuti Historis', 'historis', 'admin');
   <h2 style="margin:0 0 16px;">Catat Cuti Historis</h2>
   <form method="POST">
     <?= csrf_field() ?>
+    <input type="hidden" name="action" value="simpan">
     <div class="field">
       <label for="id_pegawai">Pegawai</label>
       <select id="id_pegawai" name="id_pegawai" required>
@@ -161,7 +180,7 @@ layout_header('Cuti Historis', 'historis', 'admin');
   <?php else: ?>
     <div class="table-scroll">
       <table class="data-table">
-        <thead><tr><th>Pegawai</th><th>Jenis</th><th>Tanggal</th><th>Lama</th><th>Nomor Surat</th></tr></thead>
+        <thead><tr><th>Pegawai</th><th>Jenis</th><th>Tanggal</th><th>Lama</th><th>Nomor Surat</th><th style="width:90px;">Aksi</th></tr></thead>
         <tbody>
           <?php foreach ($riwayatHistoris as $row): ?>
             <tr>
@@ -170,6 +189,14 @@ layout_header('Cuti Historis', 'historis', 'admin');
               <td><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?></td>
               <td><?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></td>
               <td><?= $row['nomor_surat'] ? e($row['nomor_surat']) : '-' ?></td>
+              <td>
+                <form method="POST" onsubmit="return confirm('Hapus cuti historis <?= e(addslashes($row['nama_pegawai'])) ?> (<?= e($row['jenis_cuti']) ?>, <?= e($row['dari_tanggal']) ?>)?');">
+                  <?= csrf_field() ?>
+                  <input type="hidden" name="action" value="hapus">
+                  <input type="hidden" name="id_cutipegawai" value="<?= (int) $row['id_cutipegawai'] ?>">
+                  <button type="submit" class="btn-secondary" style="padding:5px 10px;">Hapus</button>
+                </form>
+              </td>
             </tr>
           <?php endforeach; ?>
         </tbody>
