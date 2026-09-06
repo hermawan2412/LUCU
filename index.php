@@ -2,7 +2,7 @@
 require_once __DIR__ . '/config/bootstrap.php';
 
 if (auth_check()) {
-    redirect($_SESSION['role'] === 'Admin' ? 'admin/index.php' : 'user/index.php');
+    redirect(auth_is_staff() ? 'admin/index.php' : 'user/index.php');
 }
 
 $error = flash_get('error');

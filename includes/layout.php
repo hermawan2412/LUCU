@@ -50,12 +50,19 @@ function layout_header(string $title, string $active = '', string $section = 'us
         'plh' => ['label' => 'Data Plh/Plt', 'href' => 'data_plh.php'],
         'golongan' => ['label' => 'Data Golongan', 'href' => 'data_golongan.php'],
         'cuti' => ['label' => 'Data Cuti', 'href' => 'data_cuti.php'],
+        'historis' => ['label' => 'Cuti Historis', 'href' => 'data_cuti_historis.php'],
         'kgb' => ['label' => 'KGB', 'href' => 'data_kgb.php'],
         'knp' => ['label' => 'KNP', 'href' => 'data_knp.php'],
         'akun' => ['label' => 'Kelola Akun', 'href' => 'data_user.php'],
         'log' => ['label' => 'Log', 'href' => 'data_log.php'],
         'pengaturan' => ['label' => 'Pengaturan', 'href' => 'pengaturan.php'],
     ];
+    if ($section === 'admin' && ($_SESSION['role'] ?? '') !== 'Admin') {
+        // Role Pengelola: semua menu admin KECUALI Log & Pengaturan (lihat
+        // auth_require() di tiap admin/*.php - ini cuma nyembunyiin menu,
+        // guard sebenernya tetap di server-side per halaman).
+        unset($navAdmin['log'], $navAdmin['pengaturan']);
+    }
     $nav = $section === 'admin' ? $navAdmin : $navUser;
 
     // Bell: user dapet notifikasi personal (persisted, dipicu alur cuti);
@@ -87,7 +94,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
     <div class="brand-mark">
       <?= brand_mark_svg(24, '../') ?>
       <span>
-        <span class="wordmark"><?= e(APP_NAME) ?><?= $section === 'admin' ? ' · Admin' : '' ?></span>
+        <span class="wordmark"><?= e(APP_NAME) ?><?= $section === 'admin' ? ' · ' . e($_SESSION['role'] ?? 'Admin') : '' ?></span>
         <span class="instansi"><?= e(APP_INSTANSI) ?></span>
       </span>
     </div>

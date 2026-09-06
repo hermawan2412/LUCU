@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
-auth_require('Admin');
+auth_require('Admin', 'Pengelola');
 
 $list = knp_daftar_terbaru_per_pegawai($db);
 

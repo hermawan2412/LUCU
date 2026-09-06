@@ -68,10 +68,33 @@ function auth_check(): bool
     return isset($_SESSION['username'], $_SESSION['role']);
 }
 
-function auth_require(string $role): void
+function auth_require(string ...$roles): void
 {
-    if (!auth_check() || $_SESSION['role'] !== $role) {
+    if (!auth_check() || !in_array($_SESSION['role'], $roles, true)) {
         header('Location: /index.php');
         exit;
     }
+}
+
+/**
+ * Role yang boleh DIPILIH/DIBUAT lewat admin/data_user.php, tergantung
+ * siapa yang lagi bikin akunnya - bukan cuma UI dropdown, dipakai juga
+ * buat validasi server-side (jangan percaya nilai role dari POST mentah).
+ * Cuma Admin yang boleh bikin akun Admin baru - Pengelola gak bisa naikin
+ * akun manapun (termasuk punya sendiri) jadi Admin.
+ */
+function auth_assignable_roles(): array
+{
+    return $_SESSION['role'] === 'Admin' ? ['Admin', 'Pengelola', 'User'] : ['Pengelola', 'User'];
+}
+
+/**
+ * Role yang punya akses area admin/*.php (Admin & Pengelola) - dipakai di
+ * tempat yang butuh cek "bukan auth_require() 1 halaman" tapi keputusan
+ * routing/kepemilikan lintas role, mis. index.php abis login & cetak_cuti.php
+ * (staf kepegawaian jg boleh cetak dokumen siapa aja, bukan cuma Admin).
+ */
+function auth_is_staff(): bool
+{
+    return in_array($_SESSION['role'] ?? null, ['Admin', 'Pengelola'], true);
 }

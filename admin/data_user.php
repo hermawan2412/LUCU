@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
-auth_require('Admin');
+auth_require('Admin', 'Pengelola');
 
 $errors = [];
 
@@ -12,7 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $idPegawai = (int) ($_POST['id_pegawai'] ?? 0);
         $username = trim($_POST['username'] ?? '');
         $password = (string) ($_POST['password'] ?? '');
-        $role = in_array($_POST['role'] ?? '', ['Admin', 'User'], true) ? $_POST['role'] : 'User';
+        // Jangan percaya role dari POST mentah - Pengelola gak boleh bikin
+        // akun Admin (juga gak buat akun sendiri), termasuk kalau field
+        // dropdown-nya di-manipulasi manual di request. Lihat auth_assignable_roles().
+        $role = in_array($_POST['role'] ?? '', auth_assignable_roles(), true) ? $_POST['role'] : 'User';
 
         $pegawai = db_one($db, "SELECT * FROM pegawai WHERE id_pegawai = ?", [$idPegawai]);
 
@@ -37,23 +40,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'reset_password') {
         $idUser = (int) ($_POST['id_user'] ?? 0);
         $password = (string) ($_POST['password'] ?? '');
-        if (strlen($password) < 6) {
+        $target = db_one($db, "SELECT username, role FROM user WHERE id_user = ?", [$idUser]);
+        // Reset password akun Admin = ambil alih akun itu (login pake sandi
+        // baru) - jalan pintas buat celah yang sama kayak "gak bisa bikin
+        // akun Admin", jadi diblok cara yang sama: cuma Admin yang boleh.
+        if ($target !== null && $target['role'] === 'Admin' && $_SESSION['role'] !== 'Admin') {
+            $errors[] = 'Cuma Admin yang boleh reset kata sandi akun Admin.';
+        } elseif (strlen($password) < 6) {
             $errors[] = 'Kata sandi minimal 6 karakter.';
         } else {
-            $targetUsername = db_one($db, "SELECT username FROM user WHERE id_user = ?", [$idUser])['username'] ?? "#$idUser";
             db_query($db, "UPDATE user SET password = ? WHERE id_user = ?", [password_hash($password, PASSWORD_BCRYPT), $idUser]);
-            log_aktivitas($db, 'reset_password', "Reset kata sandi akun \"$targetUsername\"");
+            log_aktivitas($db, 'reset_password', "Reset kata sandi akun \"" . ($target['username'] ?? "#$idUser") . "\"");
             flash_set('success', 'Kata sandi direset.');
             redirect('data_user.php');
         }
     } elseif ($action === 'delete') {
         $idUser = (int) ($_POST['id_user'] ?? 0);
+        $target = db_one($db, "SELECT username, role FROM user WHERE id_user = ?", [$idUser]);
         if ((int) $idUser === (int) ($_SESSION['id_user'] ?? 0)) {
             $errors[] = 'Gak bisa hapus akun sendiri yang lagi dipakai login.';
+        } elseif ($target !== null && $target['role'] === 'Admin' && $_SESSION['role'] !== 'Admin') {
+            $errors[] = 'Cuma Admin yang boleh hapus akun Admin.';
         } else {
-            $targetUsername = db_one($db, "SELECT username FROM user WHERE id_user = ?", [$idUser])['username'] ?? "#$idUser";
             db_query($db, "DELETE FROM user WHERE id_user = ?", [$idUser]);
-            log_aktivitas($db, 'delete_akun', "Hapus akun \"$targetUsername\"");
+            log_aktivitas($db, 'delete_akun', "Hapus akun \"" . ($target['username'] ?? "#$idUser") . "\"");
             flash_set('success', 'Akun dihapus.');
             redirect('data_user.php');
         }
@@ -112,9 +122,14 @@ layout_header('Kelola Akun', '', 'admin');
       <div class="field">
         <label for="role">Role</label>
         <select id="role" name="role">
-          <option value="User" selected>User (pegawai biasa)</option>
-          <option value="Admin">Admin</option>
+          <?php $roleLabel = ['User' => 'User (pegawai biasa)', 'Pengelola' => 'Pengelola (staf kepegawaian)', 'Admin' => 'Admin']; ?>
+          <?php foreach (auth_assignable_roles() as $r): ?>
+            <option value="<?= $r ?>" <?= $r === 'User' ? 'selected' : '' ?>><?= e($roleLabel[$r]) ?></option>
+          <?php endforeach; ?>
         </select>
+        <?php if ($_SESSION['role'] !== 'Admin'): ?>
+          <p class="hint">Akun Admin cuma bisa dibuat oleh Admin.</p>
+        <?php endif; ?>
       </div>
       <button type="submit" class="btn-primary" style="width:auto;padding:12px 24px;">Buat Akun</button>
     </form>
@@ -131,7 +146,8 @@ layout_header('Kelola Akun', '', 'admin');
           <tr>
             <td><?= e($a['username']) ?></td>
             <td><?= $a['nama_pegawai'] ? e($a['nama_pegawai']) : '<span class="hint">tidak terhubung ke data pegawai</span>' ?></td>
-            <td><span class="badge <?= $a['role'] === 'Admin' ? 'badge-warning' : 'badge-neutral' ?>"><?= e($a['role']) ?></span></td>
+            <?php $roleBadge = ['Admin' => 'badge-warning', 'Pengelola' => 'badge-neutral', 'User' => 'badge-success']; ?>
+            <td><span class="badge <?= $roleBadge[$a['role']] ?? 'badge-neutral' ?>"><?= e($a['role']) ?></span></td>
             <td>
               <details style="display:inline-block;">
                 <summary class="btn-secondary" style="padding:5px 10px; cursor:pointer; display:inline-block;">Reset Sandi</summary>
