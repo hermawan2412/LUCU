@@ -130,7 +130,8 @@ layout_header('Dashboard', 'dashboard');
           <div class="calendar-cell empty"></div>
         <?php else: ?>
           <?php $cuti = $cutiBulan[$tgl][0] ?? null; $libur = $liburBulan[$tgl] ?? null; ?>
-          <div class="calendar-cell<?= $tgl === $todayStr ? ' today' : '' ?><?= $cuti ? ' on-leave' : '' ?><?= $libur ? ' is-holiday' : (kalender_is_weekend($tgl) ? ' is-weekend' : '') ?>">
+          <a href="pengajuan_cuti.php?tanggal=<?= $tgl ?>" title="Ajukan cuti mulai <?= e(indonesia_tgl($tgl)) ?>"
+             class="calendar-cell<?= $tgl === $todayStr ? ' today' : '' ?><?= $cuti ? ' on-leave' : '' ?><?= $libur ? ' is-holiday' : (kalender_is_weekend($tgl) ? ' is-weekend' : '') ?>">
             <div class="calendar-day-num"><?= (int) substr($tgl, 8, 2) ?></div>
             <?php if ($libur): ?>
               <div class="calendar-holiday" title="<?= e($libur) ?>"><?= e($libur) ?></div>
@@ -138,7 +139,7 @@ layout_header('Dashboard', 'dashboard');
             <?php if ($cuti): ?>
               <div class="calendar-on-leave-mark"><?= e($cuti['jenis']) ?></div>
             <?php endif; ?>
-          </div>
+          </a>
         <?php endif; ?>
       <?php endforeach; endforeach; ?>
     </div>

@@ -30,6 +30,13 @@ if (!hari_kerja_cek($db, date('Y-m-d'))) {
 
 $errors = [];
 
+// Prefill Dari/Sampai Tanggal kalau dateng dari klik tanggal di kalender
+// (user/index.php, ?tanggal=Y-m-d) - cuma buat GET, biar gak nimpa isian
+// user pas validasi POST gagal & form di-render ulang.
+$tanggalKlik = $_SERVER['REQUEST_METHOD'] !== 'POST' && DateTime::createFromFormat('Y-m-d', $_GET['tanggal'] ?? '') !== false
+    ? $_GET['tanggal']
+    : '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
 
@@ -243,11 +250,11 @@ layout_header('Ajukan Cuti', 'ajukan');
     <div class="field-row">
       <div class="field">
         <label for="dari_tanggal">Dari Tanggal</label>
-        <input id="dari_tanggal" name="dari_tanggal" type="date" required value="<?= e($_POST['dari_tanggal'] ?? '') ?>">
+        <input id="dari_tanggal" name="dari_tanggal" type="date" required value="<?= e($_POST['dari_tanggal'] ?? $tanggalKlik) ?>">
       </div>
       <div class="field">
         <label for="sampai_dengan">Sampai Dengan</label>
-        <input id="sampai_dengan" name="sampai_dengan" type="date" required value="<?= e($_POST['sampai_dengan'] ?? '') ?>">
+        <input id="sampai_dengan" name="sampai_dengan" type="date" required value="<?= e($_POST['sampai_dengan'] ?? $tanggalKlik) ?>">
       </div>
     </div>
     <div class="field">

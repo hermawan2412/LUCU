@@ -1021,6 +1021,12 @@ table.data-table td.num {
 
 .calendar-cell.empty { background: transparent; }
 
+/* Kalender pribadi user - tanggal bisa diklik buat langsung ajukan cuti
+   dari tanggal itu (lihat user/index.php). Selector class sama, cuma
+   reset default anchor + kasih affordance hover. */
+a.calendar-cell { text-decoration: none; color: inherit; transition: box-shadow 0.15s ease; }
+a.calendar-cell:hover { box-shadow: var(--shadow-1); }
+
 .calendar-cell.has-leave { background: var(--warning-bg); }
 
 .calendar-cell.on-leave { background: var(--success-bg); }
