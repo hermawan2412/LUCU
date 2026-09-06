@@ -13,10 +13,18 @@ declare(strict_types=1);
  */
 function log_aktivitas(PDO $db, string $aksi, string $keterangan = '', ?string $nip = null, ?string $username = null): void
 {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+
+    if ($aksi === 'login_gagal') {
+        // Baris teks biasa (bukan cuma baris DB di atas) - fail2ban gak bisa
+        // grep tabel MySQL, butuh sumber log file. Format tetap: RESTU_AUTH_FAIL
+        // ip=<HOST> ..., filter fail2ban-nya di deploy/fail2ban/filter.d/restu-auth.conf.
+        error_log("RESTU_AUTH_FAIL ip=$ip user=\"" . ($username ?? $_SESSION['username'] ?? '-') . "\"");
+    }
+
     try {
         $nip ??= $_SESSION['nip'] ?? null;
         $username ??= $_SESSION['username'] ?? '-';
-        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
         db_query($db, "INSERT INTO log_aktivitas (nip, username, aksi, keterangan, ip_address) VALUES (?,?,?,?,?)",
             [$nip, $username, $aksi, $keterangan, $ip]);
     } catch (Throwable $e) {
