@@ -54,6 +54,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash_set('success', 'Kata sandi direset.');
             redirect('data_user.php');
         }
+    } elseif ($action === 'ubah_role') {
+        $idUser = (int) ($_POST['id_user'] ?? 0);
+        $roleBaru = $_POST['role'] ?? '';
+        $target = db_one($db, "SELECT username, role FROM user WHERE id_user = ?", [$idUser]);
+
+        if ((int) $idUser === (int) ($_SESSION['id_user'] ?? 0)) {
+            $errors[] = 'Gak bisa ubah role akun sendiri yang lagi dipakai login (risiko kekunci - satu-satunya Admin misalnya).';
+        } elseif ($target === null) {
+            $errors[] = 'Akun tidak ditemukan.';
+        } elseif ($target['role'] === 'Admin' && $_SESSION['role'] !== 'Admin') {
+            $errors[] = 'Cuma Admin yang boleh ubah role akun Admin.';
+        } elseif (!in_array($roleBaru, auth_assignable_roles(), true)) {
+            $errors[] = 'Role tidak valid.';
+        } else {
+            db_query($db, "UPDATE user SET role = ? WHERE id_user = ?", [$roleBaru, $idUser]);
+            log_aktivitas($db, 'ubah_role', "Ubah role akun \"{$target['username']}\" dari \"{$target['role']}\" jadi \"$roleBaru\"");
+            flash_set('success', "Role akun \"{$target['username']}\" diubah jadi $roleBaru.");
+            redirect('data_user.php');
+        }
     } elseif ($action === 'delete') {
         $idUser = (int) ($_POST['id_user'] ?? 0);
         $target = db_one($db, "SELECT username, role FROM user WHERE id_user = ?", [$idUser]);
@@ -84,7 +103,7 @@ $success = flash_get('success');
 layout_header('Kelola Akun', '', 'admin');
 ?>
 <h1>Kelola Akun</h1>
-<p class="lead">Bikin akun login buat pegawai yang belum bisa masuk, atau reset kata sandi akun yang ada.</p>
+<p class="lead">Bikin akun login buat pegawai yang belum bisa masuk, ubah role, atau reset kata sandi akun yang ada.</p>
 
 <?php if ($success): ?><div class="alert alert-success"><?= e($success) ?></div><?php endif; ?>
 <?php foreach ($errors as $err): ?><div class="alert alert-danger"><?= e($err) ?></div><?php endforeach; ?>
@@ -140,7 +159,7 @@ layout_header('Kelola Akun', '', 'admin');
   <h2 style="margin:0 0 16px;">Akun Aktif</h2>
   <div class="table-scroll">
     <table class="data-table">
-      <thead><tr><th>Username</th><th>Nama Pegawai</th><th>Role</th><th style="width:220px;">Aksi</th></tr></thead>
+      <thead><tr><th>Username</th><th>Nama Pegawai</th><th>Role</th><th style="width:320px;">Aksi</th></tr></thead>
       <tbody>
         <?php foreach ($akunList as $a): ?>
           <tr>
@@ -149,6 +168,23 @@ layout_header('Kelola Akun', '', 'admin');
             <?php $roleBadge = ['Admin' => 'badge-warning', 'Pengelola' => 'badge-neutral', 'User' => 'badge-success']; ?>
             <td><span class="badge <?= $roleBadge[$a['role']] ?? 'badge-neutral' ?>"><?= e($a['role']) ?></span></td>
             <td>
+              <?php $bisaUbahRole = (int) $a['id_user'] !== (int) ($_SESSION['id_user'] ?? 0) && !($a['role'] === 'Admin' && $_SESSION['role'] !== 'Admin'); ?>
+              <?php if ($bisaUbahRole): ?>
+                <details style="display:inline-block;">
+                  <summary class="btn-secondary" style="padding:5px 10px; cursor:pointer; display:inline-block;">Ubah Role</summary>
+                  <form method="POST" style="margin-top:8px; display:flex; gap:6px;">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="ubah_role">
+                    <input type="hidden" name="id_user" value="<?= (int) $a['id_user'] ?>">
+                    <select name="role" style="padding:6px 8px;border:1px solid var(--border-strong);border-radius:8px;font-size:0.85rem;">
+                      <?php foreach (auth_assignable_roles() as $r): ?>
+                        <option value="<?= $r ?>" <?= $r === $a['role'] ? 'selected' : '' ?>><?= e($roleLabel[$r]) ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                    <button type="submit" class="btn-secondary" style="padding:6px 12px;">Ubah</button>
+                  </form>
+                </details>
+              <?php endif; ?>
               <details style="display:inline-block;">
                 <summary class="btn-secondary" style="padding:5px 10px; cursor:pointer; display:inline-block;">Reset Sandi</summary>
                 <form method="POST" style="margin-top:8px; display:flex; gap:6px;">
