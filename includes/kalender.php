@@ -37,8 +37,10 @@ function kalender_is_weekend(string $tanggalIso): bool
 
 /**
  * Peta tanggal -> daftar pegawai yang cuti (Disetujui) di tanggal itu,
- * dalam rentang 1 bulan. $idPegawai buat filter 1 orang aja (dashboard
- * user); null = semua pegawai (dashboard admin).
+ * dalam rentang 1 bulan, diurutkan berdasarkan antrian (id_cutipegawai
+ * = urutan pengajuan masuk - bukan tgl_pengajuan, itu tanggal isian
+ * bebas di form, bukan timestamp submit beneran). $idPegawai buat filter
+ * 1 orang aja (dashboard user); null = semua pegawai (dashboard admin).
  */
 function kalender_cuti_bulan(PDO $db, int $year, int $month, ?int $idPegawai = null): array
 {
@@ -53,6 +55,7 @@ function kalender_cuti_bulan(PDO $db, int $year, int $month, ?int $idPegawai = n
         $sql .= " AND c.id_pegawai = ?";
         $params[] = $idPegawai;
     }
+    $sql .= " ORDER BY c.id_cutipegawai ASC";
 
     $map = [];
     foreach (db_all($db, $sql, $params) as $row) {
