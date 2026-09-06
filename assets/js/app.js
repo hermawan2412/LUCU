@@ -66,3 +66,24 @@
     terapkan(mode);
   });
 })();
+
+// Dropdown nav ("Data Master" dkk) - klik toggle, bukan :hover (biar jalan
+// jg di mobile/tap). Klik di luar atau pilih salah satu link nutup lagi.
+(function () {
+  var dropdowns = document.querySelectorAll('.nav-dropdown');
+  if (!dropdowns.length) return;
+
+  dropdowns.forEach(function (dd) {
+    var toggle = dd.querySelector('.nav-dropdown-toggle');
+    toggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var sudahKebuka = dd.classList.contains('open');
+      dropdowns.forEach(function (other) { other.classList.remove('open'); });
+      if (!sudahKebuka) dd.classList.add('open');
+    });
+  });
+
+  document.addEventListener('click', function () {
+    dropdowns.forEach(function (dd) { dd.classList.remove('open'); });
+  });
+})();

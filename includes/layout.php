@@ -45,10 +45,17 @@ function layout_header(string $title, string $active = '', string $section = 'us
     ];
     $navAdmin = [
         'dashboard' => ['label' => 'Dashboard', 'href' => 'index.php'],
-        'pegawai' => ['label' => 'Data Pegawai', 'href' => 'data_pegawai.php'],
-        'jabatan' => ['label' => 'Data Jabatan', 'href' => 'data_jabatan.php'],
-        'plh' => ['label' => 'Data Plh/Plt', 'href' => 'data_plh.php'],
-        'golongan' => ['label' => 'Data Golongan', 'href' => 'data_golongan.php'],
+        // Dropdown - Pegawai/Jabatan/Golongan/Plh-Plt semua "data master" yang
+        // saling rujuk (dropdown golongan/jabatan di form Data Pegawai), tapi
+        // masing-masing tetap halaman CRUD sendiri (gak digabung jadi 1
+        // halaman - biar gak numpuk kayak yang sempet dibahas). Ini cuma
+        // ngelompokin di nav biar topbar gak sesak 10 item sejajar.
+        'master' => ['label' => 'Data Master', 'children' => [
+            'pegawai' => ['label' => 'Data Pegawai', 'href' => 'data_pegawai.php'],
+            'jabatan' => ['label' => 'Data Jabatan', 'href' => 'data_jabatan.php'],
+            'golongan' => ['label' => 'Data Golongan', 'href' => 'data_golongan.php'],
+            'plh' => ['label' => 'Data Plh/Plt', 'href' => 'data_plh.php'],
+        ]],
         'cuti' => ['label' => 'Data Cuti', 'href' => 'data_cuti.php'],
         'historis' => ['label' => 'Cuti Historis', 'href' => 'data_cuti_historis.php'],
         'kgb' => ['label' => 'KGB', 'href' => 'data_kgb.php'],
@@ -103,7 +110,19 @@ function layout_header(string $title, string $active = '', string $section = 'us
     </div>
     <nav>
       <?php foreach ($nav as $key => $item): ?>
-        <a href="<?= e($item['href']) ?>" class="<?= $active === $key ? 'active' : '' ?>"><?= e($item['label']) ?></a>
+        <?php if (isset($item['children'])): ?>
+          <?php $grupAktif = array_key_exists($active, $item['children']); ?>
+          <div class="nav-dropdown">
+            <button type="button" class="nav-dropdown-toggle<?= $grupAktif ? ' active' : '' ?>"><?= e($item['label']) ?> <span class="caret">&#9662;</span></button>
+            <div class="nav-dropdown-menu">
+              <?php foreach ($item['children'] as $childKey => $child): ?>
+                <a href="<?= e($child['href']) ?>" class="<?= $active === $childKey ? 'active' : '' ?>"><?= e($child['label']) ?></a>
+              <?php endforeach; ?>
+            </div>
+          </div>
+        <?php else: ?>
+          <a href="<?= e($item['href']) ?>" class="<?= $active === $key ? 'active' : '' ?>"><?= e($item['label']) ?></a>
+        <?php endif; ?>
       <?php endforeach; ?>
       <a href="../logout.php">Keluar</a>
     </nav>
