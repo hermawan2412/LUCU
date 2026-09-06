@@ -1,6 +1,10 @@
 <?php
 require_once __DIR__ . '/../config/bootstrap.php';
 auth_require('Admin', 'Pengelola');
+if (!FITUR_KGB_KNP_AKTIF) {
+    flash_set('error', 'Fitur ini lagi dimatikan sementara.');
+    redirect('index.php');
+}
 
 $list = kgb_daftar_terbaru_per_pegawai($db);
 

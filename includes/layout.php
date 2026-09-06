@@ -63,6 +63,9 @@ function layout_header(string $title, string $active = '', string $section = 'us
         // guard sebenernya tetap di server-side per halaman).
         unset($navAdmin['log'], $navAdmin['pengaturan']);
     }
+    if (!FITUR_KGB_KNP_AKTIF) {
+        unset($navAdmin['kgb'], $navAdmin['knp']);
+    }
     $nav = $section === 'admin' ? $navAdmin : $navUser;
 
     // Bell: user dapet notifikasi personal (persisted, dipicu alur cuti);
