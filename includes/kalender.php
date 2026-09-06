@@ -37,17 +37,18 @@ function kalender_is_weekend(string $tanggalIso): bool
 
 /**
  * Peta tanggal -> daftar pegawai yang cuti (Disetujui) di tanggal itu,
- * dalam rentang 1 bulan, diurutkan berdasarkan antrian (id_cutipegawai
- * = urutan pengajuan masuk - bukan tgl_pengajuan, itu tanggal isian
- * bebas di form, bukan timestamp submit beneran). $idPegawai buat filter
- * 1 orang aja (dashboard user); null = semua pegawai (dashboard admin).
+ * dalam rentang 1 bulan, diurutkan berdasarkan antrian (waktu_pengajuan
+ * - jam:menit:detik submit beneran, auto DB - bukan tgl_pengajuan, itu
+ * tanggal isian bebas di form, bukan timestamp submit beneran).
+ * $idPegawai buat filter 1 orang aja (dashboard user); null = semua
+ * pegawai (dashboard admin).
  */
 function kalender_cuti_bulan(PDO $db, int $year, int $month, ?int $idPegawai = null): array
 {
     $start = sprintf('%04d-%02d-01', $year, $month);
     $end = date('Y-m-t', strtotime($start));
 
-    $sql = "SELECT c.dari_tanggal_iso, c.sampai_dengan_iso, c.jenis_cuti, p.id_pegawai, p.nama_pegawai
+    $sql = "SELECT c.dari_tanggal_iso, c.sampai_dengan_iso, c.jenis_cuti, c.waktu_pengajuan, p.id_pegawai, p.nama_pegawai
             FROM cuti_pegawai c JOIN pegawai p ON p.id_pegawai = c.id_pegawai
             WHERE c.status_cuti = 'Disetujui' AND c.dari_tanggal_iso <= ? AND c.sampai_dengan_iso >= ?";
     $params = [$end, $start];
@@ -55,7 +56,7 @@ function kalender_cuti_bulan(PDO $db, int $year, int $month, ?int $idPegawai = n
         $sql .= " AND c.id_pegawai = ?";
         $params[] = $idPegawai;
     }
-    $sql .= " ORDER BY c.id_cutipegawai ASC";
+    $sql .= " ORDER BY c.waktu_pengajuan ASC";
 
     $map = [];
     foreach (db_all($db, $sql, $params) as $row) {
@@ -65,6 +66,7 @@ function kalender_cuti_bulan(PDO $db, int $year, int $month, ?int $idPegawai = n
             $map[$cursor->format('Y-m-d')][] = [
                 'nama' => $row['nama_pegawai'],
                 'jenis' => $row['jenis_cuti'],
+                'waktu_pengajuan' => $row['waktu_pengajuan'],
             ];
             $cursor->modify('+1 day');
         }

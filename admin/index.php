@@ -115,7 +115,7 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
             <div class="calendar-holiday" title="<?= e($libur) ?>"><?= e($libur) ?></div>
           <?php endif; ?>
           <?php foreach (array_slice($orang, 0, 2) as $o): ?>
-            <div class="calendar-chip" title="<?= e($o['nama'] . ' - ' . $o['jenis']) ?>"><?= e($o['nama']) ?></div>
+            <div class="calendar-chip" title="<?= e($o['nama'] . ' - ' . $o['jenis'] . ' (diajukan ' . date('H:i:s', strtotime($o['waktu_pengajuan'])) . ')') ?>"><?= e($o['nama']) ?></div>
           <?php endforeach; ?>
           <?php if (count($orang) > 2): ?>
             <div class="calendar-more">+<?= count($orang) - 2 ?> lainnya</div>

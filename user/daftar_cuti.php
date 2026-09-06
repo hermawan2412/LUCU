@@ -58,7 +58,7 @@ layout_header('Riwayat Cuti', 'riwayat');
               <td><?= e($row['jenis_cuti']) ?></td>
               <td><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?></td>
               <td><?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></td>
-              <td><?= e($row['tgl_pengajuan']) ?></td>
+              <td><?= e($row['tgl_pengajuan']) ?><br><span class="hint"><?= date('H:i:s', strtotime($row['waktu_pengajuan'])) ?></span></td>
               <td><span class="badge <?= cuti_status_badge_class($row['status_cuti']) ?>"><?= e($row['status_cuti']) ?></span></td>
               <td><?= e($row['ket_status_cuti']) ?></td>
               <td>
