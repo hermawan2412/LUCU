@@ -220,21 +220,31 @@ function cuti_docx_generate(
     $tp->setValue('CK8_DITANGGUHKAN', cuti_docx_centang(false));
     $tp->setValue('CK8_TIDAK', cuti_docx_centang($ditolakVIII));
 
-    // 130x50 KOTAK MAKS (dibesarin dari 80x32 - permintaan user 2026-09-07),
-    // rasio asli gambar dijaga (gak di-stretch). Wrap balik ke "In Front of
-    // Text" (permintaan user, gak lagi wrapTopAndBottom yg otomatis kasih
-    // ruang) - TTD_OFFSET_V narik gambar ke ATAS, ke ruang paragraf kosong
-    // yang template sediakan sebelum paragraf macro (dulu buat tanda tangan
-    // basah manual, sekarang nganggur) - biar rapat, gak nyisa spasi
-    // kosong di atas gambar & gak nembus baris nama di bawahnya. Nilai ini
-    // udah diverifikasi visual (LibreOffice --convert-to pdf, bukan cuma
-    // baca angka) - lihat includes/RestuTemplateProcessor.php buat kenapa
-    // caller yang nanggung jawab pilih nilai aman di sini sejak wrap-nya
-    // gak auto-push lagi.
-    $ttdOffsetV = -190500; // -15pt, kira-kira 1 baris kosong template
-    cuti_docx_isi_ttd($tp, 'TTD_PEGAWAI', $cuti['tanda_tangan_path'] ?? null, 130, 50, true, $ttdOffsetV);
-    cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $disetujuiVII ? ($atasanLangsung['tanda_tangan_path'] ?? null) : null, 130, 50, true, $ttdOffsetV);
-    cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $disetujuiVIII ? ($pejabatBerwenang['tanda_tangan_path'] ?? null) : null, 130, 50, true, $ttdOffsetV);
+    // KOTAK MAKS dibesarin dari 80x32 (permintaan user 2026-09-07), rasio
+    // asli gambar dijaga (gak di-stretch). Wrap balik ke "In Front of Text"
+    // (permintaan user, gak lagi wrapTopAndBottom yg otomatis kasih ruang) -
+    // offset narik gambar ke ATAS, ke ruang paragraf kosong yang template
+    // sediakan sebelum paragraf macro (dulu buat tanda tangan basah manual,
+    // sekarang nganggur) - biar rapat, gak nyisa spasi kosong di atas
+    // gambar & gak nembus baris nama di bawahnya.
+    //
+    // TTD_ATASAN/TTD_BERWENANG dapet kotak LEBIH KECIL dari TTD_PEGAWAI -
+    // BUKAN pilihan estetika, tapi karena LibreOffice ternyata CLAMP posisi
+    // gambar ke batas atas SEL tabelnya (layoutInCell="1" di XML), jadi
+    // narik offset makin negatif LEWAT titik itu gak ada efek sama sekali
+    // (diverifikasi: -12pt/-27pt/-36pt di TTD_ATASAN semua render PERSIS
+    // sama, dicek pixel-diff) - sel VII/VIII punya lebih sedikit ruang
+    // paragraf kosong sebelum macro-nya dibanding sel VI, jadi clamp-nya
+    // lebih ketat. Solusinya kecilin gambar biar muat dalem clamp itu,
+    // bukan maksa offset lebih jauh (percuma). Semua nilai di bawah
+    // diverifikasi visual (LibreOffice --convert-to pdf pakai data riwayat
+    // asli PNS & PPPK, dicek per-pixel) - lihat
+    // includes/RestuTemplateProcessor.php buat detail clamp-nya. Kalau
+    // template diedit lagi, render ulang & cek visual, jangan asumsi angka
+    // ini masih pas.
+    cuti_docx_isi_ttd($tp, 'TTD_PEGAWAI', $cuti['tanda_tangan_path'] ?? null, 130, 50, true, -342900); // -27pt
+    cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $disetujuiVII ? ($atasanLangsung['tanda_tangan_path'] ?? null) : null, 95, 34, true, -127000); // -10pt
+    cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $disetujuiVIII ? ($pejabatBerwenang['tanda_tangan_path'] ?? null) : null, 95, 34, true, -127000);
 
     return $tp->save(); // TemplateProcessor nulis ke file temp sendiri
 }
