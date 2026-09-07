@@ -91,6 +91,26 @@ function cuti_masa_kerja_tahun(?string $tmt): int
     return (new DateTime($tmt))->diff(new DateTime())->y;
 }
 
+/**
+ * Hitung jumlah hari kerja (Senin-Jumat, Sabtu/Minggu gak dihitung) dalam
+ * rentang tanggal inklusif - CUMA dipakai buat Cuti Tahunan (lihat
+ * pengajuan_cuti.php), jenis cuti lain tetep pakai hari kalender apa
+ * adanya lewat rumus lama biasa.
+ */
+function cuti_hitung_hari_kerja_rentang(string $dariIso, string $sampaiIso): int
+{
+    $count = 0;
+    $cursor = new DateTime($dariIso);
+    $akhir = new DateTime($sampaiIso);
+    while ($cursor <= $akhir) {
+        if (!kalender_is_weekend($cursor->format('Y-m-d'))) {
+            $count++;
+        }
+        $cursor->modify('+1 day');
+    }
+    return $count;
+}
+
 // ===== Akumulasi cuti tahunan (dasar: SE Sekma 13/2019 poin F.1.d/e utk PNS,
 // SK Sekma 212/2024 poin D.1.c/d utk PPPK) =====
 //
@@ -579,7 +599,9 @@ function cuti_mulai_approval_setelah_nomor(PDO $db, array $row): void
         if ($level !== null && $row[$level] !== null) {
             notifikasi_kirim($db, $row[$level], "Pengajuan {$row['jenis_cuti']} dari {$pemohon['nama_pegawai']} menunggu approval Anda.", 'approve_cuti.php');
         }
-        cuti_notifikasi_dokumen($db, $row, $pemohon['nip'], "Nomor surat pengajuan {$row['jenis_cuti']} an. {$pemohon['nama_pegawai']} sudah terbit, proses approval dimulai.");
+        // Skip approver level yang barusan dapet notif actionable di atas -
+        // gak perlu dikabarin 2x soal event yang sama.
+        cuti_notifikasi_dokumen($db, $row, $pemohon['nip'], "Nomor surat pengajuan {$row['jenis_cuti']} an. {$pemohon['nama_pegawai']} sudah terbit, proses approval dimulai.", false, array_filter([$level !== null ? $row[$level] : null]));
     }
 }
 
@@ -643,12 +665,20 @@ function cuti_pending_count_for_approver(PDO $db, string $nip): int
  * tengah, atau reject/'Tidak Disetujui') link-nya ke daftar_cuti.php doang
  * (status-info, bukan output dokumen) - biar gak ngasih link yang bakal
  * ditolak/nyasar kalau diklik.
+ *
+ * $kecuali: NIP yang di-skip dari broadcast ini - dipakai pas ada notif
+ * actionable "menunggu approval Anda" terpisah yang dikirim ke orang yang
+ * sama di call site (biar gak dobel), atau approver yang baru aja approve
+ * sendiri (gak perlu dikabarin dia baru approve, dia yang ngelakuin).
+ * User report 2026-09-07: atasan langsung bisa kebagian 3 notif buat 1
+ * pengajuan tanpa ini.
  */
-function cuti_notifikasi_dokumen(PDO $db, array $row, string $pemohonNip, string $pesan, bool $sudahFinal = false): void
+function cuti_notifikasi_dokumen(PDO $db, array $row, string $pemohonNip, string $pesan, bool $sudahFinal = false, array $kecuali = []): void
 {
     $atasanLangsungNip = $row['panmud_kasubag'] ?? $row['panitera_sekretaris'] ?? $row['ketua'];
     $pejabatBerwenangNip = $row['ketua'];
     $penerima = array_unique(array_filter([$pemohonNip, $atasanLangsungNip, $pejabatBerwenangNip]));
+    $penerima = array_diff($penerima, $kecuali);
     $url = $sudahFinal ? 'cetak_cuti.php?id=' . $row['id_cutipegawai'] : 'daftar_cuti.php';
     foreach ($penerima as $nip) {
         notifikasi_kirim($db, $nip, $pesan, $url);
@@ -692,7 +722,10 @@ function cuti_approve(PDO $db, array $row, string $approverNip, bool $ttdManual 
             // Actionable, cuma ke approver berikutnya (link approve_cuti.php,
             // beda dari broadcast dokumen di bawah).
             notifikasi_kirim($db, $updated[$nextLevel], "Pengajuan {$row['jenis_cuti']} dari {$pemohon['nama_pegawai']} menunggu approval Anda.", 'approve_cuti.php');
-            cuti_notifikasi_dokumen($db, $row, $pemohonNip, "Pengajuan {$row['jenis_cuti']} an. {$pemohon['nama_pegawai']} disetujui level $level, menunggu approval $jabatan.");
+            // Skip approver yang baru aja approve (dia yang ngelakuin, gak
+            // perlu dikabarin) dan next-level yang barusan dapet notif
+            // actionable di atas (gak perlu dikabarin 2x soal event yang sama).
+            cuti_notifikasi_dokumen($db, $row, $pemohonNip, "Pengajuan {$row['jenis_cuti']} an. {$pemohon['nama_pegawai']} disetujui level $level, menunggu approval $jabatan.", false, array_filter([$approverNip, $updated[$nextLevel]]));
         }
 
         log_aktivitas($db, 'approve_cuti', "Approve level $level, {$row['jenis_cuti']} milik {$pemohon['nama_pegawai']}" . ($nextLevel === null ? ' (final, Disetujui)' : ''));
