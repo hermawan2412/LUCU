@@ -250,23 +250,23 @@ function cuti_docx_generate(
     // sekarang nganggur) - biar rapat, gak nyisa spasi kosong di atas
     // gambar & gak nembus baris nama di bawahnya.
     //
-    // TTD_ATASAN/TTD_BERWENANG dapet kotak LEBIH KECIL dari TTD_PEGAWAI -
-    // BUKAN pilihan estetika, tapi karena LibreOffice ternyata CLAMP posisi
-    // gambar ke batas atas SEL tabelnya (layoutInCell="1" di XML), jadi
-    // narik offset makin negatif LEWAT titik itu gak ada efek sama sekali
-    // (diverifikasi: -12pt/-27pt/-36pt di TTD_ATASAN semua render PERSIS
-    // sama, dicek pixel-diff) - sel VII/VIII punya lebih sedikit ruang
-    // paragraf kosong sebelum macro-nya dibanding sel VI, jadi clamp-nya
-    // lebih ketat. Solusinya kecilin gambar biar muat dalem clamp itu,
-    // bukan maksa offset lebih jauh (percuma). Semua nilai di bawah
-    // diverifikasi visual (LibreOffice --convert-to pdf pakai data riwayat
-    // asli PNS & PPPK, dicek per-pixel) - lihat
-    // includes/RestuTemplateProcessor.php buat detail clamp-nya. Kalau
-    // template diedit lagi, render ulang & cek visual, jangan asumsi angka
-    // ini masih pas.
+    // Ketiganya sekarang ukuran/offset SAMA (permintaan user 2026-09-07:
+    // "format TTD pengaju udah rapi, samain ke atasan langsung/pejabat
+    // berwenang") - sebelumnya VII/VIII kepaksa lebih kecil (95x34/-10pt)
+    // krn LibreOffice CLAMP posisi wp:anchor ke batas atas SEL tabelnya
+    // (layoutInCell="1"), dan sel VII/VIII cuma py 1 paragraf kosong
+    // sebelum macro-nya (VI py 2) jadi mentok duluan. ROOT CAUSE-nya
+    // dibetulin di templates/*.docx sendiri (bukan di-workaround kode):
+    // nambah 1 paragraf kosong lagi persis sebelum ${TTD_ATASAN}/
+    // ${TTD_BERWENANG} di KEDUA template (duplikat paragraf kosong yang
+    // udah ada, bukan bikin baru dari nol - lihat skill docx-template-merge),
+    // nyamain clamp ceiling-nya sama VI. Kalau template diedit lagi
+    // (apalagi bagian VI/VII/VIII), render ulang & cek visual dulu -
+    // jumlah paragraf kosong ini gampang ke-reset kalau dokumen sumber
+    // di-generate ulang dari awal.
     cuti_docx_isi_ttd($tp, 'TTD_PEGAWAI', $cuti['tanda_tangan_path'] ?? null, 130, 50, true, -342900); // -27pt
-    cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $disetujuiVII ? ($atasanLangsung['tanda_tangan_path'] ?? null) : null, 95, 34, true, -127000); // -10pt
-    cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $disetujuiVIII ? ($pejabatBerwenang['tanda_tangan_path'] ?? null) : null, 95, 34, true, -127000);
+    cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $disetujuiVII ? ($atasanLangsung['tanda_tangan_path'] ?? null) : null, 130, 50, true, -342900);
+    cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $disetujuiVIII ? ($pejabatBerwenang['tanda_tangan_path'] ?? null) : null, 130, 50, true, -342900);
 
     return $tp->save(); // TemplateProcessor nulis ke file temp sendiri
 }
