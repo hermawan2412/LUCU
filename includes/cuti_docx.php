@@ -178,6 +178,28 @@ function cuti_docx_generate(
         $tp->setValue('CATATAN_MELAHIRKAN', $cuti['jenis_cuti'] === 'Cuti Melahirkan' ? $rentang : '');
         $tp->setValue('CATATAN_PENTING', $cuti['jenis_cuti'] === 'Cuti Karena Alasan Penting' ? $rentang : '');
         $tp->setValue('CATATAN_TANGGUNGAN', $cuti['jenis_cuti'] === 'Cuti diluar Tanggungan Negara' ? $rentang : '');
+
+        // 2 baris "…." di bawah baris tahun-berjalan (dulu literal, gak
+        // ada macro sama sekali) - user minta 2026-09-07 diisi otomatis
+        // dari rekap saldo cuti_tahunan_n1/n2 (SELALU, gak digate jenis_cuti
+        // kayak baris di atas - ini riwayat saldo, bukan cerminan
+        // pengajuan yang lagi dicetak). "-" di ketiga kolom kalau saldo 0
+        // (gak ada riwayat carry-over buat tahun itu), sesuai diminta.
+        // KETERANGAN sengaja tetep kosong walau saldo > 0 - app gak nyimpen
+        // tanggal spesifik cuti yang kepake di tahun N-1/N-2, cuma sisa
+        // saldonya, jangan ngarang tanggal.
+        $tahunSekarang = (int) date('Y');
+        foreach (['N1' => [1, (int) $cuti['cuti_tahunan_n1']], 'N2' => [2, (int) $cuti['cuti_tahunan_n2']]] as $label => [$mundur, $saldo]) {
+            if ($saldo > 0) {
+                $tp->setValue("CATATAN_TAHUN_$label", (string) ($tahunSekarang - $mundur));
+                $tp->setValue("CATATAN_SISA_$label", (string) $saldo);
+                $tp->setValue("CATATAN_KET_$label", '');
+            } else {
+                $tp->setValue("CATATAN_TAHUN_$label", '-');
+                $tp->setValue("CATATAN_SISA_$label", '-');
+                $tp->setValue("CATATAN_KET_$label", '-');
+            }
+        }
     }
     // PARAF_PETUGAS sengaja INLINE, bukan floating - kolom "PARAF PETUGAS
     // CUTI" di kotak V jauh lebih sempit & vertically-merged (vMerge) dari
