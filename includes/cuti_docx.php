@@ -264,9 +264,16 @@ function cuti_docx_generate(
     // (apalagi bagian VI/VII/VIII), render ulang & cek visual dulu -
     // jumlah paragraf kosong ini gampang ke-reset kalau dokumen sumber
     // di-generate ulang dari awal.
-    cuti_docx_isi_ttd($tp, 'TTD_PEGAWAI', $cuti['tanda_tangan_path'] ?? null, 130, 50, true, -342900); // -27pt
-    cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $disetujuiVII ? ($atasanLangsung['tanda_tangan_path'] ?? null) : null, 130, 50, true, -342900);
-    cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $disetujuiVIII ? ($pejabatBerwenang['tanda_tangan_path'] ?? null) : null, 130, 50, true, -342900);
+    //
+    // 185x70 (dibesarin lagi dari 130x50, permintaan user sama hari) -
+    // gambar SENGAJA dikit nabrak baris nama di bawahnya sekarang (user
+    // eksplisit oke "asal cuma sedikit"), diverifikasi visual biar
+    // nabraknya emang minor bukan parah - kalau user minta lebih besar
+    // lagi nanti, render ulang & cek seberapa jauh overlap-nya masih
+    // "sedikit" secara visual, jangan asumsi linear dari ukuran.
+    cuti_docx_isi_ttd($tp, 'TTD_PEGAWAI', $cuti['tanda_tangan_path'] ?? null, 185, 70, true, -342900); // -27pt
+    cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $disetujuiVII ? ($atasanLangsung['tanda_tangan_path'] ?? null) : null, 185, 70, true, -342900);
+    cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $disetujuiVIII ? ($pejabatBerwenang['tanda_tangan_path'] ?? null) : null, 185, 70, true, -342900);
 
     return $tp->save(); // TemplateProcessor nulis ke file temp sendiri
 }
