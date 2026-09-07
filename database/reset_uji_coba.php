@@ -10,7 +10,11 @@
 //
 // Kerjanya: tiap baris cuti_pegawai yang statusnya 'Disetujui', balikin
 // PERSIS kredit yang kepotong (hak_cuti_tahunan buat Cuti Tahunan,
-// hak_cuti_sakit buat Cuti Sakit satuan Hari) ke pegawainya - additive,
+// hak_cuti_sakit buat Cuti Sakit satuan Hari, hak_cuti_penting buat Cuti
+// Karena Alasan Penting satuan Hari - ditambahin 2026-09-07, harus tetep
+// sinkron sama apa aja yang cuti_approve()/cuti_mulai_approval_setelah_nomor()
+// beneran potong, cek includes/cuti.php kalau ada jenis potongan baru lagi
+// nanti) ke pegawainya - additive,
 // bukan reset ke angka tetap (12/14), krn beberapa pegawai punya baseline
 // asli beda dari default, mis. pegawai baru dgn jatah tahun pertama
 // prorata - lihat cek manual 2026-09-04, 4 dari 35 pegawai punya
@@ -56,6 +60,10 @@ foreach ($rows as $row) {
             $refund++;
         } elseif ($row['jenis_cuti'] === 'Cuti Sakit' && $row['ket_lama_cuti'] === 'Hari') {
             db_query($db, "UPDATE pegawai SET hak_cuti_sakit = hak_cuti_sakit + ? WHERE id_pegawai = ?",
+                [(int) $row['lama_cuti'], $row['id_pegawai']]);
+            $refund++;
+        } elseif ($row['jenis_cuti'] === 'Cuti Karena Alasan Penting' && $row['ket_lama_cuti'] === 'Hari') {
+            db_query($db, "UPDATE pegawai SET hak_cuti_penting = hak_cuti_penting + ? WHERE id_pegawai = ?",
                 [(int) $row['lama_cuti'], $row['id_pegawai']]);
             $refund++;
         }
