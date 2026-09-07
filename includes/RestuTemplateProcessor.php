@@ -26,20 +26,28 @@ class RestuTemplateProcessor extends TemplateProcessor
 
     /**
      * Ganti macro ${MACRO} di body dokumen (bukan header/footer - TTD/paraf
-     * RESTU semua di body) jadi gambar floating wrap "Top and Bottom", rata
-     * tengah horizontal terhadap kolom. $maxWidthPx/$maxHeightPx itu KOTAK
-     * MAKSIMAL, bukan ukuran paksa - rasio asli gambar dijaga (di-scale
-     * uniform biar pas di kotak itu, gak pernah di-stretch/gepeng), lihat
-     * itung-itungan $cx/$cy di bawah.
+     * RESTU semua di body) jadi gambar floating wrap "In Front of Text"
+     * (wp:wrapNone, behindDoc=0), rata tengah horizontal terhadap kolom.
+     * $maxWidthPx/$maxHeightPx itu KOTAK MAKSIMAL, bukan ukuran paksa - rasio
+     * asli gambar dijaga (di-scale uniform biar pas di kotak itu, gak pernah
+     * di-stretch/gepeng), lihat itung-itungan $cx/$cy di bawah.
      *
-     * Dulu pakai wrap "In Front of Text" (wp:wrapNone) - gambar ngambang
-     * bebas, gak mindahin teks sama sekali, jadi kalau tinggi gambar lebih
-     * dari ruang paragraf kosong yang disediain template, nembus/nimpa teks
-     * di bawahnya. "Top and Bottom" (wp:wrapTopAndBottom) betulan MENDORONG
-     * paragraf berikutnya turun buat kasih ruang ke gambar - jadi gak akan
-     * numpuk sama teks apa pun, gambar setinggi apa pun, sebagai solusi yg
-     * lebih tahan lama dibanding cuma ngecilin ukuran gambar (fix
-     * sebelumnya, sekarang gak perlu lagi krn wrap-nya sendiri yg jaga).
+     * $offsetVEmu (opsional, default 0): geser vertikal dari titik anchor
+     * (atas paragraf macro) - NEGATIF narik gambar ke ATAS, ke ruang paragraf
+     * kosong yang template sediakan sebelum paragraf macro (dulu buat
+     * tanda tangan basah manual, sekarang nganggur karena gambar udah
+     * otomatis). Dipakai biar gambar lebih besar TETEP muat rapat, gak
+     * nyisa spasi kosong di atasnya dan gak nembus baris nama di bawahnya -
+     * lihat caller di cuti_docx.php buat nilai yang udah diverifikasi visual
+     * (LibreOffice --convert-to pdf) gak numpuk/nyisa spasi.
+     *
+     * 2026-09-04: dulu pakai wrap "Top and Bottom" (wp:wrapTopAndBottom, yang
+     * betulan MENDORONG paragraf berikutnya turun) krn gambar 80x32 kadang
+     * nembus teks nama di bawahnya. 2026-09-07: user eksplisit minta balik
+     * ke "In Front of Text" + gambar lebih besar - tanpa auto-push, jadi
+     * TANGGUNG JAWAB CALLER buat pilih $maxHeightPx + $offsetVEmu yang gak
+     * bikin gambar nembus teks (lihat verifikasi visual di atas), bukan
+     * lagi otomatis aman kayak wrapTopAndBottom.
      *
      * CATATAN: cuma diverifikasi akurat buat paragraf yang HIDUP DI SEL
      * TABEL LEBAR/GAK ber-vMerge (kasus TTD_ATASAN/TTD_BERWENANG/TTD_PEGAWAI
@@ -53,7 +61,7 @@ class RestuTemplateProcessor extends TemplateProcessor
      * TemplateProcessor::setImageValue() bawaan (inline) sebagai gantinya,
      * lihat cuti_docx_isi_ttd($floating=false) di cuti_docx.php.
      */
-    public function setImageValueFloatingCentered(string $macro, string $imgPath, int $maxWidthPx, int $maxHeightPx): void
+    public function setImageValueFloatingCentered(string $macro, string $imgPath, int $maxWidthPx, int $maxHeightPx, int $offsetVEmu = 0): void
     {
         $imageData = @getimagesize($imgPath);
         if (!is_array($imageData)) {
@@ -78,9 +86,9 @@ class RestuTemplateProcessor extends TemplateProcessor
             . '<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="' . (251658240 + $docPrId) . '" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1">'
             . '<wp:simplePos x="0" y="0"/>'
             . '<wp:positionH relativeFrom="column"><wp:align>center</wp:align></wp:positionH>'
-            . '<wp:positionV relativeFrom="paragraph"><wp:posOffset>0</wp:posOffset></wp:positionV>'
+            . '<wp:positionV relativeFrom="paragraph"><wp:posOffset>' . $offsetVEmu . '</wp:posOffset></wp:positionV>'
             . '<wp:extent cx="' . $cx . '" cy="' . $cy . '"/>'
-            . '<wp:wrapTopAndBottom/>'
+            . '<wp:wrapNone/>'
             . '<wp:docPr id="' . $docPrId . '" name="Gambar ' . $docPrId . '"/>'
             . '<wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></wp:cNvGraphicFramePr>'
             . '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'

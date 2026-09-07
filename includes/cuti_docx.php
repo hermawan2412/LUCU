@@ -61,7 +61,7 @@ function cuti_docx_centang(bool $ya): string
  * - dipakai KHUSUS buat PARAF_PETUGAS (lihat catatan di pemanggilnya
  * kenapa floating gak bisa diandalkan di situ).
  */
-function cuti_docx_isi_ttd(RestuTemplateProcessor $tp, string $macro, ?string $tandaTanganPath, int $widthPx = 100, int $heightPx = 50, bool $floating = true): void
+function cuti_docx_isi_ttd(RestuTemplateProcessor $tp, string $macro, ?string $tandaTanganPath, int $widthPx = 100, int $heightPx = 50, bool $floating = true, int $offsetVEmu = 0): void
 {
     $fsPath = tanda_tangan_fs_path($tandaTanganPath);
     if ($fsPath === null) {
@@ -69,7 +69,7 @@ function cuti_docx_isi_ttd(RestuTemplateProcessor $tp, string $macro, ?string $t
         return;
     }
     if ($floating) {
-        $tp->setImageValueFloatingCentered($macro, $fsPath, $widthPx, $heightPx);
+        $tp->setImageValueFloatingCentered($macro, $fsPath, $widthPx, $heightPx, $offsetVEmu);
     } else {
         $tp->setImageValue($macro, ['path' => $fsPath, 'width' => $widthPx, 'height' => $heightPx, 'ratio' => false]);
     }
@@ -166,7 +166,15 @@ function cuti_docx_generate(
         $tp->setValue('CATATAN_SISA', $adaTahunan ? (string) ((int) $cuti['sisa_cuti']) : '');
         $tp->setValue('CATATAN_KET', $adaTahunan ? $rentang : '');
         $tp->setValue('CATATAN_BESAR', $cuti['jenis_cuti'] === 'Cuti Besar' ? $rentang : '');
-        $tp->setValue('CATATAN_SAKIT', $cuti['jenis_cuti'] === 'Cuti Sakit' ? $rentang : '');
+        // CATATAN_SAKIT beda dari kotak Catatan lain di atas - BUKAN
+        // auto-hitung dari tanggal pengajuan ini. Footnote asli template
+        // (*** "diisi oleh pejabat yang menangani bidang kepegawaian
+        // SEBELUM PNS mengajukan cuti") berarti kotak ini catatan/riwayat
+        // yang diisi Pengelola manual (admin/data_cuti.php), bukan cerminan
+        // rentang tanggal pengajuan yang lagi dicetak - user report
+        // 2026-09-07 (cek riwayat Wageyono, Cuti Sakit) nunjukin auto-isi
+        // $rentang di sini nyalahin maksud footnote itu.
+        $tp->setValue('CATATAN_SAKIT', $cuti['jenis_cuti'] === 'Cuti Sakit' ? ($cuti['catatan_sakit'] ?: '-') : '');
         $tp->setValue('CATATAN_MELAHIRKAN', $cuti['jenis_cuti'] === 'Cuti Melahirkan' ? $rentang : '');
         $tp->setValue('CATATAN_PENTING', $cuti['jenis_cuti'] === 'Cuti Karena Alasan Penting' ? $rentang : '');
         $tp->setValue('CATATAN_TANGGUNGAN', $cuti['jenis_cuti'] === 'Cuti diluar Tanggungan Negara' ? $rentang : '');
@@ -212,14 +220,21 @@ function cuti_docx_generate(
     $tp->setValue('CK8_DITANGGUHKAN', cuti_docx_centang(false));
     $tp->setValue('CK8_TIDAK', cuti_docx_centang($ditolakVIII));
 
-    // 80x32 itu KOTAK MAKS, bukan ukuran paksa - setImageValueFloatingCentered()
-    // jaga rasio asli gambar (gak di-stretch), dan sejak wrap-nya "Top and
-    // Bottom" (bukan "In Front of Text" lagi) paragraf di bawahnya otomatis
-    // kedorong turun ngasih ruang ke gambar - gak akan numpuk teks lagi
-    // walau gambarnya lebih tinggi dari 32px.
-    cuti_docx_isi_ttd($tp, 'TTD_PEGAWAI', $cuti['tanda_tangan_path'] ?? null, 80, 32);
-    cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $disetujuiVII ? ($atasanLangsung['tanda_tangan_path'] ?? null) : null, 80, 32);
-    cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $disetujuiVIII ? ($pejabatBerwenang['tanda_tangan_path'] ?? null) : null, 80, 32);
+    // 130x50 KOTAK MAKS (dibesarin dari 80x32 - permintaan user 2026-09-07),
+    // rasio asli gambar dijaga (gak di-stretch). Wrap balik ke "In Front of
+    // Text" (permintaan user, gak lagi wrapTopAndBottom yg otomatis kasih
+    // ruang) - TTD_OFFSET_V narik gambar ke ATAS, ke ruang paragraf kosong
+    // yang template sediakan sebelum paragraf macro (dulu buat tanda tangan
+    // basah manual, sekarang nganggur) - biar rapat, gak nyisa spasi
+    // kosong di atas gambar & gak nembus baris nama di bawahnya. Nilai ini
+    // udah diverifikasi visual (LibreOffice --convert-to pdf, bukan cuma
+    // baca angka) - lihat includes/RestuTemplateProcessor.php buat kenapa
+    // caller yang nanggung jawab pilih nilai aman di sini sejak wrap-nya
+    // gak auto-push lagi.
+    $ttdOffsetV = -190500; // -15pt, kira-kira 1 baris kosong template
+    cuti_docx_isi_ttd($tp, 'TTD_PEGAWAI', $cuti['tanda_tangan_path'] ?? null, 130, 50, true, $ttdOffsetV);
+    cuti_docx_isi_ttd($tp, 'TTD_ATASAN', $disetujuiVII ? ($atasanLangsung['tanda_tangan_path'] ?? null) : null, 130, 50, true, $ttdOffsetV);
+    cuti_docx_isi_ttd($tp, 'TTD_BERWENANG', $disetujuiVIII ? ($pejabatBerwenang['tanda_tangan_path'] ?? null) : null, 130, 50, true, $ttdOffsetV);
 
     return $tp->save(); // TemplateProcessor nulis ke file temp sendiri
 }

@@ -9,6 +9,22 @@ auth_require('Admin', 'Pengelola');
 // di includes/cuti.php) - bukan approve/reject beneran.
 $errors = [];
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'catatan_sakit') {
+    csrf_verify();
+    $id = (int) ($_POST['id_cutipegawai'] ?? 0);
+    $catatan = trim($_POST['catatan_sakit'] ?? '');
+    $row = cuti_get_by_id($db, $id);
+
+    if ($row === null || $row['jenis_cuti'] !== 'Cuti Sakit') {
+        $errors[] = 'Pengajuan tidak ditemukan atau bukan Cuti Sakit.';
+    } else {
+        db_query($db, "UPDATE cuti_pegawai SET catatan_sakit = ? WHERE id_cutipegawai = ?", [$catatan ?: null, $id]);
+        log_aktivitas($db, 'catatan_sakit', "Catatan Sakit diisi utk pengajuan #$id");
+        flash_set('success', 'Catatan Sakit disimpan.');
+        redirect('data_cuti.php');
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'beri_nomor') {
     csrf_verify();
     $id = (int) ($_POST['id_cutipegawai'] ?? 0);
@@ -55,7 +71,7 @@ $tabs = ['' => 'Semua', 'Menunggu Nomor Surat' => 'Menunggu Nomor Surat', 'Diaju
 layout_header('Data Cuti', 'cuti', 'admin');
 ?>
 <h1>Data Cuti</h1>
-<p class="lead">Semua pengajuan cuti pegawai. Approve/reject tetap dilakukan oleh atasan yang bersangkutan lewat alur approval masing-masing - admin cuma kasih nomor surat (yang baru memulai approval-nya) dan paraf petugas. <a href="export_cuti.php" class="btn-secondary" style="padding:4px 14px;font-size:0.78rem;">Export CSV</a></p>
+<p class="lead">Semua pengajuan cuti pegawai. Approve/reject tetap dilakukan oleh atasan yang bersangkutan lewat alur approval masing-masing - admin cuma kasih nomor surat (yang baru memulai approval-nya), paraf petugas, dan Catatan Sakit (kotak V.3 di dokumen cetak - riwayat cuti sakit yang diisi manual, bukan otomatis dari tanggal pengajuan). <a href="export_cuti.php" class="btn-secondary" style="padding:4px 14px;font-size:0.78rem;">Export CSV</a></p>
 
 <?php if ($success): ?><div class="alert alert-success"><?= e($success) ?></div><?php endif; ?>
 <?php foreach ($errors as $err): ?><div class="alert alert-danger"><?= e($err) ?></div><?php endforeach; ?>
@@ -86,6 +102,7 @@ layout_header('Data Cuti', 'cuti', 'admin');
             <th>Status</th>
             <th>Keterangan</th>
             <th>Nomor Surat</th>
+            <th>Catatan Sakit (kotak V)</th>
           </tr>
         </thead>
         <tbody>
@@ -120,6 +137,19 @@ layout_header('Data Cuti', 'cuti', 'admin');
                   </form>
                 <?php else: ?>
                   <?= $row['nomor_surat'] ? e($row['nomor_surat']) : '-' ?>
+                <?php endif; ?>
+              </td>
+              <td style="min-width:200px;">
+                <?php if ($row['jenis_cuti'] === 'Cuti Sakit'): ?>
+                  <form method="POST" style="display:flex; gap:6px;">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="catatan_sakit">
+                    <input type="hidden" name="id_cutipegawai" value="<?= (int) $row['id_cutipegawai'] ?>">
+                    <input type="text" name="catatan_sakit" placeholder="Catatan kotak V.3 (manual)" value="<?= e($row['catatan_sakit'] ?? '') ?>" style="padding:6px 8px;border:1px solid var(--border-strong);border-radius:8px;font-size:0.8rem;flex:1;">
+                    <button type="submit" class="btn-secondary" style="padding:6px 12px;">Simpan</button>
+                  </form>
+                <?php else: ?>
+                  -
                 <?php endif; ?>
               </td>
             </tr>
