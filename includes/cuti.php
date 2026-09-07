@@ -413,11 +413,16 @@ function cuti_approval_chain(PDO $db, int $idJabatanPemohon): array
 }
 
 /**
- * Ganti otoritas akhir rantai approval sesuai jenis ASN pemohon.
- * PNS: rantai gak berubah (otoritas akhir tetap Ketua/puncak alami).
+ * Ganti/pangkas rantai approval sesuai jenis ASN pemohon.
+ * PNS: kalau rantai alaminya 3 tingkat (atasan langsung + level tengah +
+ * Ketua/puncak), level TENGAHNYA DIPANGKAS - atasan langsung approve
+ * langsung ke Ketua, level tengah gak pernah masuk alur (permanen, bukan
+ * kasus per-pengajuan - keputusan user 2026-09-07, semua PNS yang
+ * rantainya kebetulan 3 tingkat kena). Rantai 1-2 tingkat gak berubah
+ * (gak ada "level tengah" beneran buat dipangkas di situ).
  * PPPK: otoritas akhir diganti jadi jabatan yang ditandai
  * `is_pejabat_pppk` (Sekretaris) - langkah2 sebelumnya (kasubag/panmud dst)
- * tetap jalan seperti biasa.
+ * tetap jalan seperti biasa, TIDAK ikut dipangkas kayak PNS di atas.
  *
  * Return null kalau pejabat PPPK belum dikonfigurasi (caller harus tolak
  * submission, bukan lolos diam-diam).
@@ -425,6 +430,9 @@ function cuti_approval_chain(PDO $db, int $idJabatanPemohon): array
 function cuti_cap_chain_for_jenis_asn(PDO $db, array $chain, string $jenisAsn, int $idJabatanPemohon): ?array
 {
     if ($jenisAsn !== 'PPPK') {
+        if (count($chain) === 3) {
+            $chain = [$chain[0], $chain[2]]; // buang level tengah (index 1)
+        }
         return $chain;
     }
 
