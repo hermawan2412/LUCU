@@ -22,7 +22,23 @@ function notifikasi_kirim(PDO $db, string $nip, string $pesan, string $url = '')
             // langsung diklik dari luar aplikasi (APP_URL kosong kalau
             // dipanggil dari CLI - skip link, tetep kirim teksnya).
             if ($url !== '' && APP_URL !== '') {
-                $pesanWa .= "\n\nBuka: " . APP_URL . '/user/' . $url;
+                $link = APP_URL . '/user/' . $url;
+                // Cache-bust: WA/Fonnte nge-cache preview (og:image) PER URL.
+                // Banyak link di sini literally sama persis tiap pengajuan
+                // (mis. daftar_cuti.php, approve_cuti.php) - begitu WA nge-cache
+                // sekali (termasuk dari sebelum fix og:image 2026-09-04, masih
+                // nunjukin logo instansi gede), link yang sama bakal kepake
+                // preview basi itu SELAMANYA, gak peduli og:image di server
+                // udah bener. Nempelin ?ogv=<mtime logo> (idiom sama kayak
+                // logo_instansi_html()) bikin URL beda tiap logo instansi
+                // diganti, jadi WA maksa fetch ulang & dapet preview terbaru.
+                if (defined('APP_LOGO_INSTANSI_PATH') && APP_LOGO_INSTANSI_PATH) {
+                    $fsPath = __DIR__ . '/../assets/img/' . basename(APP_LOGO_INSTANSI_PATH);
+                    if (is_file($fsPath)) {
+                        $link .= (str_contains($url, '?') ? '&' : '?') . 'ogv=' . filemtime($fsPath);
+                    }
+                }
+                $pesanWa .= "\n\nBuka: " . $link;
             }
             wa_kirim($db, $pegawai['no_telp'], $pesanWa);
         }
