@@ -92,18 +92,21 @@ function cuti_masa_kerja_tahun(?string $tmt): int
 }
 
 /**
- * Hitung jumlah hari kerja (Senin-Jumat, Sabtu/Minggu gak dihitung) dalam
- * rentang tanggal inklusif - CUMA dipakai buat Cuti Tahunan (lihat
- * pengajuan_cuti.php), jenis cuti lain tetep pakai hari kalender apa
- * adanya lewat rumus lama biasa.
+ * Hitung jumlah hari kerja (Sabtu/Minggu DAN hari libur nasional/cuti
+ * bersama gak dihitung) dalam rentang tanggal inklusif - CUMA dipakai
+ * buat Cuti Tahunan (lihat pengajuan_cuti.php), jenis cuti lain tetep
+ * pakai hari kalender apa adanya lewat rumus lama biasa. Pakai
+ * hari_kerja_cek() yang sama (includes/libur.php) yang udah dipakai buat
+ * batesin hari pengajuan - biar 1 definisi "hari kerja" konsisten di
+ * seluruh app.
  */
-function cuti_hitung_hari_kerja_rentang(string $dariIso, string $sampaiIso): int
+function cuti_hitung_hari_kerja_rentang(PDO $db, string $dariIso, string $sampaiIso): int
 {
     $count = 0;
     $cursor = new DateTime($dariIso);
     $akhir = new DateTime($sampaiIso);
     while ($cursor <= $akhir) {
-        if (!kalender_is_weekend($cursor->format('Y-m-d'))) {
+        if (hari_kerja_cek($db, $cursor->format('Y-m-d'))) {
             $count++;
         }
         $cursor->modify('+1 day');

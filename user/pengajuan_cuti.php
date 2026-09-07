@@ -81,11 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // bervariasi (28-31 hari/bulan, 365-366 hari/tahun), gak bisa dihitung
     // pasti cuma dari 2 tanggal kalender pendek gini.
     if (empty($errors) && $ketLama === 'Hari') {
-        // Cuti Tahunan: Sabtu/Minggu gak masuk hitungan hari (baru diminta
-        // user, jenis cuti lain tetap kalender apa adanya per komentar lama
-        // di atas).
+        // Cuti Tahunan: Sabtu/Minggu + hari libur nasional gak masuk hitungan
+        // hari (baru diminta user, jenis cuti lain tetap kalender apa adanya
+        // per komentar lama di atas).
         $lama = $jenis === 'Cuti Tahunan'
-            ? cuti_hitung_hari_kerja_rentang($dari, $sampai)
+            ? cuti_hitung_hari_kerja_rentang($db, $dari, $sampai)
             : (int) ((strtotime($sampai) - strtotime($dari)) / 86400) + 1;
     }
     if (empty($errors) && $jenis === 'Cuti Tahunan' && $lama > $kuotaTahunan) {
