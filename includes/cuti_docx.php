@@ -187,24 +187,28 @@ function cuti_docx_generate(
         // 2 baris di bawah baris tahun-berjalan - riwayat saldo cuti
         // tahunan tahun-tahun sebelumnya (data cuti_tahunan_n1/n2, SELALU
         // ditampilkan, gak digate jenis_cuti, sama kayak baris di atas).
-        // "-" di ketiga kolom kalau saldo 0 (gak ada riwayat carry-over
-        // buat tahun itu). KETERANGAN sengaja tetep kosong walau saldo > 0
-        // - app gak nyimpen tanggal spesifik cuti yang kepake di tahun
-        // lalu, cuma sisa saldonya, jangan ngarang tanggal. (Masih pakai
-        // nama variabel N1/N2 di kode - itu cuma identifier internal,
-        // bukan istilah yang perlu match PPPK punya, user cuma minta gak
+        // Kosong (BUKAN "-") di ketiga kolom kalau saldo 0 - user
+        // 2026-09-07 eksplisit minta "-" dihapus, biarin beneran kosong
+        // biar Pengelola bisa tulis tangan kalau ternyata ada riwayat yang
+        // belum ke-input ke sistem (beda dari kolom lain yang emang
+        // dikondisikan "-" krn ada konteks lain, mis. CATATAN_SAKIT diatas
+        // yang manual-fill-nya emang lewat app bukan tulis tangan).
+        // KETERANGAN sengaja tetep kosong walau saldo > 0 - app gak
+        // nyimpen tanggal spesifik cuti yang kepake di tahun lalu, cuma
+        // sisa saldonya, jangan ngarang tanggal. (Masih pakai nama
+        // variabel N1/N2 di kode - itu cuma identifier internal, bukan
+        // istilah yang perlu match PPPK punya, user cuma minta gak
         // dipikir sebagai "format PPPK" - datanya tetap sama.)
         $tahunSekarang = (int) date('Y');
         foreach (['N1' => [1, (int) $cuti['cuti_tahunan_n1']], 'N2' => [2, (int) $cuti['cuti_tahunan_n2']]] as $label => [$mundur, $saldo]) {
             if ($saldo > 0) {
                 $tp->setValue("CATATAN_TAHUN_$label", (string) ($tahunSekarang - $mundur));
                 $tp->setValue("CATATAN_SISA_$label", (string) $saldo);
-                $tp->setValue("CATATAN_KET_$label", '');
             } else {
-                $tp->setValue("CATATAN_TAHUN_$label", '-');
-                $tp->setValue("CATATAN_SISA_$label", '-');
-                $tp->setValue("CATATAN_KET_$label", '-');
+                $tp->setValue("CATATAN_TAHUN_$label", '');
+                $tp->setValue("CATATAN_SISA_$label", '');
             }
+            $tp->setValue("CATATAN_KET_$label", '');
         }
     }
     // PARAF_PETUGAS sengaja INLINE, bukan floating - kolom "PARAF PETUGAS
