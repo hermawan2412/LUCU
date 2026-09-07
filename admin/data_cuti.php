@@ -103,6 +103,7 @@ layout_header('Data Cuti', 'cuti', 'admin');
             <th>Keterangan</th>
             <th>Nomor Surat</th>
             <th>Catatan Sakit (kotak V)</th>
+            <th>Dokumen</th>
           </tr>
         </thead>
         <tbody>
@@ -150,6 +151,14 @@ layout_header('Data Cuti', 'cuti', 'admin');
                   </form>
                 <?php else: ?>
                   -
+                <?php endif; ?>
+              </td>
+              <td>
+                <?php if ($row['status_cuti'] === 'Disetujui'): ?>
+                  <a href="../user/cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.docx</a>
+                  <a href="../user/cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pdf" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.pdf</a>
+                <?php else: ?>
+                  <span class="hint">Setelah Disetujui</span>
                 <?php endif; ?>
               </td>
             </tr>
