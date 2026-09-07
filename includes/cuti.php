@@ -311,6 +311,34 @@ function cuti_potong_saldo_sakit(PDO $db, int $idPegawai, int $lama): string
 }
 
 /**
+ * Potong saldo hak_cuti_penting - kolom ini udah ada dari awal (ditampilin
+ * di dashboard user, admin bisa isi manual di data_pegawai.php) tapi
+ * gak PERNAH ada fungsi potongnya - user 2026-09-07 nemuin gap ini pas
+ * nanya kenapa saldo Junaidi Fajar gak kepotong buat Cuti Karena Alasan
+ * Penting-nya. Pola sama persis cuti_potong_saldo_sakit() (boleh minus,
+ * bukan dibatasi 0 - minus jadi penanda kelebihan kuota buat kepegawaian,
+ * gak nolak pengajuan yang udah kadung Disetujui). Beda dari Sakit: gak
+ * ada reset tahunan buat hak_cuti_penting sama sekali di app ini (gak ada
+ * cuti_penting_reset_jika_perlu() analog), jadi murni potong langsung.
+ */
+function cuti_potong_saldo_penting(PDO $db, int $idPegawai, int $lama): string
+{
+    $pegawai = db_one($db, "SELECT hak_cuti_penting FROM pegawai WHERE id_pegawai = ?", [$idPegawai]);
+    if ($pegawai === null) {
+        return '';
+    }
+    $saldoSebelum = (int) $pegawai['hak_cuti_penting'];
+
+    db_query($db, "UPDATE pegawai SET hak_cuti_penting = hak_cuti_penting - ? WHERE id_pegawai = ?", [$lama, $idPegawai]);
+
+    $saldoSesudah = $saldoSebelum - $lama;
+    if ($saldoSesudah < 0) {
+        return ' (Melebihi kuota cuti alasan penting ' . abs($saldoSesudah) . ' hari)';
+    }
+    return '';
+}
+
+/**
  * Cek langsung ke sumber (SE Sekma 13/2019 F.3.b buat PNS, SK Sekma
  * 212/2024 D.2.b buat PPPK - dua-duanya bunyinya identik): Cuti Sakit
  * LEBIH DARI 1 HARI (bukan >14 kayak dikira sebelumnya) udah wajib lampir
@@ -592,6 +620,8 @@ function cuti_mulai_approval_setelah_nomor(PDO $db, array $row): void
                 cuti_potong_saldo_tahunan($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
             } elseif ($row['jenis_cuti'] === 'Cuti Sakit' && $row['ket_lama_cuti'] === 'Hari') {
                 $ket .= cuti_potong_saldo_sakit($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
+            } elseif ($row['jenis_cuti'] === 'Cuti Karena Alasan Penting' && $row['ket_lama_cuti'] === 'Hari') {
+                $ket .= cuti_potong_saldo_penting($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
             }
         }
         db_query($db, "UPDATE cuti_pegawai SET status_cuti = ?, ket_status_cuti = ? WHERE id_cutipegawai = ?", [$status, $ket, $row['id_cutipegawai']]);
@@ -723,6 +753,8 @@ function cuti_approve(PDO $db, array $row, string $approverNip, bool $ttdManual 
                 // keterangan tim penguji kesehatan, sudah divalidasi di
                 // cuti_validasi_jenis()), bukan bagian kredit rutin ini.
                 $ketFinal .= cuti_potong_saldo_sakit($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
+            } elseif ($row['jenis_cuti'] === 'Cuti Karena Alasan Penting' && $row['ket_lama_cuti'] === 'Hari') {
+                $ketFinal .= cuti_potong_saldo_penting($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
             }
             db_query($db, "UPDATE cuti_pegawai SET status_cuti = 'Disetujui', ket_status_cuti = ? WHERE id_cutipegawai = ?", [$ketFinal, $row['id_cutipegawai']]);
             cuti_notifikasi_dokumen($db, $row, $pemohonNip, "Pengajuan {$row['jenis_cuti']} an. {$pemohon['nama_pegawai']} telah Disetujui.", true);
