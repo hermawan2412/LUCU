@@ -161,33 +161,39 @@ function cuti_docx_generate(
         $tp->setValue('CATATAN_SAKIT', $cuti['jenis_cuti'] === 'Cuti Sakit' ? $rentang : '');
         $tp->setValue('CATATAN_MELAHIRKAN', $cuti['jenis_cuti'] === 'Cuti Melahirkan' ? $rentang : '');
     } else {
-        $adaTahunan = $cuti['jenis_cuti'] === 'Cuti Tahunan';
-        $tp->setValue('CATATAN_TAHUN', $adaTahunan ? substr($cuti['dari_tanggal_iso'], 0, 4) : '');
-        $tp->setValue('CATATAN_SISA', $adaTahunan ? (string) ((int) $cuti['sisa_cuti']) : '');
-        $tp->setValue('CATATAN_KET', $adaTahunan ? $rentang : '');
-        $tp->setValue('CATATAN_BESAR', $cuti['jenis_cuti'] === 'Cuti Besar' ? $rentang : '');
-        // CATATAN_SAKIT beda dari kotak Catatan lain di atas - BUKAN
-        // auto-hitung dari tanggal pengajuan ini. Footnote asli template
-        // (*** "diisi oleh pejabat yang menangani bidang kepegawaian
-        // SEBELUM PNS mengajukan cuti") berarti kotak ini catatan/riwayat
-        // yang diisi Pengelola manual (admin/data_cuti.php), bukan cerminan
-        // rentang tanggal pengajuan yang lagi dicetak - user report
-        // 2026-09-07 (cek riwayat Wageyono, Cuti Sakit) nunjukin auto-isi
-        // $rentang di sini nyalahin maksud footnote itu.
+        // Poin "1. CUTI TAHUNAN" doang yang auto-isi (user 2026-09-07,
+        // koreksi dari fix sebelumnya) - TAHUN/SISA SELALU diisi dari saldo
+        // TERKINI pegawai (bukan snapshot pengajuan ini, bukan digate
+        // jenis_cuti kayak dulu - ini rekap saldo, relevan terus dicetak
+        // kapan aja), KETERANGAN SENGAJA SELALU kosong (bukan $rentang -
+        // app gak perlu nyimpen tanggal spesifik di kotak riwayat ini,
+        // itu udah ada di kotak IV). Poin 2-6 (Besar/Sakit/Melahirkan/
+        // Penting/Tanggungan) SEMUA dikosongin, diisi manual oleh
+        // Pengelola - footnote asli template (*** "diisi oleh pejabat yang
+        // menangani bidang kepegawaian SEBELUM PNS mengajukan cuti") means
+        // ini emang riwayat/catatan manual, bukan cerminan pengajuan yang
+        // lagi dicetak (CATATAN_SAKIT baris di bawah ini beda - itu udah
+        // py field isian sendiri di admin/data_cuti.php, tetep manual tapi
+        // lewat app bukan tulis tangan doang).
+        $tp->setValue('CATATAN_TAHUN', (string) date('Y'));
+        $tp->setValue('CATATAN_SISA', (string) ((int) $cuti['hak_cuti_tahunan']));
+        $tp->setValue('CATATAN_KET', '');
+        $tp->setValue('CATATAN_BESAR', '');
         $tp->setValue('CATATAN_SAKIT', $cuti['jenis_cuti'] === 'Cuti Sakit' ? ($cuti['catatan_sakit'] ?: '-') : '');
-        $tp->setValue('CATATAN_MELAHIRKAN', $cuti['jenis_cuti'] === 'Cuti Melahirkan' ? $rentang : '');
-        $tp->setValue('CATATAN_PENTING', $cuti['jenis_cuti'] === 'Cuti Karena Alasan Penting' ? $rentang : '');
-        $tp->setValue('CATATAN_TANGGUNGAN', $cuti['jenis_cuti'] === 'Cuti diluar Tanggungan Negara' ? $rentang : '');
+        $tp->setValue('CATATAN_MELAHIRKAN', '');
+        $tp->setValue('CATATAN_PENTING', '');
+        $tp->setValue('CATATAN_TANGGUNGAN', '');
 
-        // 2 baris "…." di bawah baris tahun-berjalan (dulu literal, gak
-        // ada macro sama sekali) - user minta 2026-09-07 diisi otomatis
-        // dari rekap saldo cuti_tahunan_n1/n2 (SELALU, gak digate jenis_cuti
-        // kayak baris di atas - ini riwayat saldo, bukan cerminan
-        // pengajuan yang lagi dicetak). "-" di ketiga kolom kalau saldo 0
-        // (gak ada riwayat carry-over buat tahun itu), sesuai diminta.
-        // KETERANGAN sengaja tetep kosong walau saldo > 0 - app gak nyimpen
-        // tanggal spesifik cuti yang kepake di tahun N-1/N-2, cuma sisa
-        // saldonya, jangan ngarang tanggal.
+        // 2 baris di bawah baris tahun-berjalan - riwayat saldo cuti
+        // tahunan tahun-tahun sebelumnya (data cuti_tahunan_n1/n2, SELALU
+        // ditampilkan, gak digate jenis_cuti, sama kayak baris di atas).
+        // "-" di ketiga kolom kalau saldo 0 (gak ada riwayat carry-over
+        // buat tahun itu). KETERANGAN sengaja tetep kosong walau saldo > 0
+        // - app gak nyimpen tanggal spesifik cuti yang kepake di tahun
+        // lalu, cuma sisa saldonya, jangan ngarang tanggal. (Masih pakai
+        // nama variabel N1/N2 di kode - itu cuma identifier internal,
+        // bukan istilah yang perlu match PPPK punya, user cuma minta gak
+        // dipikir sebagai "format PPPK" - datanya tetap sama.)
         $tahunSekarang = (int) date('Y');
         foreach (['N1' => [1, (int) $cuti['cuti_tahunan_n1']], 'N2' => [2, (int) $cuti['cuti_tahunan_n2']]] as $label => [$mundur, $saldo]) {
             if ($saldo > 0) {
