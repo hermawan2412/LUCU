@@ -2,6 +2,13 @@
 require_once __DIR__ . '/../config/bootstrap.php';
 auth_require('Admin', 'Pengelola');
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'dismiss_siaga') {
+    csrf_verify();
+    cuti_siaga_dismiss($db);
+    flash_set('success', 'Peringatan siaga cuti dimatikan untuk hari ini - aktif lagi otomatis besok.');
+    redirect('index.php');
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'sync_libur') {
     csrf_verify();
     $tahunSync = (int) ($_POST['tahun'] ?? date('Y'));
@@ -76,6 +83,20 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
   <?php endif; ?>
 </div>
 
+<?php if ($statCuti['siaga_asli']): ?>
+<p class="hint" style="margin-top:-6px;">
+  <?php if ($statCuti['dismissed']): ?>
+    Siaga cuti hari ini dimatiin - pengajuan baru dibuka lagi, aktif otomatis besok.
+  <?php else: ?>
+    <form method="POST" style="display:inline;">
+      <?= csrf_field() ?>
+      <input type="hidden" name="action" value="dismiss_siaga">
+      <button type="submit" class="btn-secondary" style="font-size:0.85rem; padding:4px 10px;" title="Matiin badge merah + ambient, dan buka lagi pengajuan cuti buat hari ini">Matikan siaga untuk hari ini (buka pengajuan lagi)</button>
+    </form>
+  <?php endif; ?>
+</p>
+<?php endif; ?>
+
 <div class="card">
   <div class="calendar-nav">
     <h2>Kalender Cuti Tim &middot; <?= e(kalender_nama_bulan($month)) ?> <?= $year ?></h2>
@@ -105,11 +126,14 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
           $orang = $cutiBulan[$tgl] ?? [];
           $libur = $liburBulan[$tgl] ?? null;
           $persenHari = $totalPegawai > 0 ? (int) round(count($orang) / $totalPegawai * 100) : 0;
+          // Tanggal hari ini pake $statCuti['siaga'] (udah lewat dismiss) -
+          // tanggal lain tetap ambang mentah, dismiss cuma buat "hari berjalan".
+          $siagaHari = $tgl === $todayStr ? $statCuti['siaga'] : cuti_persen_siaga($persenHari);
         ?>
         <div class="calendar-cell<?= $tgl === $todayStr ? ' today' : '' ?><?= !empty($orang) ? ' has-leave' : '' ?><?= $libur ? ' is-holiday' : (kalender_is_weekend($tgl) ? ' is-weekend' : '') ?>">
           <div class="calendar-day-num"><?= (int) substr($tgl, 8, 2) ?></div>
           <?php if (!empty($orang)): ?>
-            <div class="calendar-persen badge <?= cuti_persen_siaga($persenHari) ? 'badge-danger' : 'badge-success' ?>" title="<?= count($orang) ?> dari <?= $totalPegawai ?> pegawai cuti tanggal ini"><?= $persenHari ?>%</div>
+            <div class="calendar-persen badge <?= $siagaHari ? 'badge-danger' : 'badge-success' ?>" title="<?= count($orang) ?> dari <?= $totalPegawai ?> pegawai cuti tanggal ini"><?= $persenHari ?>%</div>
           <?php endif; ?>
           <?php if ($libur): ?>
             <div class="calendar-holiday" title="<?= e($libur) ?>"><?= e($libur) ?></div>

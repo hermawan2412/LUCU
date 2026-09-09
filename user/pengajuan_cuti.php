@@ -28,6 +28,24 @@ if (!hari_kerja_cek($db, date('Y-m-d'))) {
     exit;
 }
 
+// Siaga cuti (>30% pegawai udah cuti hari ini, lihat cuti_persen_siaga()) -
+// tutup pengajuan baru buat hari ini biar gak makin nambah bolong. Admin
+// bisa buka lagi (tombol "Matikan peringatan" di dashboard) kalau emang
+// disengaja (mis. cuti bersama) - pake flag siaga yang sama, bukan toggle
+// kedua.
+$statCutiHariIni = cuti_statistik_hari_ini($db);
+if ($statCutiHariIni['siaga']) {
+    layout_header('Ajukan Cuti', 'ajukan');
+    ?>
+    <h1>Ajukan Cuti</h1>
+    <div class="card">
+      <div class="empty-state">Pengajuan cuti untuk hari ini ditutup sementara - <?= $statCutiHariIni['persen'] ?>% pegawai (<?= $statCutiHariIni['sedang_cuti'] ?>/<?= $statCutiHariIni['total'] ?>) sudah cuti hari ini. Hubungi Kepegawaian kalau ini mendesak.</div>
+    </div>
+    <?php
+    layout_footer();
+    exit;
+}
+
 $errors = [];
 
 // Prefill Dari/Sampai Tanggal kalau dateng dari klik tanggal di kalender
@@ -71,6 +89,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (empty($errors) && $dari > $sampai) {
         $errors[] = '"Sampai dengan" tidak boleh sebelum "Dari tanggal".';
+    }
+    // Cuti Tahunan wajib direncanakan (H-1 minimal) - gak boleh dadakan buat
+    // hari yang sama, beda sama Cuti Sakit/dll yang emang gak bisa diprediksi.
+    if (empty($errors) && $jenis === 'Cuti Tahunan' && $dari <= date('Y-m-d')) {
+        $errors[] = 'Cuti Tahunan gak bisa diajukan buat hari ini - ajukan minimal H-1 (dari sehari sebelumnya).';
     }
     // Bug ketemu 2026-09-04 (dari dokumen cetak beneran): satuan Hari bisa
     // mismatch sama rentang tanggal yang dipilih (mis. isi "1 Hari" tapi

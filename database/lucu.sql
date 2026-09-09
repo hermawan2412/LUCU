@@ -286,6 +286,7 @@ CREATE TABLE `pengaturan` (
   `logo_instansi_path` varchar(255) DEFAULT NULL COMMENT 'logo instansi (PA Rantau) - tampil di halaman login gantiin badge teks, relatif ke assets/img/',
   `wa_aktif` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'notifikasi WhatsApp via Fonnte on/off - lihat includes/whatsapp.php',
   `wa_fonnte_token` varchar(100) NOT NULL DEFAULT '' COMMENT 'API token Fonnte (docs.fonnte.com), diisi admin/pengaturan.php',
+  `siaga_dismiss_tanggal` date DEFAULT NULL COMMENT 'admin matiin peringatan siaga cuti (>30%) buat tanggal ini doang - auto aktif lagi besok, lihat cuti_siaga_dismissed_hari_ini()',
   `diperbarui_pada` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_pengaturan`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

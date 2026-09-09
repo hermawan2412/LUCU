@@ -809,6 +809,25 @@ function cuti_persen_siaga(int $persen): bool
 }
 
 /**
+ * Admin bisa matiin siaga (badge merah + ambient DAN blokir pengajuan cuti
+ * baru, lihat user/pengajuan_cuti.php) buat HARI INI doang - dipakai kalau
+ * >30% emang disengaja (mis. cuti bersama) dan blokirnya kebablasan.
+ * Disimpen di pengaturan.siaga_dismiss_tanggal, auto aktif lagi begitu
+ * tanggal berganti (dibandingin ke CURDATE() tiap panggil, gak perlu cron
+ * buat reset).
+ */
+function cuti_siaga_dismissed_hari_ini(PDO $db): bool
+{
+    $tgl = db_one($db, "SELECT siaga_dismiss_tanggal FROM pengaturan WHERE id_pengaturan = 1")['siaga_dismiss_tanggal'] ?? null;
+    return $tgl === date('Y-m-d');
+}
+
+function cuti_siaga_dismiss(PDO $db): void
+{
+    db_query($db, "UPDATE pengaturan SET siaga_dismiss_tanggal = CURDATE() WHERE id_pengaturan = 1");
+}
+
+/**
  * Statistik pegawai yang lagi cuti HARI INI (status Disetujui, tanggal
  * sekarang jatuh di antara dari_tanggal_iso & sampai_dengan_iso). Dipakai
  * di kotak info halaman login - gak butuh login buat lihat ini, cuma
@@ -821,12 +840,16 @@ function cuti_statistik_hari_ini(PDO $db): array
         WHERE status_cuti = 'Disetujui' AND dari_tanggal_iso <= CURDATE() AND sampai_dengan_iso >= CURDATE()")['n'];
 
     $persen = $total > 0 ? (int) round(($sedangCuti / $total) * 100) : 0;
+    $siagaAsli = cuti_persen_siaga($persen);
+    $dismissed = $siagaAsli && cuti_siaga_dismissed_hari_ini($db);
 
     return [
         'sedang_cuti' => $sedangCuti,
         'total' => $total,
         'persen' => $persen,
-        'siaga' => cuti_persen_siaga($persen),
+        'siaga' => $siagaAsli && !$dismissed,
+        'siaga_asli' => $siagaAsli,
+        'dismissed' => $dismissed,
     ];
 }
 
