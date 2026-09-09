@@ -96,6 +96,10 @@ function layout_header(string $title, string $active = '', string $section = 'us
     } elseif ($section === 'admin') {
         $bellCount = (int) db_one($db, "SELECT COUNT(*) AS n FROM cuti_pegawai WHERE status_cuti IN ('Diajukan', 'Menunggu Nomor Surat')")['n'];
     }
+    // Ambient siaga: sama ambang sama cuti_persen_siaga() (>30% pegawai cuti
+    // hari ini) yang dipake badge kalender/dashboard - biar keliatan dari
+    // halaman admin manapun, gak cuma pas buka Dashboard.
+    $siagaCuti = $section === 'admin' && cuti_statistik_hari_ini($db)['siaga'];
     ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -110,6 +114,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
   <link rel="stylesheet" href="../assets/css/app.css">
 </head>
 <body>
+  <?php if ($siagaCuti): ?><div class="siaga-ambient" aria-hidden="true" title="Lebih dari 30% pegawai cuti hari ini"></div><?php endif; ?>
   <div class="topbar">
     <div class="brand-mark">
       <?= brand_mark_svg(24, '../') ?>

@@ -1198,3 +1198,23 @@ a.calendar-cell:hover { box-shadow: var(--shadow-1); }
   padding: 48px 0;
   font-size: 0.92rem;
 }
+
+/* Ambang siaga cuti (>30% pegawai cuti bareng, admin/index.php) - glow
+   merah kelap-kelip di pinggir window, keliatan dari halaman admin
+   manapun (lihat $siagaCuti di layout_header()). Fixed + pointer-events
+   none biar gak ganggu klik apapun di bawahnya. */
+.siaga-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: inset 0 0 60px 10px var(--danger);
+  animation: siaga-pulse 1.6s ease-in-out infinite;
+}
+@keyframes siaga-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .siaga-ambient { animation: none; opacity: 0.55; }
+}

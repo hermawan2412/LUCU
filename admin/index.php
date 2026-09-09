@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'sync_
 
 $totalPegawai = db_one($db, "SELECT COUNT(*) AS n FROM pegawai")['n'];
 $totalJabatan = db_one($db, "SELECT COUNT(*) AS n FROM jabatan")['n'];
-$totalGolongan = db_one($db, "SELECT COUNT(*) AS n FROM golongan")['n'];
+$statCuti = cuti_statistik_hari_ini($db);
 $pengajuanAktif = db_one($db, "SELECT COUNT(*) AS n FROM cuti_pegawai WHERE status_cuti = 'Diajukan'")['n'];
 $kgbOverdue = 0;
 $knpOverdue = 0;
@@ -68,7 +68,7 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
 <div class="stat-row">
   <a href="data_pegawai.php" class="stat-tile tone-blue"><div class="num"><?= (int) $totalPegawai ?></div><div class="label">Total Pegawai</div></a>
   <a href="data_jabatan.php" class="stat-tile tone-purple"><div class="num"><?= (int) $totalJabatan ?></div><div class="label">Jabatan</div></a>
-  <a href="data_golongan.php" class="stat-tile tone-teal"><div class="num"><?= (int) $totalGolongan ?></div><div class="label">Golongan</div></a>
+  <a href="data_cuti.php?status=Disetujui" class="stat-tile <?= $statCuti['siaga'] ? 'tone-red' : 'tone-green' ?>"><div class="num"><?= $statCuti['persen'] ?>%</div><div class="label">Cuti Hari Ini (<?= $statCuti['sedang_cuti'] ?>/<?= $statCuti['total'] ?> pegawai)</div></a>
   <a href="data_cuti.php?status=Diajukan" class="stat-tile tone-amber"><div class="num"><?= (int) $pengajuanAktif ?></div><div class="label">Cuti Sedang Diajukan</div></a>
   <?php if (FITUR_KGB_KNP_AKTIF): ?>
   <a href="data_kgb.php" class="stat-tile <?= $kgbOverdue > 0 ? 'tone-red' : 'tone-green' ?>"><div class="num"><?= $kgbOverdue ?></div><div class="label">KGB Jatuh Tempo</div></a>
