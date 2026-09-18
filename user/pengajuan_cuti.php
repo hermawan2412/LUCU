@@ -289,7 +289,7 @@ layout_header('Ajukan Cuti', 'ajukan');
       <label for="alamat_cuti">Alamat Selama Cuti</label>
       <input id="alamat_cuti" name="alamat_cuti" type="text" required value="<?= e($_POST['alamat_cuti'] ?? '') ?>">
     </div>
-    <div class="field">
+    <div class="field" id="field_berkas_dokter" hidden>
       <label for="berkas_dokter">Surat Keterangan Dokter</label>
       <input id="berkas_dokter" name="berkas_dokter" type="file" accept="application/pdf,image/png,image/jpeg">
       <p class="hint">Wajib kalau Cuti Sakit lebih dari 1 hari (SE Sekma 13/2019 / SK Sekma 212/2024). PDF/PNG/JPG, maksimal 3MB.</p>
@@ -297,4 +297,13 @@ layout_header('Ajukan Cuti', 'ajukan');
     <button type="submit" class="btn-primary" style="width:auto;padding:10px 24px;">Ajukan Cuti</button>
   </form>
 </div>
+<script>
+(function () {
+  var jenisSel = document.getElementById('jenis_cuti');
+  var fieldBerkas = document.getElementById('field_berkas_dokter');
+  function toggle() { fieldBerkas.hidden = jenisSel.value !== 'Cuti Sakit'; }
+  jenisSel.addEventListener('change', toggle);
+  toggle();
+})();
+</script>
 <?php layout_footer(); ?>
