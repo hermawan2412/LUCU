@@ -87,3 +87,33 @@
     dropdowns.forEach(function (dd) { dd.classList.remove('open'); });
   });
 })();
+
+// Bunyi notifikasi: bunyi cuma sekali pas jumlah notif belum-dibaca NAIK
+// dibanding kunjungan terakhir (localStorage), bukan tiap buka halaman
+// selagi masih ada yg belum dibaca - getar iconnya sendiri udah dihandle
+// CSS (.notif-bell.has-unread, lihat app.css bell-ring).
+(function () {
+  var KEY = 'restu-notif-count-seen';
+  var bell = document.querySelector('.notif-bell');
+  if (!bell) return;
+
+  var count = parseInt(bell.getAttribute('data-count') || '0', 10);
+  var seen = 0;
+  try { seen = parseInt(localStorage.getItem(KEY) || '0', 10); } catch (e) {}
+
+  if (count > seen) {
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch (e) {}
+  }
+
+  try { localStorage.setItem(KEY, String(count)); } catch (e) {}
+})();

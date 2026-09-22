@@ -143,7 +143,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
     </nav>
     <div style="display:flex; align-items:center; gap:10px;">
       <?= layout_theme_toggle_svg() ?>
-      <a href="<?= e($bellHref) ?>" class="notif-bell<?= $bellCount > 0 ? ' has-unread' : '' ?>" title="<?= $section === 'admin' ? 'Cuti sedang diajukan' : 'Notifikasi' ?>">
+      <a href="<?= e($bellHref) ?>" class="notif-bell<?= $bellCount > 0 ? ' has-unread' : '' ?>" data-count="<?= $bellCount ?>" title="<?= $section === 'admin' ? 'Cuti sedang diajukan' : 'Notifikasi' ?>">
         <?= layout_bell_svg() ?>
         <?php if ($bellCount > 0): ?><span class="notif-count"><?= $bellCount > 9 ? '9+' : $bellCount ?></span><?php endif; ?>
       </a>

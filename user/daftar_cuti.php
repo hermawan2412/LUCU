@@ -54,7 +54,7 @@ layout_header('Riwayat Cuti', 'riwayat');
         </thead>
         <tbody>
           <?php foreach ($riwayat as $row): ?>
-            <tr>
+            <tr id="cuti-<?= (int) $row['id_cutipegawai'] ?>">
               <td><?= e($row['jenis_cuti']) ?></td>
               <td><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?></td>
               <td><?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></td>

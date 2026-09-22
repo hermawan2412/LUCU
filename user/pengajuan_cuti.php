@@ -187,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 notifikasi_kirim($db, $pegawai['nip'],
                     "Pengajuan {$jenis} Anda terkirim, menunggu penomoran surat oleh Kepegawaian.",
-                    'daftar_cuti.php');
+                    'daftar_cuti.php#cuti-' . $newId);
 
                 flash_set('success', 'Pengajuan cuti berhasil dikirim, menunggu penomoran surat oleh Kepegawaian.');
                 redirect('daftar_cuti.php');

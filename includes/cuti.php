@@ -638,7 +638,7 @@ function cuti_mulai_approval_setelah_nomor(PDO $db, array $row): void
     } else {
         $level = cuti_current_pending_level($row);
         if ($level !== null && $row[$level] !== null) {
-            notifikasi_kirim($db, $row[$level], "Pengajuan {$row['jenis_cuti']} dari {$pemohon['nama_pegawai']} menunggu approval Anda.", 'approve_cuti.php');
+            notifikasi_kirim($db, $row[$level], "Pengajuan {$row['jenis_cuti']} dari {$pemohon['nama_pegawai']} menunggu approval Anda.", 'approve_cuti.php#cuti-' . $row['id_cutipegawai']);
         }
         // Skip approver level yang barusan dapet notif actionable di atas -
         // gak perlu dikabarin 2x soal event yang sama.
@@ -720,7 +720,7 @@ function cuti_notifikasi_dokumen(PDO $db, array $row, string $pemohonNip, string
     $pejabatBerwenangNip = $row['ketua'];
     $penerima = array_unique(array_filter([$pemohonNip, $atasanLangsungNip, $pejabatBerwenangNip]));
     $penerima = array_diff($penerima, $kecuali);
-    $url = $sudahFinal ? 'cetak_cuti.php?id=' . $row['id_cutipegawai'] : 'daftar_cuti.php';
+    $url = $sudahFinal ? 'cetak_cuti.php?id=' . $row['id_cutipegawai'] : 'daftar_cuti.php#cuti-' . $row['id_cutipegawai'];
     foreach ($penerima as $nip) {
         notifikasi_kirim($db, $nip, $pesan, $url);
     }
@@ -764,7 +764,7 @@ function cuti_approve(PDO $db, array $row, string $approverNip, bool $ttdManual 
             db_query($db, "UPDATE cuti_pegawai SET ket_status_cuti = ? WHERE id_cutipegawai = ?", [$ket, $row['id_cutipegawai']]);
             // Actionable, cuma ke approver berikutnya (link approve_cuti.php,
             // beda dari broadcast dokumen di bawah).
-            notifikasi_kirim($db, $updated[$nextLevel], "Pengajuan {$row['jenis_cuti']} dari {$pemohon['nama_pegawai']} menunggu approval Anda.", 'approve_cuti.php');
+            notifikasi_kirim($db, $updated[$nextLevel], "Pengajuan {$row['jenis_cuti']} dari {$pemohon['nama_pegawai']} menunggu approval Anda.", 'approve_cuti.php#cuti-' . $row['id_cutipegawai']);
             // Skip approver yang baru aja approve (dia yang ngelakuin, gak
             // perlu dikabarin) dan next-level yang barusan dapet notif
             // actionable di atas (gak perlu dikabarin 2x soal event yang sama).

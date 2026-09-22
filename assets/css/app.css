@@ -1011,6 +1011,16 @@ table.data-table tbody tr:hover {
   background: var(--lifted);
 }
 
+/* Baris dituju link notifikasi (daftar_cuti.php#cuti-N / approve_cuti.php#cuti-N) */
+table.data-table tbody tr:target {
+  animation: cuti-row-highlight 2.4s ease-out;
+}
+
+@keyframes cuti-row-highlight {
+  0%, 25% { background: var(--warning-bg); }
+  100% { background: transparent; }
+}
+
 table.data-table td.num {
   font-variant-numeric: tabular-nums;
 }

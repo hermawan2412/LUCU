@@ -78,7 +78,7 @@ layout_header('Approval Cuti', 'approval');
         </thead>
         <tbody>
           <?php foreach ($pending as $row): ?>
-            <tr>
+            <tr id="cuti-<?= (int) $row['id_cutipegawai'] ?>">
               <td><?= e($row['nama_pegawai']) ?></td>
               <td><?= e($row['jenis_cuti']) ?></td>
               <td><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?></td>
