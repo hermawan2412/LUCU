@@ -26,4 +26,12 @@ return [
         'pass' => '',
         'charset' => 'utf8mb4',
     ],
+
+    // Token buat api/cuti_aktif.php (dipanggil RAPAT server-ke-server, header
+    // X-Api-Token). Kosong = endpoint selalu menolak (401). Acak panjang,
+    // mis. bin2hex(random_bytes(24)); sama nilainya harus diisi di RAPAT
+    // (Pengaturan > Integrasi RESTU).
+    'api' => [
+        'token' => '',
+    ],
 ];
