@@ -95,6 +95,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
         $bellHref = 'notifikasi.php';
     } elseif ($section === 'admin') {
         $bellCount = (int) db_one($db, "SELECT COUNT(*) AS n FROM cuti_pegawai WHERE status_cuti IN ('Diajukan', 'Menunggu Nomor Surat')")['n'];
+        $bellHref = 'data_cuti.php';
     }
     // Ambient siaga: sama ambang sama cuti_persen_siaga() (>30% pegawai cuti
     // hari ini) yang dipake badge kalender/dashboard - biar keliatan dari
