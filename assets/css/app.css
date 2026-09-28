@@ -1228,3 +1228,31 @@ a.calendar-cell:hover { box-shadow: var(--shadow-1); }
 @media (prefers-reduced-motion: reduce) {
   .siaga-ambient { animation: none; opacity: 0.55; }
 }
+
+/* Data Cuti admin: tabel 4 kolom padat, tanpa gulir samping. Di layar sempit tiap baris jadi kartu bertumpuk. */
+table.tabel-cuti td { vertical-align: top; padding: 10px 12px; overflow-wrap: anywhere; }
+/* Tabel padat tidak pernah bergulir samping: bayangan gulir .table-scroll tidak dibutuhkan (dan membekas garis di tepi kartu). */
+.table-scroll:has(> table.tabel-cuti) { background: none; }
+table.tabel-cuti .sub { display: block; margin-top: 2px; font-size: 0.78rem; color: var(--slate); line-height: 1.35; }
+table.tabel-cuti .sub strong { color: var(--ink); font-weight: 600; }
+table.tabel-cuti td.tindakan { width: 34%; }
+table.tabel-cuti td.tindakan > * + * { margin-top: 8px; }
+.form-ringkas { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0; }
+.form-ringkas input[type="text"], .form-ringkas select { min-width: 0; width: 100%; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 0.8rem; background: var(--surface); color: inherit; }
+.form-ringkas button { grid-column: 1 / -1; padding: 6px 12px; font-size: 0.8rem; }
+.form-ringkas.satu-baris { grid-template-columns: 1fr auto; }
+.form-ringkas.satu-baris button { grid-column: auto; }
+table.tabel-cuti .unduh { display: flex; gap: 6px; }
+table.tabel-cuti .unduh .btn-secondary { padding: 5px 12px; font-size: 0.78rem; }
+@media (max-width: 720px) {
+  table.tabel-cuti thead { display: none; }
+  table.tabel-cuti, table.tabel-cuti tbody, table.tabel-cuti tr, table.tabel-cuti td { display: block; width: auto; }
+  table.tabel-cuti tr { padding: 10px 0; border-bottom: 1px solid var(--border-strong); }
+  table.tabel-cuti td { border-bottom: 0; padding: 4px 2px; }
+  table.tabel-cuti td.tindakan { width: auto; }
+}
+.form-ringkas.tolak { grid-template-columns: 1fr auto auto; }
+.form-ringkas.tolak button, .form-ringkas.tolak a { grid-column: auto; padding: 6px 12px; font-size: 0.8rem; }
+table.tabel-cuti .aksi-setuju { margin: 0; display: grid; gap: 6px; }
+table.tabel-cuti .aksi-setuju label { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 400; }
+table.tabel-cuti .aksi-setuju input[type="checkbox"] { width: auto; margin: 0; }

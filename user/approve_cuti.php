@@ -65,13 +65,12 @@ layout_header('Approval Cuti', 'approval');
     <div class="empty-state">Tidak ada pengajuan yang menunggu approval Anda.</div>
   <?php else: ?>
     <div class="table-scroll">
-      <table class="data-table">
+      <!-- Pola padat sama dengan admin/data_cuti.php (tabel.tabel-cuti): tanpa gulir samping, kartu di layar sempit. -->
+      <table class="data-table tabel-cuti">
         <thead>
           <tr>
             <th>Pemohon</th>
-            <th>Jenis</th>
-            <th>Tanggal</th>
-            <th>Lama</th>
+            <th>Cuti</th>
             <th>Alasan</th>
             <th>Aksi</th>
           </tr>
@@ -79,40 +78,40 @@ layout_header('Approval Cuti', 'approval');
         <tbody>
           <?php foreach ($pending as $row): ?>
             <tr id="cuti-<?= (int) $row['id_cutipegawai'] ?>">
-              <td><?= e($row['nama_pegawai']) ?></td>
-              <td><?= e($row['jenis_cuti']) ?></td>
-              <td><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?></td>
-              <td><?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></td>
-              <td>
+              <td data-label="Pemohon"><strong><?= e($row['nama_pegawai']) ?></strong></td>
+              <td data-label="Cuti">
+                <strong><?= e($row['jenis_cuti']) ?></strong>
+                <span class="sub"><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?> &middot; <?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></span>
+              </td>
+              <td data-label="Alasan">
                 <?= e($row['alasan_cuti']) ?>
                 <?php if (!empty($row['berkas'])): ?>
-                  <br><a href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank" style="font-size:0.78rem;">Lihat Surat Dokter</a>
+                  <a class="sub" href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank">Lihat Surat Dokter</a>
                 <?php endif; ?>
               </td>
-              <td>
+              <td data-label="Aksi" class="tindakan">
                 <?php if ($rejectId === (int) $row['id_cutipegawai']): ?>
-                  <form method="POST" style="display:flex; gap:6px; align-items:center;">
+                  <form method="POST" class="form-ringkas tolak">
                     <?= csrf_field() ?>
                     <input type="hidden" name="id" value="<?= (int) $row['id_cutipegawai'] ?>">
                     <input type="hidden" name="action" value="reject">
-                    <input type="text" name="alasan" placeholder="Alasan penolakan" required style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.85rem;">
-                    <button type="submit" class="btn-secondary" style="padding:6px 12px;">Kirim</button>
-                    <a href="approve_cuti.php" class="btn-secondary" style="padding:6px 12px;">Batal</a>
+                    <input type="text" name="alasan" placeholder="Alasan penolakan" aria-label="Alasan penolakan" required autofocus>
+                    <button type="submit" class="btn-secondary">Kirim</button>
+                    <a href="approve_cuti.php" class="btn-secondary">Batal</a>
                   </form>
                 <?php else: ?>
-                  <form method="POST" style="display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <form method="POST" class="aksi-setuju">
                     <?= csrf_field() ?>
                     <input type="hidden" name="id" value="<?= (int) $row['id_cutipegawai'] ?>">
                     <input type="hidden" name="action" value="approve">
                     <?php if (!empty($pegawai['tanda_tangan_path'])): ?>
-                      <label style="display:flex; align-items:center; gap:4px; font-size:0.76rem; font-weight:400; white-space:nowrap;">
-                        <input type="checkbox" name="ttd_manual" value="1" style="width:auto;">
-                        Tunda TTD (cetak dulu)
-                      </label>
+                      <label class="sub"><input type="checkbox" name="ttd_manual" value="1"> Tunda TTD (cetak dulu)</label>
                     <?php endif; ?>
-                    <button type="submit" class="btn-secondary" style="padding:6px 12px;">Setujui</button>
+                    <span class="unduh">
+                      <button type="submit" class="btn-secondary">Setujui</button>
+                      <a href="?tolak=<?= (int) $row['id_cutipegawai'] ?>#cuti-<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary">Tolak</a>
+                    </span>
                   </form>
-                  <a href="?tolak=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary" style="padding:6px 12px;">Tolak</a>
                 <?php endif; ?>
               </td>
             </tr>

@@ -91,74 +91,67 @@ layout_header('Data Cuti', 'cuti', 'admin');
     <div class="empty-state">Gak ada pengajuan cuti<?= $statusFilter !== '' ? ' dengan status "' . e($statusFilter) . '"' : '' ?>.</div>
   <?php else: ?>
     <div class="table-scroll">
-      <table class="data-table">
+      <!-- 4 kolom padat (dulu 10 kolom + form ber-min-width, selalu lebih lebar dari layar). Di layar sempit tiap baris jadi kartu. -->
+      <table class="data-table tabel-cuti">
         <thead>
           <tr>
             <th>Pegawai</th>
-            <th>Jenis</th>
-            <th>Tanggal</th>
-            <th>Lama</th>
-            <th>Diajukan</th>
+            <th>Cuti</th>
             <th>Status</th>
-            <th>Keterangan</th>
-            <th>Nomor Surat</th>
-            <th>Catatan Sakit (kotak V)</th>
-            <th>Dokumen</th>
+            <th>Tindakan</th>
           </tr>
         </thead>
         <tbody>
           <?php foreach ($list as $row): ?>
-            <tr>
-              <td><?= e($row['nama_pegawai']) ?><br><span class="hint"><?= e($row['nip']) ?></span></td>
-              <td><?= e($row['jenis_cuti']) ?></td>
-              <td><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?></td>
-              <td><?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></td>
-              <td><?= e($row['tgl_pengajuan']) ?><br><span class="hint"><?= date('H:i:s', strtotime($row['waktu_pengajuan'])) ?></span></td>
-              <td><span class="badge <?= cuti_status_badge_class($row['status_cuti']) ?>"><?= e($row['status_cuti']) ?></span></td>
-              <td>
-                <?= e($row['ket_status_cuti']) ?>
+            <tr id="cuti-<?= (int) $row['id_cutipegawai'] ?>">
+              <td data-label="Pegawai">
+                <strong><?= e($row['nama_pegawai']) ?></strong>
+                <span class="sub"><?= e($row['nip']) ?></span>
+                <span class="sub">Diajukan <?= e($row['tgl_pengajuan']) ?>, <?= date('H:i', strtotime($row['waktu_pengajuan'])) ?></span>
+              </td>
+              <td data-label="Cuti">
+                <strong><?= e($row['jenis_cuti']) ?></strong>
+                <span class="sub"><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?> &middot; <?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></span>
                 <?php if (!empty($row['berkas'])): ?>
-                  <br><a href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank" style="font-size:0.78rem;">Surat Dokter</a>
+                  <a class="sub" href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank">Surat Dokter</a>
                 <?php endif; ?>
               </td>
-              <td style="min-width:220px;">
+              <td data-label="Status">
+                <span class="badge <?= cuti_status_badge_class($row['status_cuti']) ?>"><?= e($row['status_cuti']) ?></span>
+                <?php if ($row['ket_status_cuti'] !== '' && $row['ket_status_cuti'] !== null): ?><span class="sub"><?= e($row['ket_status_cuti']) ?></span><?php endif; ?>
+              </td>
+              <td data-label="Tindakan" class="tindakan">
                 <?php if ($row['status_cuti'] === 'Menunggu Nomor Surat'): ?>
-                  <form method="POST" style="display:flex; flex-direction:column; gap:6px;">
+                  <form method="POST" class="form-ringkas">
                     <?= csrf_field() ?>
                     <input type="hidden" name="action" value="beri_nomor">
                     <input type="hidden" name="id_cutipegawai" value="<?= (int) $row['id_cutipegawai'] ?>">
-                    <input type="text" name="nomor_surat" placeholder="Nomor surat" required style="padding:6px 8px;border:1px solid var(--border-strong);border-radius:8px;font-size:0.8rem;">
-                    <select name="paraf_nip" style="padding:6px 8px;border:1px solid var(--border-strong);border-radius:8px;font-size:0.8rem;">
-                      <option value="">-- Paraf petugas (opsional) --</option>
+                    <input type="text" name="nomor_surat" placeholder="Nomor surat" aria-label="Nomor surat" required>
+                    <select name="paraf_nip" aria-label="Paraf petugas">
+                      <option value="">Paraf petugas (opsional)</option>
                       <?php foreach ($semuaPegawai as $p): ?>
                         <option value="<?= e($p['nip']) ?>"><?= e($p['nama_pegawai']) ?></option>
                       <?php endforeach; ?>
                     </select>
-                    <button type="submit" class="btn-secondary" style="padding:6px 12px;">Simpan & Mulai Approval</button>
+                    <button type="submit" class="btn-secondary">Simpan &amp; Mulai Approval</button>
                   </form>
-                <?php else: ?>
-                  <?= $row['nomor_surat'] ? e($row['nomor_surat']) : '-' ?>
+                <?php elseif ($row['nomor_surat']): ?>
+                  <span class="sub">No. surat <strong><?= e($row['nomor_surat']) ?></strong></span>
                 <?php endif; ?>
-              </td>
-              <td style="min-width:200px;">
                 <?php if ($row['jenis_cuti'] === 'Cuti Sakit'): ?>
-                  <form method="POST" style="display:flex; gap:6px;">
+                  <form method="POST" class="form-ringkas satu-baris">
                     <?= csrf_field() ?>
                     <input type="hidden" name="action" value="catatan_sakit">
                     <input type="hidden" name="id_cutipegawai" value="<?= (int) $row['id_cutipegawai'] ?>">
-                    <input type="text" name="catatan_sakit" placeholder="Catatan kotak V.3 (manual)" value="<?= e($row['catatan_sakit'] ?? '') ?>" style="padding:6px 8px;border:1px solid var(--border-strong);border-radius:8px;font-size:0.8rem;flex:1;">
-                    <button type="submit" class="btn-secondary" style="padding:6px 12px;">Simpan</button>
+                    <input type="text" name="catatan_sakit" placeholder="Catatan Sakit (kotak V.3)" aria-label="Catatan Sakit, kotak V.3" value="<?= e($row['catatan_sakit'] ?? '') ?>">
+                    <button type="submit" class="btn-secondary">Simpan</button>
                   </form>
-                <?php else: ?>
-                  -
                 <?php endif; ?>
-              </td>
-              <td>
                 <?php if ($row['status_cuti'] === 'Disetujui'): ?>
-                  <a href="../user/cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.docx</a>
-                  <a href="../user/cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pdf" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.pdf</a>
-                <?php else: ?>
-                  <span class="hint">Setelah Disetujui</span>
+                  <span class="unduh">
+                    <a href="../user/cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary">.docx</a>
+                    <a href="../user/cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pdf" class="btn-secondary">.pdf</a>
+                  </span>
                 <?php endif; ?>
               </td>
             </tr>
