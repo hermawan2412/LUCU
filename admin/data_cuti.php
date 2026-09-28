@@ -77,7 +77,7 @@ layout_header('Data Cuti', 'cuti', 'admin');
 <?php foreach ($errors as $err): ?><div class="alert alert-danger"><?= e($err) ?></div><?php endforeach; ?>
 
 <div class="card" style="margin-bottom:20px;">
-  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+  <div class="tab-status" style="display:flex; gap:8px; flex-wrap:wrap;">
     <?php foreach ($tabs as $value => $label): ?>
       <a href="?<?= $value !== '' ? 'status=' . urlencode($value) : '' ?>"
          class="btn-<?= $statusFilter === $value ? 'primary' : 'secondary' ?>"

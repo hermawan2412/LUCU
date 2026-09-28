@@ -40,37 +40,40 @@ layout_header('Riwayat Cuti', 'riwayat');
     <div class="empty-state">Belum ada pengajuan cuti. <a href="pengajuan_cuti.php">Ajukan sekarang</a>.</div>
   <?php else: ?>
     <div class="table-scroll">
-      <table class="data-table">
+      <!-- Pola padat sama dengan admin/data_cuti.php (tabel.tabel-cuti): tanpa gulir samping, kartu di layar sempit. -->
+      <table class="data-table tabel-cuti">
         <thead>
           <tr>
-            <th>Jenis</th>
-            <th>Tanggal</th>
-            <th>Lama</th>
-            <th>Diajukan</th>
+            <th>Cuti</th>
             <th>Status</th>
-            <th>Keterangan</th>
-            <th></th>
+            <th>Dokumen</th>
           </tr>
         </thead>
         <tbody>
           <?php foreach ($riwayat as $row): ?>
             <tr id="cuti-<?= (int) $row['id_cutipegawai'] ?>">
-              <td><?= e($row['jenis_cuti']) ?></td>
-              <td><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?></td>
-              <td><?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></td>
-              <td><?= e($row['tgl_pengajuan']) ?><br><span class="hint"><?= date('H:i:s', strtotime($row['waktu_pengajuan'])) ?></span></td>
-              <td><span class="badge <?= cuti_status_badge_class($row['status_cuti']) ?>"><?= e($row['status_cuti']) ?></span></td>
-              <td><?= e($row['ket_status_cuti']) ?></td>
-              <td>
-                <?php if ($row['status_cuti'] === 'Disetujui'): ?>
-                  <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.docx</a>
-                  <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pdf" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">.pdf</a>
-                <?php else: ?>
-                  <span class="hint">Dokumen tersedia setelah Disetujui</span>
+              <td data-label="Cuti">
+                <strong><?= e($row['jenis_cuti']) ?></strong>
+                <span class="sub"><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?> &middot; <?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></span>
+                <span class="sub">Diajukan <?= e($row['tgl_pengajuan']) ?>, <?= date('H:i', strtotime($row['waktu_pengajuan'])) ?></span>
+              </td>
+              <td data-label="Status">
+                <span class="badge <?= cuti_status_badge_class($row['status_cuti']) ?>"><?= e($row['status_cuti']) ?></span>
+                <?php if ($row['ket_status_cuti'] !== '' && $row['ket_status_cuti'] !== null): ?><span class="sub"><?= e($row['ket_status_cuti']) ?></span><?php endif; ?>
+              </td>
+              <td data-label="Dokumen" class="tindakan">
+                <?php if ($row['status_cuti'] === 'Disetujui' || !empty($row['berkas'])): ?>
+                  <span class="unduh">
+                    <?php if ($row['status_cuti'] === 'Disetujui'): ?>
+                      <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary">.docx</a>
+                      <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pdf" class="btn-secondary">.pdf</a>
+                    <?php endif; ?>
+                    <?php if (!empty($row['berkas'])): ?>
+                      <a href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank" class="btn-secondary">Surat Dokter</a>
+                    <?php endif; ?>
+                  </span>
                 <?php endif; ?>
-                <?php if (!empty($row['berkas'])): ?>
-                  <a href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank" class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;">Surat Dokter</a>
-                <?php endif; ?>
+                <?php if ($row['status_cuti'] !== 'Disetujui'): ?><span class="sub">Formulir tersedia setelah Disetujui</span><?php endif; ?>
               </td>
             </tr>
           <?php endforeach; ?>

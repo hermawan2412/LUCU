@@ -1256,3 +1256,6 @@ table.tabel-cuti .unduh .btn-secondary { padding: 5px 12px; font-size: 0.78rem; 
 table.tabel-cuti .aksi-setuju { margin: 0; display: grid; gap: 6px; }
 table.tabel-cuti .aksi-setuju label { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 400; }
 table.tabel-cuti .aksi-setuju input[type="checkbox"] { width: auto; margin: 0; }
+/* Tab status di Data Cuti: tab aktif memakai .btn-primary yang aslinya selebar penuh (untuk tombol form). */
+.tab-status .btn-primary { width: auto; }
+table.tabel-cuti .unduh { flex-wrap: wrap; }
