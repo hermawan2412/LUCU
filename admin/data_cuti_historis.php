@@ -10,7 +10,7 @@ auth_require('Admin', 'Pengelola');
 // asumsi itu berubah di kemudian hari, cuti_potong_saldo_tahunan() (includes/cuti.php)
 // udah ada tinggal dipanggil di sini.
 // CUTI_HISTORIS_KETERANGAN (penanda baris hasil fitur ini) sekarang di
-// includes/cuti.php, bukan di sini - dipakai juga sama database/reset_uji_coba.php.
+// includes/cuti.php, bukan di sini.
 
 $errors = [];
 
