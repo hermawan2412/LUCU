@@ -99,6 +99,9 @@ $pegawaiTanpaAkun = db_all($db, "SELECT p.id_pegawai, p.nama_pegawai, p.nip
     ORDER BY p.nama_pegawai ASC");
 
 $success = flash_get('success');
+// Dipakai form Buat Akun DAN dropdown Ubah Role di tabel - jangan taruh di
+// dalam form Buat Akun, form itu gak dirender kalau semua pegawai udah punya akun.
+$roleLabel = ['User' => 'User (pegawai biasa)', 'Pengelola' => 'Pengelola (staf kepegawaian)', 'Admin' => 'Admin'];
 
 layout_header('Kelola Akun', '', 'admin');
 ?>
@@ -141,7 +144,6 @@ layout_header('Kelola Akun', '', 'admin');
       <div class="field">
         <label for="role">Role</label>
         <select id="role" name="role">
-          <?php $roleLabel = ['User' => 'User (pegawai biasa)', 'Pengelola' => 'Pengelola (staf kepegawaian)', 'Admin' => 'Admin']; ?>
           <?php foreach (auth_assignable_roles() as $r): ?>
             <option value="<?= $r ?>" <?= $r === 'User' ? 'selected' : '' ?>><?= e($roleLabel[$r]) ?></option>
           <?php endforeach; ?>
