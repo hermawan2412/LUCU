@@ -87,7 +87,7 @@ layout_header('Approval Cuti', 'approval');
                 <?= e($row['alasan_cuti']) ?>
                 <a class="sub" href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pratinjau" target="_blank" data-pratinjau>Pratinjau formulir</a>
                 <?php if (!empty($row['berkas'])): ?>
-                  <a class="sub" href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank">Lihat Surat Dokter</a>
+                  <a class="sub" href="<?= e(berkas_cuti_url((int) $row['id_cutipegawai'], '../')) ?>" target="_blank" data-pratinjau="Surat dokter">Lihat Surat Dokter</a>
                 <?php endif; ?>
               </td>
               <td data-label="Aksi" class="tindakan">

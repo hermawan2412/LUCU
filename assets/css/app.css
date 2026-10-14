@@ -1281,7 +1281,8 @@ dialog.pratinjau::backdrop { background: rgba(0, 0, 0, 0.5); }
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
 }
-.pratinjau-bar .sub { margin-right: auto; font-size: 0.85rem; color: var(--slate); }
+.pratinjau-bar .sub { font-size: 0.85rem; color: var(--slate); }
+.pratinjau-bar a { margin-left: auto; }
 dialog.pratinjau iframe { flex: 1; width: 100%; border: 0; background: #525659; }
 .pratinjau-muat { margin: 0; padding: 24px; text-align: center; }
 dialog.pratinjau.siap .pratinjau-muat { display: none; }

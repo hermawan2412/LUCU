@@ -113,7 +113,7 @@ layout_header('Data Cuti', 'cuti', 'admin');
                 <strong><?= e($row['jenis_cuti']) ?></strong>
                 <span class="sub"><?= e($row['dari_tanggal']) ?> &ndash; <?= e($row['sampai_dengan']) ?> &middot; <?= e($row['lama_cuti']) ?> <?= e($row['ket_lama_cuti']) ?></span>
                 <?php if (!empty($row['berkas'])): ?>
-                  <a class="sub" href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank">Surat Dokter</a>
+                  <a class="sub" href="<?= e(berkas_cuti_url((int) $row['id_cutipegawai'], '../')) ?>" target="_blank" data-pratinjau="Surat dokter">Surat Dokter</a>
                 <?php endif; ?>
               </td>
               <td data-label="Status">

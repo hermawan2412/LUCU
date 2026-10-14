@@ -591,6 +591,21 @@ function cuti_status_awal(PDO $db, array $slots): array
     return ['Diajukan', 'Menunggu Approval'];
 }
 
+/**
+ * Boleh LIHAT dokumen pengajuan ini (pratinjau formulir, surat dokter)?
+ * Admin/Pengelola, pemilik pengajuan, atau pejabat yang ke-assign di rantai
+ * approval-nya. $nipPemilik = NIP pegawai pengaju (bukan kolom di
+ * cuti_pegawai, jadi dioper terpisah). Unduhan formulir resmi punya aturan
+ * sendiri yang lebih ketat - lihat user/cetak_cuti.php.
+ */
+function cuti_boleh_lihat(array $cuti, string $nipPemilik): bool
+{
+    $nip = $_SESSION['nip'] ?? null;
+    return auth_is_staff()
+        || ($nip !== null && $nip === $nipPemilik)
+        || ($nip !== null && in_array($nip, [$cuti['panmud_kasubag'], $cuti['panitera_sekretaris'], $cuti['ketua']], true));
+}
+
 function cuti_get_by_id(PDO $db, int $id): ?array
 {
     return db_one($db, "SELECT * FROM cuti_pegawai WHERE id_cutipegawai = ?", [$id]);

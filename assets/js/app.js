@@ -131,7 +131,7 @@
     if (!dlg) {
       dlg = document.createElement('dialog');
       dlg.className = 'pratinjau';
-      dlg.innerHTML = '<div class="pratinjau-bar"><strong>Pratinjau formulir</strong>'
+      dlg.innerHTML = '<div class="pratinjau-bar"><strong></strong>'
         + '<span class="sub">Dokumen resmi hanya setelah Disetujui</span>'
         + '<a class="btn-secondary" target="_blank">Buka di tab baru</a>'
         + '<button type="button" class="btn-secondary">Tutup</button></div>'
@@ -143,6 +143,10 @@
       frame.addEventListener('load', function () { dlg.classList.add('siap'); });
       document.body.appendChild(dlg);
     }
+    var judul = a.getAttribute('data-pratinjau');
+    dlg.querySelector('.pratinjau-bar strong').textContent = judul || 'Pratinjau formulir';
+    dlg.querySelector('.pratinjau-bar .sub').hidden = !!judul; // catatan "resmi setelah Disetujui" cuma buat formulir
+    frame.title = judul || 'Pratinjau formulir cuti';
     dlg.classList.remove('siap');
     dlg.querySelector('.pratinjau-bar a').href = a.href;
     frame.src = a.href;

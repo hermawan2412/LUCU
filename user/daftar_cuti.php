@@ -69,7 +69,7 @@ layout_header('Riwayat Cuti', 'riwayat');
                       <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pdf" class="btn-secondary">.pdf</a>
                     <?php endif; ?>
                     <?php if (!empty($row['berkas'])): ?>
-                      <a href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank" class="btn-secondary">Surat Dokter</a>
+                      <a href="<?= e(berkas_cuti_url((int) $row['id_cutipegawai'], '../')) ?>" target="_blank" data-pratinjau="Surat dokter" class="btn-secondary">Surat Dokter</a>
                     <?php endif; ?>
                   </span>
                 <?php if ($row['status_cuti'] !== 'Disetujui'): ?><span class="sub">Unduhan tersedia setelah Disetujui</span><?php endif; ?>

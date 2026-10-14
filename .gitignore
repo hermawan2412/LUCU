@@ -7,6 +7,7 @@ uploads/ttd/*
 !uploads/berkas_cuti/
 uploads/berkas_cuti/*
 !uploads/berkas_cuti/.gitkeep
+!uploads/berkas_cuti/.htaccess
 assets/img/*
 !assets/img/.gitkeep
 *.log

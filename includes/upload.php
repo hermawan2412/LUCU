@@ -157,12 +157,13 @@ function upload_berkas_cuti(array $file, int $idCutiPegawai): array
 }
 
 /** URL relatif buat link unduh/lihat. $assetPrefix: '' dari root, '../' dari admin/ atau user/. */
-function berkas_cuti_url(?string $filename, string $assetPrefix = ''): ?string
+// Surat dokter = data kesehatan, JANGAN di-link langsung ke uploads/ (nama
+// file = id pengajuan, gampang ditebak). Selalu lewat user/berkas_cuti.php
+// yang cek login + cuti_boleh_lihat(); uploads/berkas_cuti/.htaccess
+// nolak akses langsung.
+function berkas_cuti_url(int $idCutiPegawai, string $assetPrefix = ''): string
 {
-    if ($filename === null || $filename === '') {
-        return null;
-    }
-    return $assetPrefix . 'uploads/berkas_cuti/' . rawurlencode($filename);
+    return $assetPrefix . 'user/berkas_cuti.php?id=' . $idCutiPegawai;
 }
 
 // ============================================================

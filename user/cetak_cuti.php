@@ -28,11 +28,9 @@ if ($cuti === null) {
 // ini juga boleh lihat pratinjau (buat cek sebelum Setujui/Tolak), tapi
 // unduhan .docx/.pdf tetap cuma pemilik + Admin/Pengelola.
 $pratinjau = ($_GET['format'] ?? '') === 'pratinjau';
-$nipSaya = $_SESSION['nip'] ?? null;
-$pejabatRantai = $nipSaya !== null
-    && in_array($nipSaya, [$cuti['panmud_kasubag'], $cuti['panitera_sekretaris'], $cuti['ketua']], true);
+$bolehUnduh = auth_is_staff() || $cuti['nip'] === ($_SESSION['nip'] ?? null);
 
-if (!auth_is_staff() && $cuti['nip'] !== $nipSaya && !($pratinjau && $pejabatRantai)) {
+if (!($pratinjau ? cuti_boleh_lihat($cuti, $cuti['nip']) : $bolehUnduh)) {
     flash_set('error', 'Anda tidak berhak mencetak dokumen ini.');
     redirect('daftar_cuti.php');
 }

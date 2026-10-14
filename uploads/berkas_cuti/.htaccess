@@ -1,0 +1,3 @@
+# Surat dokter = data kesehatan. Gak boleh diakses langsung - selalu lewat
+# user/berkas_cuti.php (cek login + hak akses).
+Require all denied

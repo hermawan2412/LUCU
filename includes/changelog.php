@@ -21,6 +21,7 @@ const CHANGELOG_RILIS = [
             'Tombol "Pratinjau" menampilkan formulir cuti langsung di layar, termasuk yang masih diproses.',
             'Atasan dan pejabat berwenang bisa melihat formulir pengajuan sebelum menyetujui atau menolak.',
             'Unduhan .docx/.pdf tetap hanya tersedia setelah pengajuan Disetujui.',
+            'Surat dokter bisa dilihat langsung di layar, dan sekarang hanya bisa dibuka oleh pengaju, atasan yang memproses, dan Admin/Pengelola.',
         ],
     ],
     [
