@@ -56,7 +56,7 @@ layout_header('Profil Saya', 'profil');
 
   <?php if ($pegawai['tanda_tangan_path']): ?>
     <div style="border:1px solid var(--border,#e5e5e5);border-radius:8px;padding:16px;margin-bottom:16px;display:inline-block;">
-      <img src="<?= e(tanda_tangan_url($pegawai['tanda_tangan_path'], '../')) ?>" alt="Tanda tangan" style="max-width:240px;max-height:120px;display:block;">
+      <img src="<?= e(tanda_tangan_url((int) $pegawai['id_pegawai'], '../')) ?>" alt="Tanda tangan" style="max-width:240px;max-height:120px;display:block;">
     </div>
     <form method="POST" style="display:inline-block;margin-bottom:16px;margin-left:12px;vertical-align:top;" onsubmit="return confirm('Hapus tanda tangan tersimpan?');">
       <?= csrf_field() ?>

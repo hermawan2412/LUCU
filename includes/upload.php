@@ -74,13 +74,16 @@ function tanda_tangan_hapus(?string $filename): void
     }
 }
 
-/** URL relatif buat ditampilin di <img>. $assetPrefix: '' dari root, '../' dari admin/ atau user/. */
-function tanda_tangan_url(?string $filename, string $assetPrefix = ''): ?string
+/**
+ * URL relatif buat ditampilin di <img>. $assetPrefix: '' dari root, '../'
+ * dari admin/ atau user/. Gambar TTD JANGAN di-link langsung ke uploads/ttd/
+ * (nama file = id pegawai, gampang ditebak, bisa dipakai memalsukan TTD
+ * pejabat) - selalu lewat user/ttd.php yang cek login + hak akses;
+ * uploads/ttd/ ditolak langsung di nginx & .htaccess.
+ */
+function tanda_tangan_url(int $idPegawai, string $assetPrefix = ''): string
 {
-    if ($filename === null || $filename === '') {
-        return null;
-    }
-    return $assetPrefix . 'uploads/ttd/' . rawurlencode($filename);
+    return $assetPrefix . 'user/ttd.php?id=' . $idPegawai;
 }
 
 /** Path filesystem penuh - dipakai cuti_docx.php buat embed gambar ke docx. */

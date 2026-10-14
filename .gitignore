@@ -4,6 +4,7 @@ uploads/*
 !uploads/ttd/
 uploads/ttd/*
 !uploads/ttd/.gitkeep
+!uploads/ttd/.htaccess
 !uploads/berkas_cuti/
 uploads/berkas_cuti/*
 !uploads/berkas_cuti/.gitkeep
