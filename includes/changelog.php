@@ -14,6 +14,16 @@ declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
     [
+        'versi' => '2026.10.14',
+        'tanggal' => '14 Oktober 2026',
+        'judul' => 'Pratinjau formulir cuti',
+        'items' => [
+            'Tombol "Pratinjau" menampilkan formulir cuti langsung di layar, termasuk yang masih diproses.',
+            'Atasan dan pejabat berwenang bisa melihat formulir pengajuan sebelum menyetujui atau menolak.',
+            'Unduhan .docx/.pdf tetap hanya tersedia setelah pengajuan Disetujui.',
+        ],
+    ],
+    [
         'versi' => '2026.09.04',
         'tanggal' => '4 September 2026',
         'judul' => 'Halaman login dirapihkan',

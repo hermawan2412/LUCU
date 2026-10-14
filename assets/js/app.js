@@ -117,3 +117,35 @@
 
   try { localStorage.setItem(KEY, String(count)); } catch (e) {}
 })();
+
+// Pratinjau formulir cuti: link [data-pratinjau] dibuka di <dialog> berisi
+// iframe PDF. Layar sentuh (HP) dibiarkan buka tab baru - viewer PDF bawaan
+// HP umumnya gak bisa render PDF di dalam iframe.
+(function () {
+  if (!window.HTMLDialogElement || window.matchMedia('(pointer: coarse)').matches) return;
+  var dlg = null, frame;
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[data-pratinjau]');
+    if (!a || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    e.preventDefault();
+    if (!dlg) {
+      dlg = document.createElement('dialog');
+      dlg.className = 'pratinjau';
+      dlg.innerHTML = '<div class="pratinjau-bar"><strong>Pratinjau formulir</strong>'
+        + '<span class="sub">Dokumen resmi hanya setelah Disetujui</span>'
+        + '<a class="btn-secondary" target="_blank">Buka di tab baru</a>'
+        + '<button type="button" class="btn-secondary">Tutup</button></div>'
+        + '<p class="pratinjau-muat">Menyiapkan dokumen&hellip;</p><iframe title="Pratinjau formulir cuti"></iframe>';
+      frame = dlg.querySelector('iframe');
+      dlg.querySelector('button').addEventListener('click', function () { dlg.close(); });
+      dlg.addEventListener('click', function (ev) { if (ev.target === dlg) dlg.close(); });
+      dlg.addEventListener('close', function () { frame.removeAttribute('src'); });
+      frame.addEventListener('load', function () { dlg.classList.add('siap'); });
+      document.body.appendChild(dlg);
+    }
+    dlg.classList.remove('siap');
+    dlg.querySelector('.pratinjau-bar a').href = a.href;
+    frame.src = a.href;
+    dlg.showModal();
+  });
+})();

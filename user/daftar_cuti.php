@@ -62,8 +62,8 @@ layout_header('Riwayat Cuti', 'riwayat');
                 <?php if ($row['ket_status_cuti'] !== '' && $row['ket_status_cuti'] !== null): ?><span class="sub"><?= e($row['ket_status_cuti']) ?></span><?php endif; ?>
               </td>
               <td data-label="Dokumen" class="tindakan">
-                <?php if ($row['status_cuti'] === 'Disetujui' || !empty($row['berkas'])): ?>
                   <span class="unduh">
+                    <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pratinjau" target="_blank" data-pratinjau class="btn-secondary">Pratinjau</a>
                     <?php if ($row['status_cuti'] === 'Disetujui'): ?>
                       <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary">.docx</a>
                       <a href="cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pdf" class="btn-secondary">.pdf</a>
@@ -72,8 +72,7 @@ layout_header('Riwayat Cuti', 'riwayat');
                       <a href="<?= e(berkas_cuti_url($row['berkas'], '../')) ?>" target="_blank" class="btn-secondary">Surat Dokter</a>
                     <?php endif; ?>
                   </span>
-                <?php endif; ?>
-                <?php if ($row['status_cuti'] !== 'Disetujui'): ?><span class="sub">Formulir tersedia setelah Disetujui</span><?php endif; ?>
+                <?php if ($row['status_cuti'] !== 'Disetujui'): ?><span class="sub">Unduhan tersedia setelah Disetujui</span><?php endif; ?>
               </td>
             </tr>
           <?php endforeach; ?>

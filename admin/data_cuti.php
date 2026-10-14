@@ -147,12 +147,13 @@ layout_header('Data Cuti', 'cuti', 'admin');
                     <button type="submit" class="btn-secondary">Simpan</button>
                   </form>
                 <?php endif; ?>
-                <?php if ($row['status_cuti'] === 'Disetujui'): ?>
-                  <span class="unduh">
+                <span class="unduh">
+                  <a href="../user/cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pratinjau" target="_blank" data-pratinjau class="btn-secondary">Pratinjau</a>
+                  <?php if ($row['status_cuti'] === 'Disetujui'): ?>
                     <a href="../user/cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>" class="btn-secondary">.docx</a>
                     <a href="../user/cetak_cuti.php?id=<?= (int) $row['id_cutipegawai'] ?>&format=pdf" class="btn-secondary">.pdf</a>
-                  </span>
-                <?php endif; ?>
+                  <?php endif; ?>
+                </span>
               </td>
             </tr>
           <?php endforeach; ?>

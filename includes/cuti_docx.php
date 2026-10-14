@@ -347,7 +347,8 @@ function cuti_pdf_stream(
     ?string $levelPenolak,
     string $atasanLangsungLevel,
     bool $isPppk,
-    array $paraf = ['nama_pegawai' => '-', 'tanda_tangan_path' => null]
+    array $paraf = ['nama_pegawai' => '-', 'tanda_tangan_path' => null],
+    bool $inline = false
 ): void {
     $docxPath = cuti_docx_generate($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk, $paraf);
 
@@ -362,7 +363,7 @@ function cuti_pdf_stream(
     $namaFile = cuti_docx_nama_file($cuti, 'pdf');
 
     header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment;filename="' . $namaFile . '"');
+    header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment') . ';filename="' . $namaFile . '"');
     header('Cache-Control: max-age=0');
     header('Content-Length: ' . filesize($pdfPath));
     readfile($pdfPath);

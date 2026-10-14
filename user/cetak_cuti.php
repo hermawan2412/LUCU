@@ -22,7 +22,17 @@ if ($cuti === null) {
     redirect(auth_is_staff() ? '../admin/index.php' : 'daftar_cuti.php');
 }
 
-if (!auth_is_staff() && $cuti['nip'] !== ($_SESSION['nip'] ?? null)) {
+// ?format=pratinjau = PDF inline buat dilihat di browser, boleh di status apa
+// pun (TTD pejabat yang belum approve memang gak digambar - lihat
+// cuti_docx_generate()). Pejabat yang ke-assign di rantai approval pengajuan
+// ini juga boleh lihat pratinjau (buat cek sebelum Setujui/Tolak), tapi
+// unduhan .docx/.pdf tetap cuma pemilik + Admin/Pengelola.
+$pratinjau = ($_GET['format'] ?? '') === 'pratinjau';
+$nipSaya = $_SESSION['nip'] ?? null;
+$pejabatRantai = $nipSaya !== null
+    && in_array($nipSaya, [$cuti['panmud_kasubag'], $cuti['panitera_sekretaris'], $cuti['ketua']], true);
+
+if (!auth_is_staff() && $cuti['nip'] !== $nipSaya && !($pratinjau && $pejabatRantai)) {
     flash_set('error', 'Anda tidak berhak mencetak dokumen ini.');
     redirect('daftar_cuti.php');
 }
@@ -33,7 +43,7 @@ if (!auth_is_staff() && $cuti['nip'] !== ($_SESSION['nip'] ?? null)) {
 // sekali (lihat gating di cuti_docx_generate()), jadi mencetak di tengah
 // proses cuma bakal ngasih dokumen kosong/gak lengkap yang membingungkan.
 // Berlaku buat Admin juga - bukan cuma User.
-if ($cuti['status_cuti'] !== 'Disetujui') {
+if (!$pratinjau && $cuti['status_cuti'] !== 'Disetujui') {
     flash_set('error', 'Dokumen baru bisa diunduh setelah pengajuan Disetujui sepenuhnya (atasan langsung dan pejabat berwenang sudah approve). Status saat ini: ' . $cuti['status_cuti'] . '.');
     redirect(auth_is_staff() ? '../admin/data_cuti.php' : 'daftar_cuti.php');
 }
@@ -93,7 +103,9 @@ $paraf = pejabat_by_nip($db, $cuti['paraf_nip'] ?? null);
 
 // ?format=pdf buat versi PDF (docx di-convert lewat LibreOffice headless -
 // lihat cuti_docx_ke_pdf()), default/lainnya tetap .docx asli.
-if (($_GET['format'] ?? '') === 'pdf') {
+if ($pratinjau) {
+    cuti_pdf_stream($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk, $paraf, true);
+} elseif (($_GET['format'] ?? '') === 'pdf') {
     cuti_pdf_stream($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk, $paraf);
 } else {
     cuti_docx_stream($cuti, $atasanLangsung, $pejabatBerwenang, $levelPenolak, $atasanLangsungLevel, $isPppk, $paraf);
