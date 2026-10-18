@@ -10,7 +10,10 @@
 // Header wajib: X-Api-Token: <token dari config.php>
 //
 // Respons 200: {"ok":true,"data":[{"id_eksternal":"8","nip":"...","nama":"...","jabatan":"...",
-//   "pangkat_golongan":"...","no_wa":"..."}]}
+//   "pangkat_golongan":"...","no_wa":"...","ttd_sha256":"...","ttd":"<base64 PNG/JPG>"}]}
+// ttd/ttd_sha256 null kalau pegawai belum punya gambar tanda tangan. Gambarnya ikut di sini (bukan
+// endpoint terpisah) karena cuma ~30 pegawai dan sinkron dipicu manual; RAPAT membandingkan
+// ttd_sha256 dengan salinan terakhirnya supaya tidak menyimpan ulang gambar yang sama.
 // Nama field respons SENGAJA beda dari nama kolom asli RESTU (nama_pegawai->nama,
 // nama_jabatan->jabatan, nama_golongan->pangkat_golongan, no_telp->no_wa) supaya sisi RAPAT
 // tidak perlu tahu skema internal RESTU - kontrak API-nya independen.
@@ -21,6 +24,7 @@ declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/upload.php';
 
 $config = require __DIR__ . '/../config/config.php';
 $tokenValid = (string) ($config['api']['token'] ?? '');
@@ -40,20 +44,27 @@ if ($tokenValid === '' || !hash_equals($tokenValid, $tokenKirim)) {
 $db = db_connect($config['db']);
 $baris = db_all(
     $db,
-    'SELECT p.id_pegawai, p.nip, p.nama_pegawai, j.nama_jabatan, g.nama_golongan, p.no_telp
+    'SELECT p.id_pegawai, p.nip, p.nama_pegawai, j.nama_jabatan, g.nama_golongan, p.no_telp, p.tanda_tangan_path
      FROM pegawai p
      LEFT JOIN jabatan j ON j.id_jabatan = p.id_jabatan
      LEFT JOIN golongan g ON g.id_golongan = p.id_golongan
      ORDER BY p.nama_pegawai'
 );
 
-$data = array_map(static fn (array $p) => [
-    'id_eksternal' => (string) $p['id_pegawai'],
-    'nip' => $p['nip'] !== '' ? $p['nip'] : null,
-    'nama' => $p['nama_pegawai'],
-    'jabatan' => $p['nama_jabatan'],
-    'pangkat_golongan' => $p['nama_golongan'],
-    'no_wa' => $p['no_telp'] !== '' ? $p['no_telp'] : null,
-], $baris);
+$data = array_map(static function (array $p): array {
+    $ttd = tanda_tangan_fs_path($p['tanda_tangan_path']);
+    $isi = $ttd !== null ? file_get_contents($ttd) : false;
+
+    return [
+        'id_eksternal' => (string) $p['id_pegawai'],
+        'nip' => $p['nip'] !== '' ? $p['nip'] : null,
+        'nama' => $p['nama_pegawai'],
+        'jabatan' => $p['nama_jabatan'],
+        'pangkat_golongan' => $p['nama_golongan'],
+        'no_wa' => $p['no_telp'] !== '' ? $p['no_telp'] : null,
+        'ttd_sha256' => $isi !== false ? hash('sha256', $isi) : null,
+        'ttd' => $isi !== false ? base64_encode($isi) : null,
+    ];
+}, $baris);
 
 balas(200, ['ok' => true, 'data' => $data]);
