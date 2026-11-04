@@ -33,5 +33,8 @@ return [
     // (Pengaturan > Integrasi RESTU).
     'api' => [
         'token' => '',
+        // Token khusus api/cuti_hari_ini.php (portal kantor), jangan disamakan
+        // dengan token di atas. Isi nilai yang sama di cuti_config.php portal.
+        'token_portal' => '',
     ],
 ];
