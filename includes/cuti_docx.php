@@ -38,11 +38,32 @@
 
 declare(strict_types=1);
 
+use PhpOffice\PhpWord\Element\Text;
 use PhpOffice\PhpWord\Settings;
+use PhpOffice\PhpWord\TemplateProcessor;
 
 function cuti_docx_centang(bool $ya): string
 {
     return $ya ? "\u{2611}" : "\u{2610}"; // ☑ / ☐
+}
+
+/**
+ * Kotak JENIS CUTI (bagian II): permintaan pemakai 2026-11-11 - jenis yang
+ * dipilih diberi centang tebal besar, jenis lain dibiarkan kosong tanpa
+ * simbol apa pun (dulu ☑/☐ seukuran teks, susah dibedakan di cetakan).
+ * Kotak pertimbangan atasan (VII/VIII) tetap memakai cuti_docx_centang().
+ * Centang ✔ (U+2714) 16pt tebal; Segoe UI Symbol di Word, LibreOffice di
+ * server jatuh ke DejaVu Sans yang juga punya glyph ini.
+ */
+function cuti_docx_isi_jenis(TemplateProcessor $tp, string $macro, bool $dipilih): void
+{
+    if (!$dipilih) {
+        $tp->setValue($macro, '');
+        return;
+    }
+    $tp->setComplexValue($macro, new Text("\u{2714}", [
+        'name' => 'Segoe UI Symbol', 'size' => 16, 'bold' => true,
+    ]));
 }
 
 /**
@@ -113,7 +134,7 @@ function cuti_docx_generate(
 
     if ($isPppk) {
         foreach (cuti_leave_types('PPPK') as $i => $jt) {
-            $tp->setValue('CK' . ($i + 1), cuti_docx_centang($cuti['jenis_cuti'] === $jt));
+            cuti_docx_isi_jenis($tp, 'CK' . ($i + 1), $cuti['jenis_cuti'] === $jt);
         }
     } else {
         // Label & urutan literal persis "FORMAT CUTI PNS.docx" (dobel "Cuti
@@ -124,7 +145,7 @@ function cuti_docx_generate(
             'Cuti Karena Alasan Penting', 'Cuti diluar Tanggungan Negara',
         ];
         foreach ($jenisPnsII as $i => $jt) {
-            $tp->setValue('CK' . ($i + 1), cuti_docx_centang($cuti['jenis_cuti'] === $jt));
+            cuti_docx_isi_jenis($tp, 'CK' . ($i + 1), $cuti['jenis_cuti'] === $jt);
         }
     }
 

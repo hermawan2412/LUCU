@@ -15,6 +15,15 @@ declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
     [
+        'versi' => '2026.11.11.4',
+        'tanggal' => '11 November 2026',
+        'judul' => 'Centang jenis cuti di formulir',
+        'items' => [
+            'Di formulir cetak, jenis cuti yang dipilih kini ditandai centang tebal besar di tengah kotak.',
+            'Jenis cuti yang tidak dipilih dibiarkan kosong tanpa simbol, jadi pilihan terlihat sekilas.',
+        ],
+    ],
+    [
         'versi' => '2026.11.11.3',
         'tanggal' => '11 November 2026',
         'judul' => 'Tanda selesai yang lebih jelas',
