@@ -14,6 +14,17 @@ declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
     [
+        'versi' => '2026.11.11',
+        'tanggal' => '11 November 2026',
+        'judul' => 'Kalender lebih ringkas dan hari libur lebih akurat',
+        'items' => [
+            'Kalender cuti di dasbor kini sekitar separuh tingginya, nama hari libur dipendekkan dalam satu baris (nama lengkap muncul saat kursor diarahkan).',
+            'Tanggal perayaan yang bukan hari libur (mis. Malam Tahun Baru 31 Desember, 1 Ramadan) tidak lagi ditandai libur; pengajuan cuti di tanggal itu kembali bisa.',
+            'Data hari libur disegarkan otomatis tiap 30 hari, jadi perubahan cuti bersama dari pemerintah ikut terbawa.',
+            'Gerak baru: cincin menandai hari ini, tanggal yang disorot atau dipilih dengan keyboard, dan bulan berganti dari arah tombol yang ditekan.',
+        ],
+    ],
+    [
         'versi' => '2026.10.14',
         'tanggal' => '14 Oktober 2026',
         'judul' => 'Pratinjau formulir cuti',

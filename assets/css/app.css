@@ -782,9 +782,7 @@ a { color: var(--link-blue); }
   .stat-tile { transition: transform 0.15s ease, box-shadow 0.15s ease; }
   .stat-tile:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
 
-  .calendar-cell.today {
-    animation: today-pulse 2.2s ease-in-out infinite;
-  }
+  /* today-pulse (loop tanpa henti) diganti Halo Trace sekali jalan - lihat blok kalender. */
 }
 
 @keyframes rise-in {
@@ -792,10 +790,6 @@ a { color: var(--link-blue); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes today-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(20, 20, 19, 0.14); }
-  50% { box-shadow: 0 0 0 5px rgba(20, 20, 19, 0); }
-}
 
 .page {
   max-width: 1080px;
@@ -1045,7 +1039,7 @@ table.data-table td.num {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .calendar-nav h2 {
@@ -1057,8 +1051,8 @@ table.data-table td.num {
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
 }
 
 .calendar-weekday {
@@ -1068,17 +1062,21 @@ table.data-table td.num {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--slate);
-  padding-bottom: 6px;
+  padding-bottom: 4px;
 }
 
+/* Ringkas (2026-11-11): dulu min-height 92px + gap 6px bikin 1 bulan ~700px.
+   Sekarang 60px; sel admin yang memuat nama pegawai tetap tumbuh sesuai isi. */
 .calendar-cell {
-  min-height: 92px;
+  position: relative;
+  min-height: 60px;
   border-radius: var(--radius-tiny);
   background: var(--lifted);
-  padding: 8px;
+  padding: 5px 6px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
 }
 
 .calendar-cell.empty { background: transparent; }
@@ -1086,8 +1084,8 @@ table.data-table td.num {
 /* Kalender pribadi user - tanggal bisa diklik buat langsung ajukan cuti
    dari tanggal itu (lihat user/index.php). Selector class sama, cuma
    reset default anchor + kasih affordance hover. */
-a.calendar-cell { text-decoration: none; color: inherit; transition: box-shadow 0.15s ease; }
-a.calendar-cell:hover { box-shadow: var(--shadow-1); }
+a.calendar-cell { text-decoration: none; color: inherit; }
+a.calendar-cell:focus-visible { outline: none; } /* diganti cincin .kal-halo (lihat bawah) */
 
 .calendar-cell.has-leave { background: var(--warning-bg); }
 
@@ -1115,6 +1113,9 @@ a.calendar-cell:hover { box-shadow: var(--shadow-1); }
   font-weight: 700;
   color: var(--danger);
   line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* nama lengkap ada di title */
 }
 
 .calendar-day-num {
@@ -1167,9 +1168,21 @@ a.calendar-cell:hover { box-shadow: var(--shadow-1); }
   color: var(--success);
 }
 
+/* Legenda (admin) - titik merah, bukan emoji. */
+.calendar-legend { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 0.74rem; color: var(--slate); }
+.calendar-legend-libur { flex: none; width: 10px; height: 10px; border-radius: 3px; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--danger) 55%, transparent); }
+
+/* Cincin "Halo Trace" (gagasan dari prompt gratis ui-motion-prompts.pages.dev,
+   kode sendiri): SVG ditambah app.js ke tiap sel. Tanpa gerak: cincin langsung
+   tampil saat hover/fokus - tetap jadi penanda fokus keyboard. */
+.kal-halo { position: absolute; inset: -2px; width: calc(100% + 4px); height: calc(100% + 4px); pointer-events: none; overflow: visible; }
+.kal-halo rect { fill: none; stroke: url(#kal-halo-warna); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
+a.calendar-cell:is(:hover, :focus-visible) .kal-halo rect { stroke-dashoffset: 0; opacity: 1; }
+
 @media (max-width: 720px) {
-  .calendar-cell { min-height: 56px; font-size: 0.8rem; }
-  .calendar-chip, .calendar-more { display: none; }
+  .calendar-cell { min-height: 42px; padding: 4px; font-size: 0.8rem; }
+  .calendar-chip, .calendar-more, .calendar-holiday, .calendar-on-leave-mark { display: none; }
+  .calendar-persen { padding: 0 4px; font-size: 0.56rem; }
 
   /* .calendar-nav gak punya flex-wrap - judul panjang (mis. admin "Kalender
      Cuti Tim") + 4 tombol nav (admin punya tombol sinkron Libur ekstra)
@@ -1287,3 +1300,25 @@ dialog.pratinjau iframe { flex: 1; width: 100%; border: 0; background: #525659; 
 .pratinjau-muat { margin: 0; padding: 24px; text-align: center; }
 dialog.pratinjau.siap .pratinjau-muat { display: none; }
 dialog.pratinjau:not(.siap) iframe { visibility: hidden; height: 0; flex: 0; }
+
+/* ===== Gerak kalender (hormat prefers-reduced-motion) =====
+   1. Halo Trace: cincin menggambar keliling sel hari ini, angka hari ini
+      terisi dengan sedikit melenting (easeBack ~10%), lalu cincin memudar.
+      Hover/fokus tanggal memakai cincin yang sama, lebih cepat.
+   2. Ganti bulan: sel masuk berurutan secara diagonal dari arah tombol yang
+      ditekan (maju dari kanan, mundur dari kiri) - kelas dipasang app.js. */
+@media (prefers-reduced-motion: no-preference) {
+  .kal-halo rect { transition: stroke-dashoffset 0.32s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.2s ease; }
+  .calendar-cell.today .kal-halo rect { animation: kal-halo-jejak 1.6s cubic-bezier(0.65, 0, 0.35, 1) 0.35s backwards; }
+  .calendar-cell.today .calendar-day-num { animation: kal-isi 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) 0.75s backwards; }
+  .calendar-grid[class*="kal-masuk-"] .calendar-cell:not(.empty) { animation: kal-masuk 0.42s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--d, 0) * 22ms) backwards; }
+  .calendar-grid.kal-masuk-mundur { --geser: -18px; }
+}
+@keyframes kal-halo-jejak {
+  0% { stroke-dashoffset: 1; opacity: 1; }
+  45% { stroke-dashoffset: 0; opacity: 1; }
+  75% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes kal-isi { from { transform: scale(0.3); background-color: transparent; color: var(--ink); } }
+@keyframes kal-masuk { from { opacity: 0; transform: translateX(var(--geser, 18px)) scale(0.96); } }

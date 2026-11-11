@@ -153,3 +153,63 @@
     dlg.showModal();
   });
 })();
+
+// Kalender cuti: cincin Halo Trace di tiap sel + masuk berarah saat ganti bulan
+// (CSS di app.css blok "Gerak kalender"). Cincin tetap dipasang walau reduced
+// motion, karena juga jadi penanda fokus keyboard; geraknya saja yang mati.
+(function () {
+  var grids = document.querySelectorAll('.calendar-grid');
+  if (!grids.length) return;
+  var NS = 'http://www.w3.org/2000/svg';
+
+  // Gradasi cincin: tinta -> oranye sinyal (warna ikut tema lewat var CSS).
+  var defs = document.createElementNS(NS, 'svg');
+  defs.setAttribute('width', '0');
+  defs.setAttribute('height', '0');
+  defs.setAttribute('aria-hidden', 'true');
+  defs.style.position = 'absolute';
+  defs.innerHTML = '<defs><linearGradient id="kal-halo-warna" x1="0" y1="0" x2="1" y2="1">' +
+    '<stop offset="0" style="stop-color:var(--ink)"/><stop offset="1" style="stop-color:var(--signal)"/></linearGradient></defs>';
+  document.body.appendChild(defs);
+
+  function ukur(cell) {
+    var svg = cell.querySelector('.kal-halo');
+    var rect = svg.firstChild;
+    var w = cell.offsetWidth + 4, h = cell.offsetHeight + 4;
+    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    rect.setAttribute('width', w - 2);
+    rect.setAttribute('height', h - 2);
+  }
+
+  var arah = null;
+  try { arah = sessionStorage.getItem('restu-kal-arah'); sessionStorage.removeItem('restu-kal-arah'); } catch (e) {}
+
+  grids.forEach(function (grid) {
+    var cells = grid.querySelectorAll('.calendar-cell:not(.empty)');
+    grid.querySelectorAll('.calendar-cell').forEach(function (cell, i) {
+      if (cell.classList.contains('empty')) return;
+      // Urutan diagonal (baris + kolom), dibalik bila mundur, biar gelombang datang dari arah tombol.
+      var baris = Math.floor(i / 7), k = i % 7;
+      cell.style.setProperty('--d', arah === 'mundur' ? (6 - k) + baris : k + baris);
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('class', 'kal-halo');
+      svg.setAttribute('aria-hidden', 'true');
+      var rect = document.createElementNS(NS, 'rect');
+      rect.setAttribute('x', '1');
+      rect.setAttribute('y', '1');
+      rect.setAttribute('rx', '7');
+      rect.setAttribute('pathLength', '1');
+      svg.appendChild(rect);
+      cell.appendChild(svg);
+      ukur(cell);
+    });
+    if (arah) grid.classList.add('kal-masuk-' + arah);
+    if (window.ResizeObserver) new ResizeObserver(function () { cells.forEach(ukur); }).observe(grid);
+  });
+
+  document.querySelectorAll('[data-arah]').forEach(function (a) {
+    a.addEventListener('click', function () {
+      try { sessionStorage.setItem('restu-kal-arah', a.getAttribute('data-arah')); } catch (e) {}
+    });
+  });
+})();

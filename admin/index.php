@@ -101,9 +101,9 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
   <div class="calendar-nav">
     <h2>Kalender Cuti Tim &middot; <?= e(kalender_nama_bulan($month)) ?> <?= $year ?></h2>
     <div class="calendar-nav-links">
-      <a href="?bulan=<?= e($bulanPrev) ?>" class="btn-secondary">&larr;</a>
-      <a href="?bulan=<?= date('Y-m') ?>" class="btn-secondary">Hari ini</a>
-      <a href="?bulan=<?= e($bulanNext) ?>" class="btn-secondary">&rarr;</a>
+      <a href="?bulan=<?= e($bulanPrev) ?>" class="btn-secondary" data-arah="mundur" aria-label="Bulan sebelumnya">&larr;</a>
+      <a href="?bulan=<?= date('Y-m') ?>" class="btn-secondary" data-arah="<?= $bulanDate->format('Y-m') < date('Y-m') ? 'maju' : 'mundur' ?>">Hari ini</a>
+      <a href="?bulan=<?= e($bulanNext) ?>" class="btn-secondary" data-arah="maju" aria-label="Bulan berikutnya">&rarr;</a>
       <form method="POST" style="display:inline;">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="sync_libur">
@@ -112,7 +112,7 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
       </form>
     </div>
   </div>
-  <p class="hint" style="margin-bottom:14px;">&#128308; = hari libur nasional/cuti bersama (sinkron otomatis dari kalender publik Google - termasuk libur keagamaan spt Idul Fitri, Idul Adha, Maulid Nabi)</p>
+  <p class="calendar-legend"><span class="calendar-legend-libur" aria-hidden="true"></span>Libur nasional, cuti bersama, dan akhir pekan. Data libur dari kalender publik Google, diperbarui otomatis tiap 30 hari.</p>
   <div class="calendar-grid">
     <?php foreach (['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] as $wd): ?>
       <div class="calendar-weekday"><?= $wd ?></div>

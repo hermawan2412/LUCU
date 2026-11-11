@@ -19,9 +19,15 @@ declare(strict_types=1);
 
 const LIBUR_ICS_URL = 'https://calendar.google.com/calendar/ical/id.indonesian%23holiday%40group.v.calendar.google.com/public/basic.ics';
 
+// Disinkron ulang tiap 30 hari: SKB cuti bersama & tanggal libur keagamaan
+// bisa direvisi pemerintah setelah sinkron pertama (dulu sekali sinkron =
+// selamanya, entri "(belum pasti)" ikut nyangkut).
+const LIBUR_UMUR_MAKS_HARI = 30;
+
 function libur_tahun_sudah_sinkron(PDO $db, int $tahun): bool
 {
-    return db_one($db, "SELECT 1 FROM hari_libur WHERE tahun_sinkron = ? LIMIT 1", [$tahun]) !== null;
+    return db_one($db, "SELECT 1 FROM hari_libur WHERE tahun_sinkron = ?
+        AND disinkron_pada > NOW() - INTERVAL " . LIBUR_UMUR_MAKS_HARI . " DAY LIMIT 1", [$tahun]) !== null;
 }
 
 /**
@@ -34,6 +40,8 @@ function libur_sinkron_tahun(PDO $db, int $tahun): bool
     $ctx = stream_context_create(['http' => ['timeout' => 8]]);
     $ics = @file_get_contents(LIBUR_ICS_URL, false, $ctx);
     if ($ics === false) {
+        // Sama seperti feed kosong: coba lagi besok, bukan di setiap request.
+        db_query($db, "UPDATE hari_libur SET disinkron_pada = NOW() - INTERVAL " . (LIBUR_UMUR_MAKS_HARI - 1) . " DAY WHERE tahun_sinkron = ?", [$tahun]);
         return false;
     }
 
@@ -44,7 +52,7 @@ function libur_sinkron_tahun(PDO $db, int $tahun): bool
         return false;
     }
 
-    $adaData = false;
+    $libur = [];
     foreach ($blocks[1] as $block) {
         if (!preg_match('/DTSTART;VALUE=DATE:(\d{4})(\d{2})(\d{2})/', $block, $tgl)) {
             continue;
@@ -55,17 +63,37 @@ function libur_sinkron_tahun(PDO $db, int $tahun): bool
         if (!preg_match('/SUMMARY:(.+)/', $block, $nama)) {
             continue;
         }
+        // Feed ini juga memuat "Perayaan" (Observance) - Malam Tahun Baru,
+        // 1 Ramadan, dsb. - yang BUKAN hari libur. Libur resmi berdeskripsi
+        // "Hari libur nasional" (Cuti Bersama juga). Tanpa saringan ini
+        // 31 Desember terbaca libur padahal hari kerja.
+        if (preg_match('/DESCRIPTION:(Perayaan|Observance)/i', $block)) {
+            continue;
+        }
 
         $tanggal = "{$tgl[1]}-{$tgl[2]}-{$tgl[3]}";
         $keterangan = trim(str_replace(['\\,', '\\;'], [',', ';'], $nama[1]));
 
-        db_query($db, "INSERT INTO hari_libur (tanggal, keterangan, tahun_sinkron) VALUES (?, ?, ?)
-            ON DUPLICATE KEY UPDATE keterangan = VALUES(keterangan), tahun_sinkron = VALUES(tahun_sinkron)",
-            [$tanggal, $keterangan, $tahun]);
-        $adaData = true;
+        $libur[$tanggal] = $keterangan;
     }
 
-    return $adaData;
+    if (!$libur) {
+        // Feed kosong/aneh: data lama dipertahankan dan baru dicoba lagi
+        // besok, biar gak nembak feed (timeout 8 detik) di setiap buka halaman.
+        db_query($db, "UPDATE hari_libur SET disinkron_pada = NOW() - INTERVAL " . (LIBUR_UMUR_MAKS_HARI - 1) . " DAY WHERE tahun_sinkron = ?", [$tahun]);
+        return false;
+    }
+
+    // Ganti isi 1 tahun utuh, bukan upsert: tanggal yang dicabut dari feed
+    // (atau dulu salah masuk) ikut hilang.
+    $db->beginTransaction();
+    db_query($db, "DELETE FROM hari_libur WHERE tanggal BETWEEN ? AND ?", ["$tahun-01-01", "$tahun-12-31"]);
+    foreach ($libur as $tanggal => $keterangan) {
+        db_query($db, "INSERT INTO hari_libur (tanggal, keterangan, tahun_sinkron) VALUES (?, ?, ?)", [$tanggal, $keterangan, $tahun]);
+    }
+    $db->commit();
+
+    return true;
 }
 
 /** Pastiin tahun ini ada datanya - sync sekali kalau belum pernah. */

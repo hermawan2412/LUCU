@@ -115,9 +115,9 @@ layout_header('Dashboard', 'dashboard');
     <div class="calendar-nav">
       <h2>Kalender Cuti Saya &middot; <?= e(kalender_nama_bulan($month)) ?> <?= $year ?></h2>
       <div class="calendar-nav-links">
-        <a href="?bulan=<?= e($bulanPrev) ?>" class="btn-secondary">&larr;</a>
-        <a href="?bulan=<?= date('Y-m') ?>" class="btn-secondary">Hari ini</a>
-        <a href="?bulan=<?= e($bulanNext) ?>" class="btn-secondary">&rarr;</a>
+        <a href="?bulan=<?= e($bulanPrev) ?>" class="btn-secondary" data-arah="mundur" aria-label="Bulan sebelumnya">&larr;</a>
+        <a href="?bulan=<?= date('Y-m') ?>" class="btn-secondary" data-arah="<?= $bulanDate->format('Y-m') < date('Y-m') ? 'maju' : 'mundur' ?>">Hari ini</a>
+        <a href="?bulan=<?= e($bulanNext) ?>" class="btn-secondary" data-arah="maju" aria-label="Bulan berikutnya">&rarr;</a>
       </div>
     </div>
     <div class="calendar-grid">
