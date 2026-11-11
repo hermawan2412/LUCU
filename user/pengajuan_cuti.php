@@ -190,6 +190,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'daftar_cuti.php#cuti-' . $newId);
 
                 flash_set('success', 'Pengajuan cuti berhasil dikirim, menunggu penomoran surat oleh Kepegawaian.');
+                flash_selesai('kirim', 'Pengajuan cuti terkirim',
+                    "{$jenis} {$lama} {$ketLama}, {$dariIndo} s.d. {$sampaiIndo}, sudah masuk. Langkah berikutnya: Kepegawaian memberi nomor surat, lalu atasan menyetujui. Perkembangannya bisa Anda pantau di Riwayat Cuti.");
                 redirect('daftar_cuti.php');
             } catch (RuntimeException $e) {
                 $db->rollBack();

@@ -160,8 +160,57 @@ function layout_footer(): void
 {
     ?>
   </div>
+  <?php selesai_render(); ?>
   <script src="../assets/js/app.js"></script>
 </body>
 </html>
+    <?php
+}
+
+/**
+ * Dialog animasi selesai (lihat flash_selesai() di helpers.php). Gerak dari
+ * prompt gratis ui-motion-prompts.pages.dev set "Done" (kode sendiri):
+ * 'kirim' = Check Draw (cincin tergambar, terisi, centang tergores),
+ * 'setuju' = Ripple Ring (lingkaran tunggu berputar, lalu terisi + centang
+ * dan 3 riak menyebar) - lebih meriah karena itu akhir seluruh rantai approval.
+ */
+function selesai_render(): void
+{
+    $s = $_SESSION['flash']['selesai'] ?? null;
+    unset($_SESSION['flash']['selesai']);
+    if (!is_array($s)) {
+        return;
+    }
+    $setuju = $s['varian'] === 'setuju';
+    ?>
+  <dialog class="selesai selesai-<?= $setuju ? 'setuju' : 'kirim' ?>" aria-labelledby="selesai-judul" aria-describedby="selesai-pesan">
+    <svg class="selesai-lencana" viewBox="0 0 240 240" aria-hidden="true">
+      <defs>
+        <linearGradient id="selesai-warna" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" style="stop-color:var(--success)"/>
+          <stop offset="1" style="stop-color:var(--pastel-teal)"/>
+        </linearGradient>
+      </defs>
+      <?php if ($setuju): ?>
+        <circle class="selesai-riak r1" cx="120" cy="120" r="48"/>
+        <circle class="selesai-riak r2" cx="120" cy="120" r="48"/>
+        <circle class="selesai-riak r3" cx="120" cy="120" r="48"/>
+        <g class="selesai-tunggu">
+          <circle class="selesai-putus" cx="120" cy="120" r="48"/>
+          <circle class="selesai-titik" cx="120" cy="120" r="8"/>
+        </g>
+      <?php else: ?>
+        <circle class="selesai-jalur" cx="120" cy="120" r="48"/>
+        <circle class="selesai-busur" cx="120" cy="120" r="48" pathLength="1" transform="rotate(-90 120 120)"/>
+      <?php endif; ?>
+      <g class="selesai-isi">
+        <circle cx="120" cy="120" r="52" fill="url(#selesai-warna)"/>
+        <path class="selesai-centang" d="M98 121 L113 136 L143 104" pathLength="1"/>
+      </g>
+    </svg>
+    <h2 id="selesai-judul"><?= e($s['judul']) ?></h2>
+    <p id="selesai-pesan"><?= e($s['pesan']) ?></p>
+    <form method="dialog"><button class="btn-primary" autofocus>Tutup</button></form>
+  </dialog>
     <?php
 }

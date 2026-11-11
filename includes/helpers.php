@@ -131,6 +131,18 @@ function flash_set(string $key, string $message): void
     $_SESSION['flash'][$key] = $message;
 }
 
+/**
+ * Dialog "selesai" (animasi Done) - dipakai cuma di 2 titik akhir proses:
+ * pegawai selesai mengirim pengajuan ('kirim') dan atasan puncak memberi
+ * persetujuan terakhir ('setuju'). Dirender layout_footer() lewat
+ * selesai_render(); tanpa JS dialog gak kebuka, flash 'success' biasa tetap
+ * tampil sebagai cadangan.
+ */
+function flash_selesai(string $varian, string $judul, string $pesan): void
+{
+    $_SESSION['flash']['selesai'] = ['varian' => $varian, 'judul' => $judul, 'pesan' => $pesan];
+}
+
 function flash_get(string $key): ?string
 {
     $msg = $_SESSION['flash'][$key] ?? null;

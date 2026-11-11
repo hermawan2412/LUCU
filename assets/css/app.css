@@ -1378,3 +1378,67 @@ dialog.pratinjau:not(.siap) iframe { visibility: hidden; height: 0; flex: 0; }
   .kartu-kalender { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .kartu-kalender .calendar-cell:not(.empty) { background: var(--lifted); }
 }
+
+/* ===== Dialog selesai (animasi Done) - lihat selesai_render() di includes/layout.php =====
+   Hijau sukses (bukan ungu-sian prompt aslinya): ini tanda status berhasil,
+   bahasa warnanya sama dengan badge "Disetujui". Diputar sekali, tanpa loop. */
+dialog.selesai {
+  width: min(420px, calc(100vw - 32px));
+  padding: 28px 28px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: center;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.35);
+}
+dialog.selesai::backdrop { background: rgba(20, 20, 19, 0.45); }
+dialog.selesai h2 { margin: 4px 0 8px; font-size: 1.3rem; }
+dialog.selesai p { margin: 0 0 20px; color: var(--slate); line-height: 1.55; }
+dialog.selesai form { margin: 0; }
+dialog.selesai .btn-primary { min-width: 140px; min-height: 44px; }
+.selesai-lencana { display: block; width: 132px; height: 132px; margin: 0 auto; overflow: visible; }
+.selesai-jalur { fill: none; stroke: color-mix(in srgb, var(--success) 14%, transparent); stroke-width: 8; }
+.selesai-busur { fill: none; stroke: url(#selesai-warna); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.selesai-putus { fill: none; stroke: color-mix(in srgb, var(--success) 45%, transparent); stroke-width: 6; stroke-dasharray: 14 12; stroke-linecap: round; opacity: 0; }
+.selesai-titik { fill: var(--success); opacity: 0; }
+.selesai-riak { fill: none; stroke-width: 6; opacity: 0; }
+.selesai-riak.r1, .selesai-riak.r3 { stroke: var(--success); }
+.selesai-riak.r2 { stroke: var(--signal-light); }
+.selesai-isi { filter: drop-shadow(0 6px 18px color-mix(in srgb, var(--success) 45%, transparent)); transform-origin: 120px 120px; }
+.selesai-centang { fill: none; stroke: var(--surface); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog.selesai[open] { animation: selesai-muncul 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+  dialog.selesai[open]::backdrop { animation: selesai-gelap 0.35s ease; }
+  dialog.selesai[open] h2, dialog.selesai[open] p, dialog.selesai[open] form { animation: rise-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+
+  /* Check Draw (kirim): busur 0.15-1.15s, isi muncul 1.15s, centang 1.25-1.5s, lencana melenting 1.2-1.55s. */
+  .selesai-kirim[open] .selesai-busur { animation: selesai-gores 1s cubic-bezier(0.65, 0, 0.35, 1) 0.15s backwards; }
+  .selesai-kirim[open] .selesai-isi { animation: selesai-isi 0.2s ease 1.15s backwards, selesai-lenting 0.35s ease-in-out 1.2s; }
+  .selesai-kirim[open] .selesai-centang { animation: selesai-gores 0.28s cubic-bezier(0.16, 1, 0.3, 1) 1.25s backwards; }
+  dialog.selesai-kirim[open] :is(h2, p, form) { animation-delay: 1.2s; }
+
+  /* Ripple Ring (setuju): lingkaran putus-putus berputar + titik bernapas 0-0.9s,
+     ancang-ancang 0.75-0.95s, lalu isi + centang 0.95-1.2s dan 3 riak berselang 0.15s. */
+  .selesai-setuju[open] .selesai-tunggu { transform-origin: 120px 120px; animation: selesai-tunggu 0.95s linear backwards, selesai-ancang 0.2s ease-in-out 0.75s; }
+  .selesai-setuju[open] .selesai-putus { animation: selesai-tampil-hilang 0.95s linear; }
+  .selesai-setuju[open] .selesai-titik { transform-origin: 120px 120px; animation: selesai-napas 0.45s ease-in-out 2 alternate, selesai-tampil-hilang 0.95s linear; }
+  .selesai-setuju[open] .selesai-isi { animation: selesai-isi 0.15s ease 0.95s backwards, selesai-lenting 0.35s ease-in-out 0.95s; }
+  .selesai-setuju[open] .selesai-centang { animation: selesai-gores 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.95s backwards; }
+  .selesai-setuju[open] .selesai-riak { transform-origin: 120px 120px; animation: selesai-riak 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  .selesai-setuju[open] .r1 { animation-delay: 0.95s; }
+  .selesai-setuju[open] .r2 { animation-delay: 1.1s; }
+  .selesai-setuju[open] .r3 { animation-delay: 1.25s; }
+  dialog.selesai-setuju[open] :is(h2, p, form) { animation-delay: 0.95s; }
+}
+@keyframes selesai-muncul { from { opacity: 0; transform: translateY(12px) scale(0.96); } }
+@keyframes selesai-gelap { from { opacity: 0; } }
+@keyframes selesai-gores { from { stroke-dashoffset: 1; } }
+@keyframes selesai-isi { from { opacity: 0; } }
+@keyframes selesai-lenting { 50% { transform: scale(1.12); } }
+@keyframes selesai-tunggu { to { transform: rotate(360deg); } }
+@keyframes selesai-ancang { 50% { transform: scale(0.9); } }
+@keyframes selesai-tampil-hilang { 0%, 95% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes selesai-napas { from { transform: scale(0.8); } to { transform: scale(1.3); } }
+@keyframes selesai-riak { from { opacity: 0.8; transform: scale(1); stroke-width: 7; } to { opacity: 0; transform: scale(2.3); stroke-width: 1; } }

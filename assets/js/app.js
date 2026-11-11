@@ -246,3 +246,13 @@
     });
   });
 })();
+
+// Dialog selesai (animasi Done, lihat selesai_render() di includes/layout.php):
+// dibuka modal sekali saat halaman dimuat; tutup lewat tombol, Escape, atau
+// klik di luar kartu. Fokus kembali ke halaman otomatis (native <dialog>).
+(function () {
+  var dlg = document.querySelector('dialog.selesai');
+  if (!dlg || typeof dlg.showModal !== 'function') return;
+  dlg.showModal();
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+})();

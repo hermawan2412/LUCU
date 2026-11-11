@@ -15,6 +15,16 @@ declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
     [
+        'versi' => '2026.11.11.3',
+        'tanggal' => '11 November 2026',
+        'judul' => 'Tanda selesai yang lebih jelas',
+        'items' => [
+            'Setelah mengirim pengajuan, muncul tanda selesai berisi ringkasan cuti dan langkah berikutnya.',
+            'Atasan yang memberi persetujuan terakhir mendapat tanda "Cuti resmi disetujui" beserta nama pemohon dan tanggal cutinya.',
+            'Tanda ini bisa ditutup dengan tombol Tutup, tombol Esc, atau klik di luar kotak.',
+        ],
+    ],
+    [
         'versi' => '2026.11.11.2',
         'tanggal' => '11 November 2026',
         'judul' => 'Kalender bergaya kaca',

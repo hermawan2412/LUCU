@@ -23,6 +23,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ttdManual = isset($_POST['ttd_manual']);
         if (cuti_approve($db, $row, $pegawai['nip'], $ttdManual)) {
             flash_set('success', 'Pengajuan cuti disetujui.');
+            // Persetujuan terakhir (atasan puncak): status langsung jadi Disetujui.
+            $sesudah = cuti_get_by_id($db, $id);
+            if (($sesudah['status_cuti'] ?? '') === 'Disetujui') {
+                $pemohon = db_one($db, "SELECT nama_pegawai FROM pegawai WHERE id_pegawai = ?", [$sesudah['id_pegawai']]);
+                flash_selesai('setuju', 'Cuti resmi disetujui',
+                    "Persetujuan terakhir sudah Anda berikan. {$sesudah['jenis_cuti']} an. " . ($pemohon['nama_pegawai'] ?? '-')
+                    . ", {$sesudah['dari_tanggal']} s.d. {$sesudah['sampai_dengan']}, kini berstatus Disetujui dan pemohon sudah menerima pemberitahuan.");
+            }
             redirect('approve_cuti.php');
         }
         $errors[] = 'Anda tidak berhak menyetujui pengajuan ini (mungkin sudah diproses orang lain).';
