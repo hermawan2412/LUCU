@@ -6,6 +6,7 @@
 //
 // Skema versi: tanggal rilis (YYYY.MM.DD) - sederhana, gampang diurutkan,
 // gak perlu mikirin semver major/minor buat app internal kayak gini.
+// Rilis kedua dst. di hari yang sama diberi akhiran .2, .3 (YYYY.MM.DD.N).
 //
 // URUTAN: paling baru di ATAS array (ditampilkan apa adanya, gak di-sort
 // ulang di kode) - pas nambah rilis baru, tambahin di paling atas.
@@ -13,6 +14,16 @@
 declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
+    [
+        'versi' => '2026.11.11.2',
+        'tanggal' => '11 November 2026',
+        'judul' => 'Kalender bergaya kaca',
+        'items' => [
+            'Kartu kalender kini bening seperti kaca di atas bercak warna lembut, di tema terang maupun gelap.',
+            'Lensa kaca meluncur ke tanggal yang ditunjuk kursor; tanggal yang dipilih dengan keyboard tetap ditandai cincin.',
+            'Bila perangkat diatur untuk mengurangi transparansi atau memakai kontras tinggi, kalender kembali tampil padat seperti biasa.',
+        ],
+    ],
     [
         'versi' => '2026.11.11',
         'tanggal' => '11 November 2026',
@@ -22,7 +33,6 @@ const CHANGELOG_RILIS = [
             'Tanggal perayaan yang bukan hari libur (mis. Malam Tahun Baru 31 Desember, 1 Ramadan) tidak lagi ditandai libur; pengajuan cuti di tanggal itu kembali bisa.',
             'Data hari libur disegarkan otomatis tiap 30 hari, jadi perubahan cuti bersama dari pemerintah ikut terbawa.',
             'Gerak baru: cincin menandai hari ini dan tanggal yang dipilih dengan keyboard, dan bulan berganti dari arah tombol yang ditekan.',
-            'Kalender bergaya kaca: kartunya bening di atas bercak warna lembut, dan lensa kaca meluncur ke tanggal yang ditunjuk kursor.',
         ],
     ],
     [
