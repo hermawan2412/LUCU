@@ -19,7 +19,7 @@ const CHANGELOG_RILIS = [
         'tanggal' => '11 November 2026',
         'judul' => 'Centang jenis cuti di formulir',
         'items' => [
-            'Di formulir cetak, jenis cuti yang dipilih kini ditandai centang tebal besar di tengah kotak.',
+            'Di formulir cetak, jenis cuti yang dipilih kini ditandai centang tebal besar di tengah kotak, tanpa mengubah ukuran tabel.',
             'Jenis cuti yang tidak dipilih dibiarkan kosong tanpa simbol, jadi pilihan terlihat sekilas.',
         ],
     ],
