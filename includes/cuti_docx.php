@@ -42,20 +42,16 @@ use PhpOffice\PhpWord\Element\Text;
 use PhpOffice\PhpWord\Settings;
 use PhpOffice\PhpWord\TemplateProcessor;
 
-function cuti_docx_centang(bool $ya): string
-{
-    return $ya ? "\u{2611}" : "\u{2610}"; // ☑ / ☐
-}
-
 /**
- * Kotak JENIS CUTI (bagian II): permintaan pemakai 2026-11-11 - jenis yang
- * dipilih diberi centang tebal besar, jenis lain dibiarkan kosong tanpa
- * simbol apa pun (dulu ☑/☐ seukuran teks, susah dibedakan di cetakan).
- * Kotak pertimbangan atasan (VII/VIII) tetap memakai cuti_docx_centang().
+ * Semua kotak pilihan formulir (II jenis cuti, VII pertimbangan atasan,
+ * VIII keputusan pejabat) - permintaan pemakai 2026-11-11: yang terpilih
+ * diberi centang tebal besar, sisanya dibiarkan kosong tanpa simbol apa pun
+ * (dulu ☑/☐ seukuran teks, susah dibedakan di cetakan). Paragraf kotaknya di
+ * template dikunci spasi baris exact 11,4pt supaya tinggi tabel tidak berubah.
  * Centang ✔ (U+2714) 16pt tebal; Segoe UI Symbol di Word, LibreOffice di
  * server jatuh ke DejaVu Sans yang juga punya glyph ini.
  */
-function cuti_docx_isi_jenis(TemplateProcessor $tp, string $macro, bool $dipilih): void
+function cuti_docx_isi_centang(TemplateProcessor $tp, string $macro, bool $dipilih): void
 {
     if (!$dipilih) {
         $tp->setValue($macro, '');
@@ -134,7 +130,7 @@ function cuti_docx_generate(
 
     if ($isPppk) {
         foreach (cuti_leave_types('PPPK') as $i => $jt) {
-            cuti_docx_isi_jenis($tp, 'CK' . ($i + 1), $cuti['jenis_cuti'] === $jt);
+            cuti_docx_isi_centang($tp, 'CK' . ($i + 1), $cuti['jenis_cuti'] === $jt);
         }
     } else {
         // Label & urutan literal persis "FORMAT CUTI PNS.docx" (dobel "Cuti
@@ -145,7 +141,7 @@ function cuti_docx_generate(
             'Cuti Karena Alasan Penting', 'Cuti diluar Tanggungan Negara',
         ];
         foreach ($jenisPnsII as $i => $jt) {
-            cuti_docx_isi_jenis($tp, 'CK' . ($i + 1), $cuti['jenis_cuti'] === $jt);
+            cuti_docx_isi_centang($tp, 'CK' . ($i + 1), $cuti['jenis_cuti'] === $jt);
         }
     }
 
@@ -261,17 +257,17 @@ function cuti_docx_generate(
     // kalau levelnya beneran udah app_*=1.
     $disetujuiVII = (bool) $cuti["app_{$atasanLangsungLevel}"];
     $ditolakVII = $levelPenolak === $atasanLangsungLevel;
-    $tp->setValue('CK7_DISETUJUI', cuti_docx_centang($disetujuiVII));
-    $tp->setValue('CK7_PERUBAHAN', cuti_docx_centang(false));
-    $tp->setValue('CK7_DITANGGUHKAN', cuti_docx_centang(false));
-    $tp->setValue('CK7_TIDAK', cuti_docx_centang($ditolakVII));
+    cuti_docx_isi_centang($tp, 'CK7_DISETUJUI', $disetujuiVII);
+    cuti_docx_isi_centang($tp, 'CK7_PERUBAHAN', false);
+    cuti_docx_isi_centang($tp, 'CK7_DITANGGUHKAN', false);
+    cuti_docx_isi_centang($tp, 'CK7_TIDAK', $ditolakVII);
 
     $disetujuiVIII = (bool) $cuti['app_ketua'];
     $ditolakVIII = $levelPenolak === 'ketua';
-    $tp->setValue('CK8_DISETUJUI', cuti_docx_centang($disetujuiVIII));
-    $tp->setValue('CK8_PERUBAHAN', cuti_docx_centang(false));
-    $tp->setValue('CK8_DITANGGUHKAN', cuti_docx_centang(false));
-    $tp->setValue('CK8_TIDAK', cuti_docx_centang($ditolakVIII));
+    cuti_docx_isi_centang($tp, 'CK8_DISETUJUI', $disetujuiVIII);
+    cuti_docx_isi_centang($tp, 'CK8_PERUBAHAN', false);
+    cuti_docx_isi_centang($tp, 'CK8_DITANGGUHKAN', false);
+    cuti_docx_isi_centang($tp, 'CK8_TIDAK', $ditolakVIII);
 
     // KOTAK MAKS dibesarin dari 80x32 (permintaan user 2026-09-07), rasio
     // asli gambar dijaga (gak di-stretch). Wrap balik ke "In Front of Text"

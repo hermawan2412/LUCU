@@ -15,6 +15,15 @@ declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
     [
+        'versi' => '2026.11.11.5',
+        'tanggal' => '11 November 2026',
+        'judul' => 'Centang pertimbangan atasan dan keputusan pejabat',
+        'items' => [
+            'Kotak Pertimbangan Atasan Langsung dan Keputusan Pejabat yang Berwenang kini memakai centang tebal besar di tengah kotak, sama seperti jenis cuti.',
+            'Kotak yang tidak dipilih dibiarkan kosong, dan ukuran tabel formulir tetap sama.',
+        ],
+    ],
+    [
         'versi' => '2026.11.11.4',
         'tanggal' => '11 November 2026',
         'judul' => 'Centang jenis cuti di formulir',
