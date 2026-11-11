@@ -97,7 +97,7 @@ layout_header('Dashboard Admin', 'dashboard', 'admin');
 </p>
 <?php endif; ?>
 
-<div class="card">
+<div class="card kartu-kalender">
   <div class="calendar-nav">
     <h2>Kalender Cuti Tim &middot; <?= e(kalender_nama_bulan($month)) ?> <?= $year ?></h2>
     <div class="calendar-nav-links">

@@ -111,7 +111,7 @@ layout_header('Dashboard', 'dashboard');
     <?php endif; ?>
   </div>
 
-  <div class="card">
+  <div class="card kartu-kalender">
     <div class="calendar-nav">
       <h2>Kalender Cuti Saya &middot; <?= e(kalender_nama_bulan($month)) ?> <?= $year ?></h2>
       <div class="calendar-nav-links">

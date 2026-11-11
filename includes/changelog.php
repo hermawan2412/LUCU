@@ -21,7 +21,8 @@ const CHANGELOG_RILIS = [
             'Kalender cuti di dasbor kini sekitar separuh tingginya, nama hari libur dipendekkan dalam satu baris (nama lengkap muncul saat kursor diarahkan).',
             'Tanggal perayaan yang bukan hari libur (mis. Malam Tahun Baru 31 Desember, 1 Ramadan) tidak lagi ditandai libur; pengajuan cuti di tanggal itu kembali bisa.',
             'Data hari libur disegarkan otomatis tiap 30 hari, jadi perubahan cuti bersama dari pemerintah ikut terbawa.',
-            'Gerak baru: cincin menandai hari ini, tanggal yang disorot atau dipilih dengan keyboard, dan bulan berganti dari arah tombol yang ditekan.',
+            'Gerak baru: cincin menandai hari ini dan tanggal yang dipilih dengan keyboard, dan bulan berganti dari arah tombol yang ditekan.',
+            'Kalender bergaya kaca: kartunya bening di atas bercak warna lembut, dan lensa kaca meluncur ke tanggal yang ditunjuk kursor.',
         ],
     ],
     [

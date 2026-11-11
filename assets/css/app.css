@@ -63,6 +63,12 @@
   --font-body: "Sofia Sans", "SofiaSans", Arial, sans-serif;
 
   /* radius: DESIGN.md §5 - cuma 3 kelompok, gak ada 8-12px di tengah */
+  /* Kaca kalender (lihat blok "Kaca kalender"): tepi & bayangan dibedakan terang/gelap. */
+  --kaca-tepi: rgba(255, 255, 255, 0.85);
+  --kaca-garis: rgba(20, 20, 19, 0.10);
+  --kaca-bayangan: rgba(20, 20, 19, 0.16);
+  --lensa-kilau: rgba(255, 255, 255, 0.24);
+
   --radius-tiny: 6px;
   --radius: 28px;
   --radius-lg: 40px;
@@ -94,6 +100,7 @@
    oranye harus konsisten, bukan bagian dari sistem terang/gelap). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    --kaca-tepi: rgba(255, 255, 255, 0.12); --kaca-garis: rgba(255, 255, 255, 0.08); --kaca-bayangan: rgba(0, 0, 0, 0.5); --lensa-kilau: rgba(255, 255, 255, 0.07);
     --ink: #f0eee7;
     --charcoal: #c9c5bd;
     --slate: #9b968d;
@@ -126,6 +133,7 @@
   }
 }
 :root[data-theme="dark"] {
+    --kaca-tepi: rgba(255, 255, 255, 0.12); --kaca-garis: rgba(255, 255, 255, 0.08); --kaca-bayangan: rgba(0, 0, 0, 0.5); --lensa-kilau: rgba(255, 255, 255, 0.07);
   --ink: #f0eee7;
   --charcoal: #c9c5bd;
   --slate: #9b968d;
@@ -1177,7 +1185,7 @@ a.calendar-cell:focus-visible { outline: none; } /* diganti cincin .kal-halo (li
    tampil saat hover/fokus - tetap jadi penanda fokus keyboard. */
 .kal-halo { position: absolute; inset: -2px; width: calc(100% + 4px); height: calc(100% + 4px); pointer-events: none; overflow: visible; }
 .kal-halo rect { fill: none; stroke: url(#kal-halo-warna); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
-a.calendar-cell:is(:hover, :focus-visible) .kal-halo rect { stroke-dashoffset: 0; opacity: 1; }
+a.calendar-cell:focus-visible .kal-halo rect { stroke-dashoffset: 0; opacity: 1; } /* hover dipegang lensa kaca */
 
 @media (max-width: 720px) {
   .calendar-cell { min-height: 42px; padding: 4px; font-size: 0.8rem; }
@@ -1322,3 +1330,51 @@ dialog.pratinjau:not(.siap) iframe { visibility: hidden; height: 0; flex: 0; }
 }
 @keyframes kal-isi { from { transform: scale(0.3); background-color: transparent; color: var(--ink); } }
 @keyframes kal-masuk { from { opacity: 0; transform: translateX(var(--geser, 18px)) scale(0.96); } }
+
+/* ===== Kaca kalender (2026-11-11, permintaan pemilik) =====
+   Pola sama dengan kalender RAPAT: kaca = aksen di SATU elemen (kartu
+   kalender), dan kaca butuh sesuatu di belakangnya, jadi halaman yang memuat
+   kalender diberi bercak warna pastel buram. Warna bercak dari token pastel,
+   otomatis ikut tema gelap. Lensa kaca (.kal-lensa, dibuat app.js) meluncur
+   ke tanggal yang disorot: tanpa blur, cuma saturasi + sorotan tepi, supaya
+   angka di bawahnya tetap tajam. */
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  body:has(.kartu-kalender)::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(36% 40% at 10% 30%, color-mix(in srgb, var(--pastel-blue-bg) 90%, transparent), transparent 70%),
+      radial-gradient(32% 38% at 90% 22%, color-mix(in srgb, var(--pastel-rose-bg) 85%, transparent), transparent 70%),
+      radial-gradient(40% 36% at 60% 95%, color-mix(in srgb, var(--pastel-teal-bg) 85%, transparent), transparent 70%),
+      radial-gradient(26% 30% at 30% 80%, color-mix(in srgb, var(--signal-light) 18%, transparent), transparent 70%);
+  }
+  .kartu-kalender {
+    background: color-mix(in srgb, var(--surface) 62%, transparent);
+    -webkit-backdrop-filter: blur(22px) saturate(170%); backdrop-filter: blur(22px) saturate(170%);
+    border: 1px solid var(--kaca-garis);
+    box-shadow: inset 0 1px 0 var(--kaca-tepi), 0 18px 44px -18px var(--kaca-bayangan);
+  }
+  .kartu-kalender .calendar-cell:not(.empty) { background: color-mix(in srgb, var(--lifted) 60%, transparent); }
+  .kartu-kalender .calendar-cell.on-leave { background: color-mix(in srgb, var(--success-bg) 85%, transparent); }
+  .kartu-kalender .calendar-cell.has-leave { background: color-mix(in srgb, var(--warning-bg) 85%, transparent); }
+
+  .calendar-grid { position: relative; }
+  .kal-lensa {
+    position: absolute; top: 0; left: 0; z-index: 2; pointer-events: none; opacity: 0;
+    border-radius: 9px;
+    background: linear-gradient(140deg, var(--lensa-kilau), transparent 42%, transparent 70%, color-mix(in srgb, var(--lensa-kilau) 60%, transparent));
+    -webkit-backdrop-filter: saturate(185%) brightness(1.04); backdrop-filter: saturate(185%) brightness(1.04);
+    box-shadow: inset 0 1px 0 var(--kaca-tepi), inset 0 -1px 0 var(--kaca-garis), inset 1px 0 0 rgba(255, 255, 255, 0.35), 0 10px 22px -10px var(--kaca-bayangan);
+  }
+  .kal-lensa.tampil { opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .kal-lensa { transition: transform 0.46s cubic-bezier(0.3, 1.35, 0.5, 1), width 0.3s ease, height 0.3s ease, opacity 0.2s ease; }
+  /* Saat berpindah, lensa memanjang ke arah gerak lalu kembali bulat - kesan cair. */
+  .kal-lensa.meluncur { animation: kal-cair 0.46s cubic-bezier(0.3, 1.35, 0.5, 1); }
+}
+@keyframes kal-cair { 40% { border-radius: 14px 9px 14px 9px; filter: brightness(1.05); } }
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  body:has(.kartu-kalender)::before, .kal-lensa { display: none; }
+  .kartu-kalender { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .kartu-kalender .calendar-cell:not(.empty) { background: var(--lifted); }
+}

@@ -204,6 +204,39 @@
       ukur(cell);
     });
     if (arah) grid.classList.add('kal-masuk-' + arah);
+
+    // Lensa kaca: satu lensa meluncur ke sel yang disorot mouse/pena (bukan
+    // sentuhan - di HP ketuk langsung membuka pengajuan, lensa cuma kedip).
+    var lensa = document.createElement('div');
+    lensa.className = 'kal-lensa';
+    lensa.setAttribute('aria-hidden', 'true');
+    grid.appendChild(lensa);
+    var adaDiSel = false;
+    grid.addEventListener('pointerover', function (e) {
+      if (e.pointerType === 'touch') return;
+      var cell = e.target.closest('.calendar-cell');
+      if (!cell || cell.classList.contains('empty') || !grid.contains(cell)) return;
+      lensa.style.width = cell.offsetWidth + 'px';
+      lensa.style.height = cell.offsetHeight + 'px';
+      if (!adaDiSel) {
+        // Masuk pertama: langsung di tempat, tanpa meluncur dari pojok grid.
+        lensa.style.transition = 'none';
+        lensa.style.transform = 'translate(' + cell.offsetLeft + 'px,' + cell.offsetTop + 'px)';
+        void lensa.offsetWidth;
+        lensa.style.transition = '';
+        adaDiSel = true;
+      } else {
+        lensa.style.transform = 'translate(' + cell.offsetLeft + 'px,' + cell.offsetTop + 'px)';
+        lensa.classList.remove('meluncur');
+        void lensa.offsetWidth;
+        lensa.classList.add('meluncur');
+      }
+      lensa.classList.add('tampil');
+    });
+    grid.addEventListener('pointerleave', function () {
+      lensa.classList.remove('tampil');
+      adaDiSel = false;
+    });
     if (window.ResizeObserver) new ResizeObserver(function () { cells.forEach(ukur); }).observe(grid);
   });
 
