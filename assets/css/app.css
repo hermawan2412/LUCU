@@ -793,6 +793,33 @@ a { color: var(--link-blue); }
   /* today-pulse (loop tanpa henti) diganti Halo Trace sekali jalan - lihat blok kalender. */
 }
 
+/* Gerak saat pilih menu: pindah halaman pakai View Transitions bawaan peramban
+   (Chrome/Edge 126+, Safari 18.2+; peramban lain tetap pindah biasa). Pil menu aktif
+   meluncur dari posisi lama ke yang baru, isi halaman berganti dengan pudar-naik. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .topbar { view-transition-name: topbar; }
+  /* Hanya item level atas: anak dropdown aktif bersamaan dengan toggle-nya,
+     nama kembar membuat transisi batal. */
+  .topbar nav > a.active, .nav-dropdown-toggle.active { view-transition-name: nav-aktif; }
+  ::view-transition-group(nav-aktif) { animation-duration: 0.38s; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  ::view-transition-old(root) { animation: 0.16s ease both vt-keluar; }
+  ::view-transition-new(root) { animation: 0.32s cubic-bezier(0.16, 1, 0.3, 1) both vt-masuk; }
+
+  .topbar nav a, .nav-dropdown-toggle, .nav-dropdown-menu a { transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease; }
+  .topbar nav a:active, .nav-dropdown-toggle:active, .nav-dropdown-menu a:active { transform: scale(0.94); }
+  .nav-dropdown.open .nav-dropdown-menu { animation: menu-buka 0.18s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .nav-dropdown .caret { display: inline-block; transition: transform 0.18s ease; }
+  .nav-dropdown.open .caret { transform: rotate(180deg); }
+}
+
+@keyframes vt-keluar { to { opacity: 0; } }
+@keyframes vt-masuk { from { opacity: 0; transform: translateY(8px); } }
+@keyframes menu-buka {
+  from { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(0.97); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
 @keyframes rise-in {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }

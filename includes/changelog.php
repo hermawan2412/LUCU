@@ -15,6 +15,16 @@ declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
     [
+        'versi' => '2026.11.16',
+        'tanggal' => '16 November 2026',
+        'judul' => 'Status Habis, Cuti Besar di formulir PNS, dan gerak menu',
+        'items' => [
+            'Sisa jatah cuti tahunan yang sudah 0 hari kini berstatus "Habis", bukan "Kritis".',
+            'Formulir cuti PNS bagian II: "Cuti Melahirkan" yang tertulis dua kali diganti menjadi "Cuti Besar", urutannya sama dengan bagian Catatan Cuti.',
+            'Pindah menu kini beranimasi: penanda menu aktif meluncur ke menu yang dipilih dan halaman muncul dengan halus.',
+        ],
+    ],
+    [
         'versi' => '2026.11.11.5',
         'tanggal' => '11 November 2026',
         'judul' => 'Centang pertimbangan atasan dan keputusan pejabat',

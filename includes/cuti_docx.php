@@ -133,11 +133,10 @@ function cuti_docx_generate(
             cuti_docx_isi_centang($tp, 'CK' . ($i + 1), $cuti['jenis_cuti'] === $jt);
         }
     } else {
-        // Label & urutan literal persis "FORMAT CUTI PNS.docx" (dobel "Cuti
-        // Melahirkan" di slot 3&4, gak ada "Cuti Besar" - dikonfirmasi user,
-        // jangan dibetulin).
+        // Urutan sama dengan label di templates/cuti_pns.docx bagian II
+        // (dobel "Cuti Melahirkan" sudah diganti "Cuti Besar", urut seperti bagian V).
         $jenisPnsII = [
-            'Cuti Tahunan', 'Cuti Sakit', 'Cuti Melahirkan', 'Cuti Melahirkan',
+            'Cuti Tahunan', 'Cuti Besar', 'Cuti Sakit', 'Cuti Melahirkan',
             'Cuti Karena Alasan Penting', 'Cuti diluar Tanggungan Negara',
         ];
         foreach ($jenisPnsII as $i => $jt) {

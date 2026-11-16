@@ -42,7 +42,7 @@ layout_header('Dashboard', 'dashboard');
     $kuotaTahunan = cuti_tahunan_kuota_tersedia($pegawai);
     $adaAkumulasi = (int) $pegawai['cuti_tahunan_n1'] > 0 || (int) $pegawai['cuti_tahunan_n2'] > 0;
     $kuotaStatus = kalender_kuota_status($kuotaTahunan);
-    $kuotaTone = match ($kuotaStatus) { 'kritis' => 'tone-red', 'rendah' => 'tone-amber', default => 'tone-green' };
+    $kuotaTone = match ($kuotaStatus) { 'habis', 'kritis' => 'tone-red', 'rendah' => 'tone-amber', default => 'tone-green' };
   ?>
   <div class="stat-row">
     <a href="daftar_cuti.php" class="stat-tile <?= $kuotaTone ?>">

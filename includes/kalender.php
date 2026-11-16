@@ -84,9 +84,10 @@ function kalender_nama_bulan(int $month): string
     return KALENDER_NAMA_BULAN[$month];
 }
 
-/** 'kritis' | 'rendah' | 'aman' - ambang sisa cuti tahunan (dari 12 hari default) */
+/** 'habis' | 'kritis' | 'rendah' | 'aman' - ambang sisa cuti tahunan (dari 12 hari default) */
 function kalender_kuota_status(int $sisa): string
 {
+    if ($sisa <= 0) return 'habis';
     if ($sisa <= 2) return 'kritis';
     if ($sisa <= 5) return 'rendah';
     return 'aman';
@@ -95,6 +96,7 @@ function kalender_kuota_status(int $sisa): string
 function kalender_kuota_label(string $status): string
 {
     return match ($status) {
+        'habis' => 'Habis',
         'kritis' => 'Kritis',
         'rendah' => 'Rendah',
         default => 'Aman',
@@ -104,7 +106,7 @@ function kalender_kuota_label(string $status): string
 function kalender_kuota_badge_class(string $status): string
 {
     return match ($status) {
-        'kritis' => 'badge-danger',
+        'habis', 'kritis' => 'badge-danger',
         'rendah' => 'badge-warning',
         default => 'badge-success',
     };
