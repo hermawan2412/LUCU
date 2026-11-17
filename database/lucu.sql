@@ -286,6 +286,8 @@ CREATE TABLE `pengaturan` (
   `logo_instansi_path` varchar(255) DEFAULT NULL COMMENT 'logo instansi (PA Rantau) - tampil di halaman login gantiin badge teks, relatif ke assets/img/',
   `wa_aktif` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'notifikasi WhatsApp via Fonnte on/off - lihat includes/whatsapp.php',
   `wa_fonnte_token` varchar(100) NOT NULL DEFAULT '' COMMENT 'API token Fonnte (docs.fonnte.com), diisi admin/pengaturan.php',
+  `wa_batas_harian` int(11) NOT NULL DEFAULT 100 COMMENT 'maks WA berhasil per hari; lewat batas ditahan - lihat wa_kirim()',
+  `wa_kuota_bulanan` int(11) NOT NULL DEFAULT 1000 COMMENT 'kuota paket Fonnte per bulan, buat peringatan 80% di admin/pengaturan.php',
   `siaga_dismiss_tanggal` date DEFAULT NULL COMMENT 'admin matiin peringatan siaga cuti (>30%) buat tanggal ini doang - auto aktif lagi besok, lihat cuti_siaga_dismissed_hari_ini()',
   `diperbarui_pada` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_pengaturan`)
@@ -293,6 +295,19 @@ CREATE TABLE `pengaturan` (
 
 INSERT INTO `pengaturan` (`id_pengaturan`, `nama_aplikasi`, `nama_lengkap`, `instansi`) VALUES
 (1, 'LUCU', 'Aplikasi Untuk Cuti', 'Pengadilan Agama Rantau');
+
+-- --------------------------------------------------------
+
+-- Penghitung kirim WA (tanpa nomor & isi pesan) buat batas harian dan
+-- peringatan kuota Fonnte - lihat wa_catat()/wa_hitung() di includes/whatsapp.php.
+CREATE TABLE `wa_log` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `dikirim_at` datetime NOT NULL,
+  `berhasil` tinyint(1) NOT NULL,
+  `alasan` varchar(150) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_wa_log_waktu` (`berhasil`, `dikirim_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 

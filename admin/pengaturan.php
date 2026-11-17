@@ -72,13 +72,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'whatsapp') {
         $waAktif = isset($_POST['wa_aktif']) ? 1 : 0;
         $waToken = trim($_POST['wa_fonnte_token'] ?? '');
+        $waBatas = filter_var($_POST['wa_batas_harian'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 10000]]);
+        $waKuota = filter_var($_POST['wa_kuota_bulanan'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 1000000]]);
 
         if ($waAktif && $waToken === '') {
             $errors[] = 'Token Fonnte wajib diisi kalau notifikasi WhatsApp diaktifkan.';
         }
+        if ($waBatas === false) {
+            $errors[] = 'Batas harian WA harus angka 1 - 10.000.';
+        }
+        if ($waKuota === false) {
+            $errors[] = 'Kuota bulanan Fonnte harus angka 1 - 1.000.000.';
+        }
 
         if (empty($errors)) {
-            db_query($db, "UPDATE pengaturan SET wa_aktif=?, wa_fonnte_token=? WHERE id_pengaturan = 1", [$waAktif, $waToken]);
+            db_query($db, "UPDATE pengaturan SET wa_aktif=?, wa_fonnte_token=?, wa_batas_harian=?, wa_kuota_bulanan=? WHERE id_pengaturan = 1", [$waAktif, $waToken, $waBatas, $waKuota]);
             log_aktivitas($db, 'update_pengaturan', 'Ubah pengaturan notifikasi WhatsApp (aktif=' . ($waAktif ? 'ya' : 'tidak') . ')');
             flash_set('success', 'Pengaturan WhatsApp disimpan.');
             redirect('pengaturan.php');
@@ -217,6 +225,22 @@ layout_header('Pengaturan', '', 'admin');
     (kolom "No. Telepon" di <a href="data_pegawai.php">Data Pegawai</a>) kalau diaktifkan di sini.
   </p>
 
+  <?php
+  $waBulan = wa_hitung($db, 'bulan');
+  $waHari = wa_hitung($db, 'hari');
+  $waKuotaBln = max(1, (int) ($p['wa_kuota_bulanan'] ?? 1000));
+  $waBatasHr = max(1, (int) ($p['wa_batas_harian'] ?? 100));
+  $waPersen = (int) floor($waBulan * 100 / $waKuotaBln);
+  $waGagal = db_one($db, "SELECT dikirim_at, alasan FROM wa_log WHERE berhasil = 0 ORDER BY id DESC LIMIT 1");
+  ?>
+  <div class="alert <?= $waPersen >= 80 || $waHari >= $waBatasHr ? 'alert-danger' : 'alert-info' ?>" role="status">
+    Terkirim bulan ini: <strong><?= $waBulan ?></strong> dari kuota <?= $waKuotaBln ?> (<?= $waPersen ?>%).
+    Hari ini: <strong><?= $waHari ?></strong> dari batas <?= $waBatasHr ?>.
+    <?php if ($waPersen >= 80): ?><br>Kuota Fonnte hampir habis. Cek paket di dashboard Fonnte; setelah habis, WA berhenti sampai bulan depan (notifikasi di aplikasi tetap jalan).<?php endif; ?>
+    <?php if ($waHari >= $waBatasHr): ?><br>Batas harian tercapai: WA berikutnya ditahan sampai besok.<?php endif; ?>
+    <?php if ($waGagal): ?><br>Gagal terakhir: <?= e(date('d-m-Y H:i', strtotime($waGagal['dikirim_at']))) ?> - <?= e((string) $waGagal['alasan']) ?><?php endif; ?>
+  </div>
+
   <?php if ($waTestResult): ?>
     <div class="alert <?= $waTestResult['ok'] ? 'alert-success' : 'alert-danger' ?>"><?= e($waTestResult['pesan']) ?></div>
   <?php endif; ?>
@@ -234,6 +258,16 @@ layout_header('Pengaturan', '', 'admin');
       <label for="wa_fonnte_token">Token Fonnte (API key)</label>
       <input id="wa_fonnte_token" name="wa_fonnte_token" type="text" maxlength="100" value="<?= e($p['wa_fonnte_token'] ?? '') ?>" placeholder="Dapatkan dari dashboard Fonnte setelah scan QR device">
       <p class="hint">Daftar &amp; hubungkan nomor WhatsApp kantor di <a href="https://md.fonnte.com/" target="_blank" rel="noopener">dashboard Fonnte</a>, salin token-nya ke sini.</p>
+    </div>
+    <div class="field">
+      <label for="wa_batas_harian">Batas WA per hari</label>
+      <input id="wa_batas_harian" name="wa_batas_harian" type="number" min="1" max="10000" required value="<?= (int) ($p['wa_batas_harian'] ?? 100) ?>">
+      <p class="hint">Pengaman kalau ada pengiriman beruntun. Lewat batas, WA ditahan sampai besok; notifikasi di aplikasi tetap terkirim.</p>
+    </div>
+    <div class="field">
+      <label for="wa_kuota_bulanan">Kuota bulanan paket Fonnte</label>
+      <input id="wa_kuota_bulanan" name="wa_kuota_bulanan" type="number" min="1" max="1000000" required value="<?= (int) ($p['wa_kuota_bulanan'] ?? 1000) ?>">
+      <p class="hint">Isi sesuai paket di dashboard Fonnte. Peringatan muncul di atas saat pemakaian 80%.</p>
     </div>
     <button type="submit" class="btn-primary" style="width:auto;padding:12px 24px;">Simpan</button>
 
