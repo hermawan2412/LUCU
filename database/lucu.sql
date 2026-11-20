@@ -176,6 +176,9 @@ CREATE TABLE `cuti_pegawai` (
   `nomor_surat` varchar(100) DEFAULT NULL COMMENT 'diisi admin.kepegawaian SETELAH pengajuan dibuat, SEBELUM approval jalan - lihat cuti_mulai_approval_setelah_nomor()',
   `paraf_nip` varchar(225) DEFAULT NULL COMMENT 'NIP pegawai kepegawaian yg parafnya dipasang di kotak V. Catatan Cuti (pakai tanda_tangan_path pegawai itu, bukan upload terpisah)',
   `catatan_sakit` varchar(255) DEFAULT NULL COMMENT 'isian manual admin/Pengelola buat kotak V.3 CUTI SAKIT di dokumen cetak - BUKAN auto-hitung dari tanggal pengajuan ini (footnote asli template: kotak ini "diisi oleh pejabat kepegawaian SEBELUM PNS mengajukan cuti", jadi riwayat/catatan, bukan cerminan pengajuan yang sedang dicetak)',
+  `saldo_awal_n2` int DEFAULT NULL COMMENT 'snapshot saldo cuti tahunan N-2 SEBELUM dipotong saat disetujui - buat Keterangan V. Catatan Cuti PPPK',
+  `saldo_awal_n1` int DEFAULT NULL,
+  `saldo_awal_n` int DEFAULT NULL,
   PRIMARY KEY (`id_cutipegawai`),
   KEY `id_pegawai` (`id_pegawai`),
   CONSTRAINT `cuti_pegawai_ibfk_1` FOREIGN KEY (`id_pegawai`) REFERENCES `pegawai` (`id_pegawai`) ON DELETE CASCADE ON UPDATE CASCADE

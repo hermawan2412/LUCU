@@ -234,7 +234,7 @@ function cuti_tahunan_kuota_tersedia(array $pegawai): int
  * pegawai + rollover sendiri di sini (bukan terima dari caller) - beberapa
  * caller cuma pegang row cuti_pegawai, bukan row pegawai.
  */
-function cuti_potong_saldo_tahunan(PDO $db, int $idPegawai, int $lama): void
+function cuti_potong_saldo_tahunan(PDO $db, int $idPegawai, int $lama, ?int $idCuti = null): void
 {
     $pegawai = db_one($db, "SELECT * FROM pegawai WHERE id_pegawai = ?", [$idPegawai]);
     if ($pegawai === null) {
@@ -245,6 +245,14 @@ function cuti_potong_saldo_tahunan(PDO $db, int $idPegawai, int $lama): void
     $n2 = (int) $pegawai['cuti_tahunan_n2'];
     $n1 = (int) $pegawai['cuti_tahunan_n1'];
     $n = (int) $pegawai['hak_cuti_tahunan'];
+
+    // Snapshot saldo SEBELUM dipotong, buat kolom Keterangan V. Catatan Cuti
+    // PPPK ("-3 diambil dari 12") - saldo di tabel pegawai udah terpotong
+    // begitu disetujui, jadi angka "sebelum" harus disimpan di sini.
+    if ($idCuti !== null) {
+        db_query($db, "UPDATE cuti_pegawai SET saldo_awal_n2 = ?, saldo_awal_n1 = ?, saldo_awal_n = ? WHERE id_cutipegawai = ?",
+            [$n2, $n1, $n, $idCuti]);
+    }
 
     $ambilN2 = min($n2, $lama);
     $lama -= $ambilN2;
@@ -630,7 +638,7 @@ function cuti_mulai_approval_setelah_nomor(PDO $db, array $row): void
     try {
         if ($status === 'Disetujui') {
             if (cuti_apakah_potong_saldo_tahunan($row['jenis_cuti'])) {
-                cuti_potong_saldo_tahunan($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
+                cuti_potong_saldo_tahunan($db, (int) $row['id_pegawai'], (int) $row['lama_cuti'], (int) $row['id_cutipegawai']);
             } elseif ($row['jenis_cuti'] === 'Cuti Sakit' && $row['ket_lama_cuti'] === 'Hari') {
                 $ket .= cuti_potong_saldo_sakit($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
             } elseif ($row['jenis_cuti'] === 'Cuti Karena Alasan Penting' && $row['ket_lama_cuti'] === 'Hari') {
@@ -759,7 +767,7 @@ function cuti_approve(PDO $db, array $row, string $approverNip, bool $ttdManual 
         if ($nextLevel === null) {
             $ketFinal = 'Pengajuan Cuti Disetujui';
             if (cuti_apakah_potong_saldo_tahunan($row['jenis_cuti'])) {
-                cuti_potong_saldo_tahunan($db, (int) $row['id_pegawai'], (int) $row['lama_cuti']);
+                cuti_potong_saldo_tahunan($db, (int) $row['id_pegawai'], (int) $row['lama_cuti'], (int) $row['id_cutipegawai']);
             } elseif ($row['jenis_cuti'] === 'Cuti Sakit' && $row['ket_lama_cuti'] === 'Hari') {
                 // Cuma satuan Hari yg kepotong dari kredit 14 hari/tahun - Cuti Sakit
                 // ber-satuan Bulan/Tahun itu jalur sakit-berat terpisah (surat

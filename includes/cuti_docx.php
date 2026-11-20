@@ -93,6 +93,34 @@ function cuti_docx_isi_ttd(RestuTemplateProcessor $tp, string $macro, ?string $t
 }
 
 /**
+ * Isi Keterangan V. Catatan Cuti PPPK per bucket: "-3 diambil dari 12".
+ * Saldo "sebelum" = snapshot saat disetujui (saldo_awal_*), atau saldo
+ * terkini kalau belum disetujui (belum kepotong). Cuti lama yg disetujui
+ * sebelum snapshot ada: N = null (caller fallback ke rentang tanggal).
+ */
+function cuti_docx_ket_tahunan(array $cuti): array
+{
+    $kosong = ['N2' => '', 'N1' => '', 'N' => ''];
+    if ($cuti['jenis_cuti'] !== 'Cuti Tahunan') {
+        return $kosong;
+    }
+    if ($cuti['saldo_awal_n'] !== null) {
+        $awal = ['N2' => (int) $cuti['saldo_awal_n2'], 'N1' => (int) $cuti['saldo_awal_n1'], 'N' => (int) $cuti['saldo_awal_n']];
+    } elseif ($cuti['status_cuti'] !== 'Disetujui') {
+        $awal = ['N2' => (int) $cuti['cuti_tahunan_n2'], 'N1' => (int) $cuti['cuti_tahunan_n1'], 'N' => (int) $cuti['hak_cuti_tahunan']];
+    } else {
+        return ['N2' => '', 'N1' => '', 'N' => null];
+    }
+    $lama = (int) $cuti['lama_cuti'];
+    foreach ($awal as $label => $saldo) {
+        $ambil = min($saldo, $lama);
+        $lama -= $ambil;
+        $kosong[$label] = $ambil > 0 ? "-$ambil diambil dari $saldo" : '';
+    }
+    return $kosong;
+}
+
+/**
  * $cuti: row gabungan cuti_pegawai + pegawai + jabatan + golongan (perlu
  * kolom tanda_tangan_path juga - lihat query di user/cetak_cuti.php).
  * $atasanLangsung / $pejabatBerwenang: ['nama_pegawai','nip','nama_jabatan','tanda_tangan_path'].
@@ -169,11 +197,16 @@ function cuti_docx_generate(
         // konsisten sama desain lama "selalu full", Keterangan cuma keisi
         // di baris N kalau pengajuan ini jenisnya Cuti Tahunan.
         $tp->setValue('CATATAN_N2_SISA', (string) ((int) $cuti['cuti_tahunan_n2']));
-        $tp->setValue('CATATAN_N2_KET', '');
         $tp->setValue('CATATAN_N1_SISA', (string) ((int) $cuti['cuti_tahunan_n1']));
-        $tp->setValue('CATATAN_N1_KET', '');
         $tp->setValue('CATATAN_N_SISA', (string) ((int) $cuti['hak_cuti_tahunan']));
-        $tp->setValue('CATATAN_N_KET', $cuti['jenis_cuti'] === 'Cuti Tahunan' ? $rentang : '');
+        // Keterangan (user 2026-11-20): "-{jumlah} diambil dari {sisa SEBELUM
+        // diambil}", di baris bucket yg beneran kepotong - urutan sama kayak
+        // cuti_potong_saldo_tahunan() (N-2 -> N-1 -> N), jadi biasanya cuma
+        // baris N kecuali masih ada sisa tahun lalu.
+        $ket = cuti_docx_ket_tahunan($cuti);
+        $tp->setValue('CATATAN_N2_KET', $ket['N2']);
+        $tp->setValue('CATATAN_N1_KET', $ket['N1']);
+        $tp->setValue('CATATAN_N_KET', $ket['N'] ?? ($cuti['jenis_cuti'] === 'Cuti Tahunan' ? $rentang : ''));
         $tp->setValue('CATATAN_SAKIT', $cuti['jenis_cuti'] === 'Cuti Sakit' ? $rentang : '');
         $tp->setValue('CATATAN_MELAHIRKAN', $cuti['jenis_cuti'] === 'Cuti Melahirkan' ? $rentang : '');
     } else {
