@@ -1668,6 +1668,33 @@ body.latar .stat-tile:hover {
     0 30px 56px -22px var(--kaca-bayangan);
 }
 
+/* Menu aktif di sidebar kaca: lensa kaca terangkat, bukan pil hitam pekat.
+   Pil hitam jadi satu-satunya blok gelap berat di atas kaca terang dan
+   menyedot perhatian dari isi halaman. Warna teks dihitung untuk kasus
+   terburuk: clay 6.4:1 di tema terang, peach 4.7:1 di tema gelap. */
+body.latar .sidebar nav a.active {
+  color: var(--clay);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 0 #fff, 0 6px 16px -8px rgba(12, 22, 34, 0.35);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body.latar .sidebar nav a.active {
+    color: #ffc4a3;
+    background: rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 16px -8px rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme="dark"] body.latar .sidebar nav a.active {
+  color: #ffc4a3;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 16px -8px rgba(0, 0, 0, 0.6);
+}
+
+/* Angka sejajar per digit di kartu statistik dan tabel. */
+.stat-tile .num,
+.data-table td { font-variant-numeric: tabular-nums; }
+
 /* Riwayat pengambilan cuti (dashboard pegawai): baris judul per tahun. */
 .tabel-riwayat .baris-tahun th {
   text-align: left;
