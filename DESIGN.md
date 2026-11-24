@@ -1,12 +1,12 @@
 # RESTU Design Direction
 
-Dial: ENERGY 1 / RHYTHM 1 / MOTION 2
+Dial: ENERGY 2 / RHYTHM 1 / MOTION 2
 
 ## Who it is for
 
 RESTU is the leave-request (cuti) app for Pengadilan Agama Rantau. Its users are court employees (PNS and PPPK), their supervisors, the Ketua, and the admin staff. They open it to submit leave, approve a request, check remaining leave, or print an official form. Most visits are short and task-driven, on an office PC or a phone.
 
-The design should feel like a well-kept office ledger: calm, warm, and trustworthy, with official documents at its centre. It is not a marketing site and should not try to impress.
+The design should feel like a well-kept office ledger seen through glass: the work stays calm and readable, while the weekday photo behind it gives each day its own place in Indonesia. It is not a marketing site.
 
 ## Identity
 
@@ -30,9 +30,14 @@ The design should feel like a well-kept office ledger: calm, warm, and trustwort
 - Allowed: hover and press feedback, the view-transition menu motion, the done animation after submit or approve, and the calendar lens.
 - Everything sits inside `prefers-reduced-motion: no-preference`. Nothing loops longer than 5 seconds.
 
-## Glass (accent only)
+## Liquid Glass and the weekday backdrop (owner decision, 2026-11-24)
 
-- Glass is used in two places: the login card over the dark panel, and the calendar card. Reason: the calendar is the one "overview" screen, and the glass lens marks the hovered day without hiding its neighbours. Do not add glass anywhere else.
+- Each working day has its own photo theme: Senin mountains, Selasa beach, Rabu the view from an airplane window, Kamis rice terraces, and Jumat Toraja tongkonan houses. Every theme has two photos (a/b). `latar_hari()` in `includes/helpers.php` picks one per date, so the photo stays the same on every page for the whole day. Sabtu and Minggu use the Jumat theme.
+- Photos are free Unsplash images, served as WebP from `assets/img/latar/` (1920px, plus a 960px version for screens up to 960px wide).
+- Every panel is glass: the topbar, cards, stat tiles, dropdown menus, dialogs, the calendar, and the login card. The owner chose full glass, which overrides antislop R-10's cap of 1-2 glass elements. This is a deliberate exception.
+- Glass recipe: blur 28px with saturation 180%, a diagonal sheen, a bright top edge, inner depth, and two shadows that make each panel float above the photo. The topbar floats highest. In Chromium, the topbar also refracts the photo through an SVG displacement filter.
+- Readability is non-negotiable. The photo sits under a scrim (white 38% in light mode, black 50% in dark mode). Panels people read for a long time (cards, tables, dialogs) use 86% opacity, and the rest use 74%. `--slate` is darkened in light mode. Page titles that sit directly on the photo get a soft text halo.
+- `prefers-reduced-transparency` and forced colours turn the panels back into solid surfaces.
 
 ## Themes
 
@@ -48,3 +53,4 @@ The design should feel like a well-kept office ledger: calm, warm, and trustwort
 - Do not copy another brand's design system.
 - Do not add colours for categories. Do not add a second typeface.
 - Do not add decoration that does not mark a state or an action.
+- Do not add a photo without the owner's approval. Add a new backdrop photo as an a/b pair inside an existing day theme.

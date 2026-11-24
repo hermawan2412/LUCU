@@ -1476,3 +1476,178 @@ dialog.selesai .btn-primary { min-width: 140px; min-height: 44px; }
 @keyframes selesai-tampil-hilang { 0%, 95% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes selesai-napas { from { transform: scale(0.8); } to { transform: scale(1.3); } }
 @keyframes selesai-riak { from { opacity: 0.8; transform: scale(1); stroke-width: 7; } to { opacity: 0; transform: scale(2.3); stroke-width: 1; } }
+
+/* ===== Liquid Glass + latar harian (2026-11-24, permintaan pemilik) =====
+   Tiap hari kerja punya tema foto (Senin gunung, Selasa pantai, Rabu
+   pesawat, Kamis sawah, Jumat tongkonan; dua foto per tema, dipilih
+   latar_hari() di helpers.php). Semua panel jadi kaca: blur + saturasi,
+   kilau tepi atas, sheen diagonal, bayangan berlapis. Pemilik memilih kaca
+   penuh (override batas kaca antislop R-10, dicatat di DESIGN.md).
+   Opasitas panel dihitung untuk kasus terburuk (foto putih/hitam penuh di
+   belakang) supaya teks tetap >= 4.5:1. */
+body.latar {
+  --kaca-isi: rgba(255, 255, 255, 0.74);
+  --kaca-isi-baca: rgba(255, 255, 255, 0.86);
+  --kaca-kilau: rgba(255, 255, 255, 0.55);
+  --kaca-kilau-bawah: rgba(255, 255, 255, 0.18);
+  --kaca-tepi: rgba(255, 255, 255, 0.95);
+  --kaca-tepi-bawah: rgba(255, 255, 255, 0.35);
+  --kaca-tepi-luar: rgba(255, 255, 255, 0.55);
+  --kaca-dalam: rgba(255, 255, 255, 0.45);
+  --kaca-bayangan: rgba(12, 22, 34, 0.32);
+  --latar-scrim: rgba(255, 255, 255, 0.38);
+  --latar-halo: rgba(255, 255, 255, 0.9);
+  --slate: #575757; /* lebih gelap dari token biasa: kaca bisa jatuh ke ~#cdcdcd */
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body.latar {
+    --kaca-isi: rgba(28, 26, 23, 0.74);
+    --kaca-isi-baca: rgba(24, 22, 20, 0.86);
+    --kaca-kilau: rgba(255, 255, 255, 0.10);
+    --kaca-kilau-bawah: rgba(255, 255, 255, 0.03);
+    --kaca-tepi: rgba(255, 255, 255, 0.22);
+    --kaca-tepi-bawah: rgba(255, 255, 255, 0.06);
+    --kaca-tepi-luar: rgba(255, 255, 255, 0.12);
+    --kaca-dalam: rgba(255, 255, 255, 0.05);
+    --kaca-bayangan: rgba(0, 0, 0, 0.6);
+    --latar-scrim: rgba(8, 8, 8, 0.5);
+    --latar-halo: rgba(0, 0, 0, 0.85);
+    --slate: #a7a29a;
+  }
+}
+:root[data-theme="dark"] body.latar {
+  --kaca-isi: rgba(28, 26, 23, 0.74);
+  --kaca-isi-baca: rgba(24, 22, 20, 0.86);
+  --kaca-kilau: rgba(255, 255, 255, 0.10);
+  --kaca-kilau-bawah: rgba(255, 255, 255, 0.03);
+  --kaca-tepi: rgba(255, 255, 255, 0.22);
+  --kaca-tepi-bawah: rgba(255, 255, 255, 0.06);
+  --kaca-tepi-luar: rgba(255, 255, 255, 0.12);
+  --kaca-dalam: rgba(255, 255, 255, 0.05);
+  --kaca-bayangan: rgba(0, 0, 0, 0.6);
+  --latar-scrim: rgba(8, 8, 8, 0.5);
+    --latar-halo: rgba(0, 0, 0, 0.85);
+  --slate: #a7a29a;
+}
+
+body.latar-senin-a  { --latar-foto: url(../img/latar/senin-a.webp); }
+body.latar-senin-b  { --latar-foto: url(../img/latar/senin-b.webp); }
+body.latar-selasa-a { --latar-foto: url(../img/latar/selasa-a.webp); }
+body.latar-selasa-b { --latar-foto: url(../img/latar/selasa-b.webp); }
+body.latar-rabu-a   { --latar-foto: url(../img/latar/rabu-a.webp); }
+body.latar-rabu-b   { --latar-foto: url(../img/latar/rabu-b.webp); }
+body.latar-kamis-a  { --latar-foto: url(../img/latar/kamis-a.webp); }
+body.latar-kamis-b  { --latar-foto: url(../img/latar/kamis-b.webp); }
+body.latar-jumat-a  { --latar-foto: url(../img/latar/jumat-a.webp); }
+body.latar-jumat-b  { --latar-foto: url(../img/latar/jumat-b.webp); }
+@media (max-width: 960px) {
+  body.latar-senin-a  { --latar-foto: url(../img/latar/senin-a-960.webp); }
+  body.latar-senin-b  { --latar-foto: url(../img/latar/senin-b-960.webp); }
+  body.latar-selasa-a { --latar-foto: url(../img/latar/selasa-a-960.webp); }
+  body.latar-selasa-b { --latar-foto: url(../img/latar/selasa-b-960.webp); }
+  body.latar-rabu-a   { --latar-foto: url(../img/latar/rabu-a-960.webp); }
+  body.latar-rabu-b   { --latar-foto: url(../img/latar/rabu-b-960.webp); }
+  body.latar-kamis-a  { --latar-foto: url(../img/latar/kamis-a-960.webp); }
+  body.latar-kamis-b  { --latar-foto: url(../img/latar/kamis-b-960.webp); }
+  body.latar-jumat-a  { --latar-foto: url(../img/latar/jumat-a-960.webp); }
+  body.latar-jumat-b  { --latar-foto: url(../img/latar/jumat-b-960.webp); }
+}
+
+/* Foto tetap di belakang (fixed), dengan selapis scrim supaya kaca di
+   atasnya tidak pernah jatuh ke kontras ekstrem. Warna --canvas jadi
+   cadangan selama foto dimuat. Menggantikan bercak pastel kalender. */
+body.latar::before,
+body.latar:has(.kartu-kalender)::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    linear-gradient(var(--latar-scrim), var(--latar-scrim)),
+    var(--latar-foto) center / cover no-repeat,
+    var(--canvas);
+}
+
+/* Resep kaca. Sheen diagonal = pantulan cahaya di permukaan; inset atas =
+   tepi yang memantulkan cahaya; inset dalam = tebal kaca; dua bayangan =
+   jarak panel dari latar (kesan spasial). */
+body.latar .topbar,
+body.latar .card,
+body.latar .login-card,
+body.latar .stat-tile,
+body.latar .nav-dropdown-menu,
+body.latar dialog.selesai,
+body.latar .kartu-kalender {
+  background-color: var(--kaca-isi);
+  background-image: linear-gradient(135deg, var(--kaca-kilau) 0%, transparent 38%, transparent 68%, var(--kaca-kilau-bawah) 100%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--kaca-tepi-luar);
+  box-shadow:
+    inset 0 1px 0 var(--kaca-tepi),
+    inset 0 -1px 1px var(--kaca-tepi-bawah),
+    inset 0 0 24px -6px var(--kaca-dalam),
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 24px 48px -22px var(--kaca-bayangan);
+}
+/* Panel yang dibaca lama (formulir, tabel, dialog) lebih pekat. */
+body.latar .card,
+body.latar .login-card,
+body.latar dialog.selesai,
+body.latar .kartu-kalender { background-color: var(--kaca-isi-baca); }
+/* Judul halaman duduk langsung di atas foto: scrim + halo teks tipis
+   menahan kontras di bagian foto yang ramai. */
+body.latar .page > h1,
+body.latar .page > .lead { text-shadow: 0 0 14px var(--latar-halo), 0 0 2px var(--latar-halo); }
+body.latar .card .table-scroll { background-color: transparent; }
+/* Topbar melayang paling tinggi. */
+body.latar .topbar {
+  box-shadow:
+    inset 0 1px 0 var(--kaca-tepi),
+    inset 0 -1px 1px var(--kaca-tepi-bawah),
+    inset 0 0 24px -6px var(--kaca-dalam),
+    0 2px 6px rgba(0, 0, 0, 0.10),
+    0 30px 60px -24px var(--kaca-bayangan);
+}
+/* Refraksi asli (latar membias di balik kaca): hanya Chromium yang
+   mendukung filter SVG di backdrop-filter; kelas dipasang di layout.php. */
+html.kaca-refraksi body.latar .topbar {
+  -webkit-backdrop-filter: url(#kaca-cair) blur(16px) saturate(180%);
+  backdrop-filter: url(#kaca-cair) blur(16px) saturate(180%);
+}
+body.latar .stat-tile:hover {
+  box-shadow:
+    inset 0 1px 0 var(--kaca-tepi),
+    inset 0 -1px 1px var(--kaca-tepi-bawah),
+    inset 0 0 24px -6px var(--kaca-dalam),
+    0 2px 6px rgba(0, 0, 0, 0.10),
+    0 30px 56px -22px var(--kaca-bayangan);
+}
+
+/* Di layar sempit topbar membungkus jadi beberapa baris: pil jadi oval,
+   pakai radius kartu. */
+@media (max-width: 720px) {
+  body.latar .topbar { border-radius: var(--radius); }
+}
+
+/* Login: foto yang sama di panel gelap, bercak animasi dimatikan. */
+body.latar .login-bg {
+  background:
+    linear-gradient(rgba(8, 8, 8, 0.62), rgba(8, 8, 8, 0.62)),
+    var(--latar-foto) center / cover no-repeat;
+}
+body.latar .login-bg span { display: none; }
+body.latar .login-topleft { --dust: #e9e6e1; }
+body.latar .login-title em { color: #ffb38a; } /* oranye terang: >= 3:1 di atas scrim */
+
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  body.latar .topbar,
+  body.latar .card,
+  body.latar .login-card,
+  body.latar .stat-tile,
+  body.latar .nav-dropdown-menu,
+  body.latar dialog.selesai,
+  body.latar .kartu-kalender {
+    background-color: var(--surface);
+    background-image: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

@@ -149,3 +149,15 @@ function flash_get(string $key): ?string
     unset($_SESSION['flash'][$key]);
     return $msg;
 }
+
+/**
+ * Nama latar foto hari ini (assets/img/latar/<nama>.webp). Senin-Jumat
+ * punya tema sendiri dengan 2 foto (a/b); pilihan a/b diacak per tanggal,
+ * jadi sama di semua halaman sepanjang hari. Sabtu/Minggu pakai tema Jumat.
+ */
+function latar_hari(): string
+{
+    $nama = [1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat'];
+    return $nama[min((int) date('N'), 5)] . (crc32(date('Y-m-d')) % 2 ? '-b' : '-a');
+}
+

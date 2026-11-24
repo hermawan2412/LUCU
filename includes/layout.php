@@ -111,10 +111,19 @@ function layout_header(string $title, string $active = '', string $section = 'us
   <?php if ($favicon = favicon_url('../')): ?>
   <link rel="icon" type="image/png" href="<?= $favicon ?>">
   <?php endif; ?>
-  <script>(function(){try{var m=localStorage.getItem('restu-theme');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m);}catch(e){}})();</script>
+  <script>(function(){try{var m=localStorage.getItem('restu-theme');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m);}catch(e){}var b=navigator.userAgentData&&navigator.userAgentData.brands;if(b&&b.some(function(x){return x.brand==='Chromium';}))document.documentElement.classList.add('kaca-refraksi');})();</script>
   <link rel="stylesheet" href="../assets/css/app.css">
 </head>
-<body>
+<body class="latar latar-<?= latar_hari() ?>">
+  <!-- Filter refraksi kaca cair: dipakai backdrop-filter topbar di Chromium
+       (kelas kaca-refraksi di <html>, lihat app.js). Peramban lain cukup blur. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <filter id="kaca-cair" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="2" seed="7" result="riak"/>
+      <feGaussianBlur in="riak" stdDeviation="2" result="riakHalus"/>
+      <feDisplacementMap in="SourceGraphic" in2="riakHalus" scale="22" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
   <?php if ($siagaCuti): ?><div class="siaga-ambient" aria-hidden="true" title="Lebih dari 30% pegawai cuti hari ini"></div><?php endif; ?>
   <header class="topbar">
     <div class="brand-mark">
