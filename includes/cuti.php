@@ -370,16 +370,22 @@ function cuti_sakit_wajib_dokter(int $lama, string $ketLamaCuti): bool
  * disimpan di tabel yang sama), dikelompokkan per tahun mulai cuti, terbaru
  * dulu. Tiap tahun membawa ringkasan total per jenis + satuan (Hari/Bulan/
  * Tahun tidak dijumlah lintas satuan). Berlaku sama untuk PNS dan PPPK.
- * Dipakai kartu "Rekap Cuti Saya" di dashboard pegawai.
+ * $tahun diisi = hanya tahun itu (dashboard pegawai: tahun berjalan);
+ * null = semua tahun (admin/riwayat_cuti.php untuk Admin & Pengelola).
  *
  * @return array<int, array{baris: array, ringkasan: array<string, int>}>
  */
-function cuti_riwayat_pengambilan(PDO $db, int $idPegawai): array
+function cuti_riwayat_pengambilan(PDO $db, int $idPegawai, ?int $tahun = null): array
 {
-    $rows = db_all($db, "SELECT id_cutipegawai, jenis_cuti, lama_cuti, ket_lama_cuti, dari_tanggal, sampai_dengan, dari_tanggal_iso
+    $sql = "SELECT id_cutipegawai, jenis_cuti, lama_cuti, ket_lama_cuti, dari_tanggal, sampai_dengan, dari_tanggal_iso
         FROM cuti_pegawai
-        WHERE id_pegawai = ? AND status_cuti = 'Disetujui'
-        ORDER BY dari_tanggal_iso DESC, id_cutipegawai DESC", [$idPegawai]);
+        WHERE id_pegawai = ? AND status_cuti = 'Disetujui'";
+    $params = [$idPegawai];
+    if ($tahun !== null) {
+        $sql .= " AND YEAR(dari_tanggal_iso) = ?";
+        $params[] = $tahun;
+    }
+    $rows = db_all($db, $sql . " ORDER BY dari_tanggal_iso DESC, id_cutipegawai DESC", $params);
 
     $perTahun = [];
     foreach ($rows as $r) {
@@ -389,6 +395,49 @@ function cuti_riwayat_pengambilan(PDO $db, int $idPegawai): array
         $perTahun[$tahun]['ringkasan'][$kunci] = ($perTahun[$tahun]['ringkasan'][$kunci] ?? 0) + (int) $r['lama_cuti'];
     }
     return $perTahun;
+}
+
+/**
+ * Tabel riwayat pengambilan cuti (hasil cuti_riwayat_pengambilan()): satu
+ * kelompok per tahun dengan ringkasan total per jenis, lalu baris per cuti.
+ * Dipakai bersama dashboard pegawai dan admin/riwayat_cuti.php supaya
+ * tampilannya selalu sama.
+ */
+function cuti_riwayat_tabel(array $perTahun): void
+{
+    ?>
+    <div class="table-scroll">
+      <table class="data-table tabel-riwayat">
+        <thead>
+          <tr><th scope="col">Jenis Cuti</th><th scope="col">Tanggal</th><th scope="col">Lama</th></tr>
+        </thead>
+        <?php foreach ($perTahun as $tahun => $grup): ?>
+          <?php
+          $bagian = [];
+          foreach ($grup['ringkasan'] as $kunci => $total) {
+              [$jenis, $satuan] = explode('|', $kunci, 2);
+              $bagian[] = e($jenis) . ' ' . (int) $total . ' ' . e($satuan);
+          }
+          ?>
+          <tbody>
+            <tr class="baris-tahun">
+              <th colspan="3" scope="rowgroup">
+                <?= (int) $tahun ?>
+                <span class="ringkasan-tahun"><?= implode(' · ', $bagian) ?></span>
+              </th>
+            </tr>
+            <?php foreach ($grup['baris'] as $r): ?>
+              <tr>
+                <td><?= e($r['jenis_cuti']) ?></td>
+                <td><?= e($r['dari_tanggal']) ?><?= $r['sampai_dengan'] !== $r['dari_tanggal'] ? ' s.d. ' . e($r['sampai_dengan']) : '' ?></td>
+                <td><?= (int) $r['lama_cuti'] ?> <?= e($r['ket_lama_cuti']) ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        <?php endforeach; ?>
+      </table>
+    </div>
+    <?php
 }
 
 function cuti_pernah_cuti_besar_5_tahun(PDO $db, int $idPegawai): bool

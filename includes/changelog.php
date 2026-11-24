@@ -19,8 +19,8 @@ const CHANGELOG_RILIS = [
         'tanggal' => '24 November 2026',
         'judul' => 'Riwayat pengambilan cuti di dashboard',
         'items' => [
-            'Kartu Rekap Cuti Saya kini menampilkan seluruh riwayat cuti yang disetujui, semua jenis dan semua tahun, untuk pegawai PNS maupun PPPK. Sebelumnya hanya tahun berjalan.',
-            'Riwayat dikelompokkan per tahun, terbaru di atas, dengan ringkasan total per jenis cuti di setiap tahun. Cuti yang diinput admin lewat Cuti Historis ikut tampil.',
+            'Kartu Rekap Cuti Saya kini menampilkan rincian setiap cuti yang disetujui tahun berjalan, semua jenis, untuk pegawai PNS maupun PPPK, dengan ringkasan total per jenis.',
+            'Admin dan Pengelola bisa membuka riwayat cuti lengkap setiap pegawai (semua tahun) lewat tombol Riwayat Cuti di Data Pegawai. Cuti yang diinput lewat Cuti Historis ikut tampil.',
         ],
     ],
     [

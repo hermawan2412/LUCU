@@ -287,7 +287,7 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
   <div class="table-scroll">
     <table class="data-table">
       <thead>
-        <tr><th>Nama</th><th>NIP</th><th>Jabatan</th><th>Atasan Langsung</th><th>Golongan</th><th>ASN</th><th>Sisa Cuti Tahunan</th><th>TTD</th><th style="width:160px;">Aksi</th></tr>
+        <tr><th>Nama</th><th>NIP</th><th>Jabatan</th><th>Atasan Langsung</th><th>Golongan</th><th>ASN</th><th>Sisa Cuti Tahunan</th><th>TTD</th><th style="width:250px;">Aksi</th></tr>
       </thead>
       <tbody>
         <?php foreach ($list as $row): ?>
@@ -309,6 +309,7 @@ layout_header('Data Pegawai', 'pegawai', 'admin');
             <td><?= $row['kuota_tersedia'] ?><?= ((int) $row['cuti_tahunan_n1'] > 0 || (int) $row['cuti_tahunan_n2'] > 0) ? ' <span class="hint" style="display:inline">(+akumulasi)</span>' : '' ?></td>
             <td><?= $row['tanda_tangan_path'] ? '✅' : '-' ?></td>
             <td>
+              <a href="riwayat_cuti.php?id=<?= (int) $row['id_pegawai'] ?>" class="btn-secondary" style="padding:5px 10px;">Riwayat Cuti</a>
               <a href="?edit=<?= (int) $row['id_pegawai'] ?>" class="btn-secondary" style="padding:5px 10px;">Edit</a>
               <form method="POST" style="display:inline;" onsubmit="return confirm('Hapus data pegawai <?= e(addslashes($row['nama_pegawai'])) ?>? Semua riwayat cuti/KGB/KNP-nya ikut terhapus.');">
                 <?= csrf_field() ?>

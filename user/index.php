@@ -13,7 +13,7 @@ $riwayatTerbaru = $pegawai
     ? db_all($db, "SELECT * FROM cuti_pegawai WHERE id_pegawai = ? ORDER BY id_cutipegawai DESC LIMIT 5", [$pegawai['id_pegawai']])
     : [];
 $riwayatPengambilan = $pegawai
-    ? cuti_riwayat_pengambilan($db, (int) $pegawai['id_pegawai'])
+    ? cuti_riwayat_pengambilan($db, (int) $pegawai['id_pegawai'], (int) date('Y'))
     : [];
 
 $bulanParam = $_GET['bulan'] ?? date('Y-m');
@@ -88,37 +88,11 @@ layout_header('Dashboard', 'dashboard');
       </a>
     </div>
 
-    <h3 style="font-size:0.95rem;margin:0 0 8px;">Riwayat Pengambilan Cuti</h3>
+    <h3 style="font-size:0.95rem;margin:0 0 8px;">Riwayat Pengambilan Cuti Tahun <?= date('Y') ?></h3>
     <?php if (empty($riwayatPengambilan)): ?>
-      <div class="empty-state">Belum ada cuti yang disetujui. <a href="pengajuan_cuti.php">Ajukan cuti</a>.</div>
+      <div class="empty-state">Belum ada cuti yang disetujui tahun ini. <a href="daftar_cuti.php">Lihat semua pengajuan</a>.</div>
     <?php else: ?>
-      <div class="table-scroll">
-        <table class="data-table tabel-riwayat">
-          <thead>
-            <tr><th scope="col">Jenis Cuti</th><th scope="col">Tanggal</th><th scope="col">Lama</th></tr>
-          </thead>
-          <?php foreach ($riwayatPengambilan as $tahun => $grup): ?>
-            <tbody>
-              <tr class="baris-tahun">
-                <th colspan="3" scope="rowgroup">
-                  <?= (int) $tahun ?>
-                  <span class="ringkasan-tahun">
-                    <?php $bagian = []; foreach ($grup['ringkasan'] as $kunci => $total) { [$jenis, $satuan] = explode('|', $kunci, 2); $bagian[] = e($jenis) . ' ' . (int) $total . ' ' . e($satuan); } ?>
-                    <?= implode(' · ', $bagian) ?>
-                  </span>
-                </th>
-              </tr>
-              <?php foreach ($grup['baris'] as $r): ?>
-                <tr>
-                  <td><?= e($r['jenis_cuti']) ?></td>
-                  <td><?= e($r['dari_tanggal']) ?><?= $r['sampai_dengan'] !== $r['dari_tanggal'] ? ' s.d. ' . e($r['sampai_dengan']) : '' ?></td>
-                  <td><?= (int) $r['lama_cuti'] ?> <?= e($r['ket_lama_cuti']) ?></td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          <?php endforeach; ?>
-        </table>
-      </div>
+      <?php cuti_riwayat_tabel($riwayatPengambilan); ?>
     <?php endif; ?>
   </div>
 
