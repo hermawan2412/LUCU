@@ -15,6 +15,18 @@ declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
     [
+        'versi' => '2026.11.24.5',
+        'tanggal' => '24 November 2026',
+        'judul' => 'Tampilan di HP lebih rapi',
+        'items' => [
+            'Kartu angka di HP kini dua kolom memenuhi layar.',
+            'Nomor versi di HP pindah ke bagian bawah menu, tidak lagi menutupi isi halaman.',
+            'Paragraf penjelasan di bawah judul halaman kini berada di atas lempeng kaca supaya mudah dibaca di atas foto.',
+            'Riwayat Cuti Terbaru di HP tampil sebagai kartu bertumpuk, tidak perlu digeser ke samping.',
+            'Tombol kecil di HP diperbesar supaya mudah diketuk, dan teks pendek seperti "Hari ini" tidak lagi terpotong ke baris baru.',
+        ],
+    ],
+    [
         'versi' => '2026.11.24.4',
         'tanggal' => '24 November 2026',
         'judul' => 'Penanda menu aktif',

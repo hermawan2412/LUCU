@@ -165,6 +165,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
           <?php if ($bellCount > 0): ?><span class="notif-count"><?= $bellCount > 9 ? '9+' : $bellCount ?></span><?php endif; ?>
         </a>
         <div class="who"><?= e($_SESSION['username'] ?? '') ?></div>
+        <a href="changelog.php" class="versi-kaki" title="Lihat riwayat pembaruan">v<?= e(changelog_versi_terbaru()) ?></a>
       </div>
     </div>
   </header>

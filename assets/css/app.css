@@ -1691,6 +1691,48 @@ body.latar .sidebar nav a.active {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 16px -8px rgba(0, 0, 0, 0.6);
 }
 
+/* ===== Layar sempit (HP) ===== */
+.versi-kaki { display: none; }
+@media (max-width: 960px) {
+  /* Badge versi melayang menutupi konten di HP: pindah ke kaki menu. */
+  .version-badge { display: none; }
+  .versi-kaki {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-left: auto;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--slate);
+    text-decoration: none;
+  }
+}
+@media (max-width: 640px) {
+  /* Kartu angka dua kolom memenuhi lebar, bukan mentok 220px. */
+  .stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stat-tile { padding: 18px 16px; }
+  /* Target sentuh minimal 44px untuk tombol kecil (Export CSV, Kembali). */
+  .btn-secondary, .btn-primary { min-height: 44px; box-sizing: border-box; }
+  .page .lead .btn-secondary { display: inline-flex; align-items: center; margin-top: 8px; }
+  /* Teks pendek yang tidak boleh patah: "Hari ini", "12 hari". */
+  .calendar-nav-links .btn-secondary { white-space: nowrap; padding-left: 14px; padding-right: 14px; }
+  .quota-row .sisa { white-space: nowrap; }
+}
+/* Paragraf penjelasan halaman duduk di atas foto: beri lempeng kaca supaya
+   tetap terbaca di bagian foto yang ramai (halo teks saja tidak cukup). */
+body.latar .page > .lead {
+  text-shadow: none;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 10px 16px;
+  border-radius: 16px;
+  background: var(--kaca-isi-baca);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: inset 0 1px 0 var(--kaca-dalam), 0 10px 24px -16px var(--kaca-bayangan);
+}
+
 /* Angka sejajar per digit di kartu statistik dan tabel. */
 .stat-tile .num,
 .data-table td { font-variant-numeric: tabular-nums; }

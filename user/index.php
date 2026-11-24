@@ -139,7 +139,7 @@ layout_header('Dashboard', 'dashboard');
       <div class="empty-state">Belum ada pengajuan cuti. <a href="pengajuan_cuti.php">Ajukan sekarang</a>.</div>
     <?php else: ?>
       <div class="table-scroll">
-        <table class="data-table">
+        <table class="data-table tabel-cuti">
           <thead>
             <tr>
               <th>Jenis</th>
