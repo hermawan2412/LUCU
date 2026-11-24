@@ -15,12 +15,20 @@ declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
     [
+        'versi' => '2026.11.24.4',
+        'tanggal' => '24 November 2026',
+        'judul' => 'Penanda menu aktif',
+        'items' => [
+            'Penanda menu aktif di menu samping kini berupa lensa kaca terang, bukan blok hitam, supaya menyatu dengan tampilan kaca.',
+            'Angka di kartu dan tabel kini sejajar per digit sehingga lebih mudah dibandingkan.',
+        ],
+    ],
+    [
         'versi' => '2026.11.24.3',
         'tanggal' => '24 November 2026',
         'judul' => 'Riwayat pengambilan cuti di dashboard',
         'items' => [
             'Kartu Rekap Cuti Saya kini menampilkan rincian setiap cuti yang disetujui tahun berjalan, semua jenis, untuk pegawai PNS maupun PPPK, dengan ringkasan total per jenis.',
-            'Penanda menu aktif di menu samping kini berupa lensa kaca terang, bukan blok hitam.',
             'Admin dan Pengelola bisa membuka riwayat cuti lengkap setiap pegawai (semua tahun) lewat tombol Riwayat Cuti di Data Pegawai. Cuti yang diinput lewat Cuti Historis ikut tampil.',
         ],
     ],
