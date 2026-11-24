@@ -1,6 +1,6 @@
 <?php
 // Riwayat pembaruan fitur - ditampilkan di changelog.php (link dari badge
-// versi di topbar, lihat includes/layout.php). Diisi manual tiap ada rilis
+// versi di pojok kanan bawah, lihat includes/layout.php). Diisi manual tiap ada rilis
 // fitur baru - bukan auto-generate dari git log, biar bahasanya bisa
 // dirapihin buat pembaca awam (bukan salinan pesan commit teknis).
 //
@@ -14,6 +14,18 @@
 declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
+    [
+        'versi' => '2026.11.24',
+        'tanggal' => '24 November 2026',
+        'judul' => 'Tampilan kaca, latar foto tiap hari, dan menu samping',
+        'items' => [
+            'Latar aplikasi kini foto pemandangan Nusantara yang berganti tiap hari kerja: Senin pegunungan, Selasa pantai, Rabu pemandangan dari pesawat, Kamis sawah, dan Jumat rumah tongkonan Toraja. Tiap hari punya dua foto yang dipilih bergantian.',
+            'Semua panel (menu, kartu, kalender, dialog) tampil seperti kaca tembus pandang, di tema terang maupun gelap. Teks tetap mudah dibaca.',
+            'Menu kini ada di samping kiri. "Data Master" bisa dibuka dan ditutup, dan otomatis terbuka di halamannya. Di HP, menu dibuka lewat tombol "Menu".',
+            'Kartu login kini ikut tema gelap.',
+            'Menu dan kolom isian lebih mudah dipakai dengan keyboard dan pembaca layar.',
+        ],
+    ],
     [
         'versi' => '2026.11.16',
         'tanggal' => '16 November 2026',
