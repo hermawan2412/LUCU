@@ -15,6 +15,15 @@ declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
     [
+        'versi' => '2026.11.24.2',
+        'tanggal' => '24 November 2026',
+        'judul' => 'Pengaturan tampilan kaca',
+        'items' => [
+            'Admin bisa mengatur tampilan kaca di Pengaturan: transparansi panel (Tinggi, Sedang, Rendah) dan efek cair (Halus, Kuat, Mati).',
+            'Menu Pengaturan kini tersorot saat halamannya dibuka.',
+        ],
+    ],
+    [
         'versi' => '2026.11.24',
         'tanggal' => '24 November 2026',
         'judul' => 'Tampilan kaca, latar foto tiap hari, dan menu samping',

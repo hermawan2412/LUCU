@@ -291,6 +291,8 @@ CREATE TABLE `pengaturan` (
   `wa_fonnte_token` varchar(100) NOT NULL DEFAULT '' COMMENT 'API token Fonnte (docs.fonnte.com), diisi admin/pengaturan.php',
   `wa_batas_harian` int(11) NOT NULL DEFAULT 100 COMMENT 'maks WA berhasil per hari; lewat batas ditahan - lihat wa_kirim()',
   `wa_kuota_bulanan` int(11) NOT NULL DEFAULT 1000 COMMENT 'kuota paket Fonnte per bulan, buat peringatan 80% di admin/pengaturan.php',
+  `kaca_transparan` tinyint(1) NOT NULL DEFAULT 3 COMMENT 'tampilan kaca: 1 rendah, 2 sedang, 3 tinggi (paling tembus yang masih lolos kontras)',
+  `kaca_cair` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'efek refraksi kaca: 0 mati, 1 halus, 2 kuat (Chromium saja)',
   `siaga_dismiss_tanggal` date DEFAULT NULL COMMENT 'admin matiin peringatan siaga cuti (>30%) buat tanggal ini doang - auto aktif lagi besok, lihat cuti_siaga_dismissed_hari_ini()',
   `diperbarui_pada` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_pengaturan`)

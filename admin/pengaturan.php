@@ -69,6 +69,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         log_aktivitas($db, 'update_pengaturan', 'Hapus logo instansi');
         flash_set('success', 'Logo instansi dihapus, kembali ke teks nama instansi.');
         redirect('pengaturan.php');
+    } elseif ($action === 'tampilan') {
+        $kacaTransparan = filter_var($_POST['kaca_transparan'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 3]]);
+        $kacaCair = filter_var($_POST['kaca_cair'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 2]]);
+        if ($kacaTransparan === false) $errors[] = 'Pilih tingkat transparansi kaca.';
+        if ($kacaCair === false) $errors[] = 'Pilih kekuatan efek cair.';
+
+        if (empty($errors)) {
+            db_query($db, "UPDATE pengaturan SET kaca_transparan=?, kaca_cair=? WHERE id_pengaturan = 1", [$kacaTransparan, $kacaCair]);
+            log_aktivitas($db, 'update_pengaturan', "Ubah tampilan kaca (transparan=$kacaTransparan, cair=$kacaCair)");
+            flash_set('success', 'Tampilan disimpan.');
+            redirect('pengaturan.php');
+        }
     } elseif ($action === 'whatsapp') {
         $waAktif = isset($_POST['wa_aktif']) ? 1 : 0;
         $waToken = trim($_POST['wa_fonnte_token'] ?? '');
@@ -114,7 +126,7 @@ $p = db_one($db, "SELECT * FROM pengaturan WHERE id_pengaturan = 1") ?? [
 ];
 $success = flash_get('success');
 
-layout_header('Pengaturan', '', 'admin');
+layout_header('Pengaturan', 'pengaturan', 'admin');
 ?>
 <h1>Pengaturan Aplikasi</h1>
 <p class="lead">Nama, judul, dan identitas instansi yang tampil di seluruh halaman.</p>
@@ -215,6 +227,33 @@ layout_header('Pengaturan', '', 'admin');
       <button type="submit" class="btn-secondary" style="width:auto;padding:10px 20px;">Hapus Logo Instansi</button>
     </form>
   <?php endif; ?>
+</div>
+
+<div class="card">
+  <h2 style="margin:0 0 16px;">Tampilan Kaca</h2>
+  <form method="POST">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="tampilan">
+    <div class="field">
+      <label for="kaca_transparan">Transparansi panel</label>
+      <select id="kaca_transparan" name="kaca_transparan">
+        <?php foreach ([3 => 'Tinggi (foto latar paling terlihat)', 2 => 'Sedang', 1 => 'Rendah (panel hampir pekat)'] as $nilai => $teks): ?>
+          <option value="<?= $nilai ?>"<?= APP_KACA_TRANSPARAN === $nilai ? ' selected' : '' ?>><?= e($teks) ?></option>
+        <?php endforeach; ?>
+      </select>
+      <p class="hint">Berlaku untuk semua pengguna. "Tinggi" adalah batas paling tembus yang teksnya tetap mudah dibaca.</p>
+    </div>
+    <div class="field">
+      <label for="kaca_cair">Efek cair (latar membias di balik kaca)</label>
+      <select id="kaca_cair" name="kaca_cair">
+        <?php foreach ([1 => 'Halus', 2 => 'Kuat', 0 => 'Mati'] as $nilai => $teks): ?>
+          <option value="<?= $nilai ?>"<?= APP_KACA_CAIR === $nilai ? ' selected' : '' ?>><?= e($teks) ?></option>
+        <?php endforeach; ?>
+      </select>
+      <p class="hint">Tampil di menu samping dan kartu angka, hanya di Chrome dan Edge. Matikan kalau komputer kantor terasa berat.</p>
+    </div>
+    <button type="submit" class="btn-primary" style="width:auto;padding:12px 24px;">Simpan Tampilan</button>
+  </form>
 </div>
 
 <div class="card">

@@ -37,6 +37,7 @@ The design should feel like a well-kept office ledger seen through glass: the wo
 - Every panel is glass: the sidebar, cards, stat tiles, dropdown menus, dialogs, the calendar, and the login card. The owner chose full glass, which overrides antislop R-10's cap of 1-2 glass elements. This is a deliberate exception.
 - Glass recipe: blur 28px with saturation 180%, a diagonal sheen, a bright top edge, inner depth, and two shadows that make each panel float above the photo. The sidebar floats highest. In Chromium, the sidebar also refracts the photo through an SVG displacement filter.
 - Readability is non-negotiable. The photo sits under a scrim (white 38% in light mode, black 50% in dark mode). Panels people read for a long time (cards, tables, dialogs) use 86% opacity, and the rest use 74%. `--slate` is darkened in light mode. Page titles that sit directly on the photo get a soft text halo.
+- Admins can tune the glass in Pengaturan > Tampilan Kaca. Transparency has three levels: Tinggi (55/62%, the default and the most translucent level that still passes contrast), Sedang (68/76%), and Rendah (80/88%). The liquid refraction can be set to Halus, Kuat, or Mati. Nothing more translucent than Tinggi is offered.
 - `prefers-reduced-transparency` and forced colours turn the panels back into solid surfaces.
 
 ## Themes

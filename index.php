@@ -35,7 +35,7 @@ $statCuti = cuti_statistik_hari_ini($db);
   <?php endif; ?>
   <link rel="stylesheet" href="assets/css/app.css">
 </head>
-<body class="latar latar-<?= latar_hari() ?>">
+<body class="latar latar-<?= latar_hari() ?>" data-kaca="<?= APP_KACA_TRANSPARAN ?>">
   <div class="login-shell">
     <div class="login-bg" aria-hidden="true"><span></span><span></span><span></span></div>
     <div class="login-topleft">

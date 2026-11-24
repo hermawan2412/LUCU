@@ -1488,8 +1488,7 @@ dialog.selesai .btn-primary { min-width: 140px; min-height: 44px; }
    Opasitas panel dihitung untuk kasus terburuk (foto putih/hitam penuh di
    belakang) supaya teks tetap >= 4.5:1. */
 body.latar {
-  --kaca-isi: rgba(255, 255, 255, 0.55);
-  --kaca-isi-baca: rgba(255, 255, 255, 0.62);
+  --kaca-rgb: 255 255 255;
   --kaca-tepi-redup: rgba(255, 255, 255, 0.18);
   --kaca-sisi-gelap: rgba(20, 30, 45, 0.16);
   --kaca-terang: 1.06;
@@ -1509,8 +1508,7 @@ body.latar {
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) body.latar {
-    --kaca-isi: rgba(22, 20, 18, 0.55);
-    --kaca-isi-baca: rgba(20, 18, 16, 0.62);
+    --kaca-rgb: 21 19 17;
     --kaca-tepi-redup: rgba(255, 255, 255, 0.04);
     --kaca-sisi-gelap: rgba(0, 0, 0, 0.35);
     --kaca-terang: 0.85;
@@ -1531,8 +1529,7 @@ body.latar {
   }
 }
 :root[data-theme="dark"] body.latar {
-  --kaca-isi: rgba(22, 20, 18, 0.55);
-  --kaca-isi-baca: rgba(20, 18, 16, 0.62);
+  --kaca-rgb: 21 19 17;
   --kaca-tepi-redup: rgba(255, 255, 255, 0.04);
   --kaca-sisi-gelap: rgba(0, 0, 0, 0.35);
   --kaca-terang: 0.85;
@@ -1550,6 +1547,17 @@ body.latar {
   --pastel-teal: #4fd1ae;
   --pastel-rose: #ec6f9a;
   --danger: #f2948a;
+}
+
+/* Tingkat transparansi (Pengaturan > Tampilan, atribut data-kaca di body).
+   3 = paling tembus yang masih lolos kontras 4.5:1 di kasus terburuk;
+   lebih tembus dari itu sengaja tidak disediakan. */
+body.latar { --kaca-a: 0.55; --kaca-a-baca: 0.62; }
+body.latar[data-kaca="2"] { --kaca-a: 0.68; --kaca-a-baca: 0.76; }
+body.latar[data-kaca="1"] { --kaca-a: 0.8; --kaca-a-baca: 0.88; }
+body.latar {
+  --kaca-isi: rgb(var(--kaca-rgb) / var(--kaca-a));
+  --kaca-isi-baca: rgb(var(--kaca-rgb) / var(--kaca-a-baca));
 }
 
 /* Path absolut, bukan ../img: Safari menyelesaikan url() di dalam custom
@@ -1646,8 +1654,8 @@ body.latar .sidebar {
    mendukung filter SVG di backdrop-filter; kelas dipasang di layout.php.
    Dipakai di panel kecil saja (sidebar, kartu statistik): filter ini
    berat kalau dipasang di kartu besar. */
-html.kaca-refraksi body.latar .sidebar,
-html.kaca-refraksi body.latar .stat-tile {
+html.kaca-refraksi body.latar:not([data-cair="0"]) .sidebar,
+html.kaca-refraksi body.latar:not([data-cair="0"]) .stat-tile {
   -webkit-backdrop-filter: url(#kaca-cair) blur(12px) saturate(200%) brightness(var(--kaca-terang));
   backdrop-filter: url(#kaca-cair) blur(12px) saturate(200%) brightness(var(--kaca-terang));
 }

@@ -86,6 +86,10 @@ define('APP_INSTANSI', $pengaturan['instansi'] ?? $config['app']['instansi']);
 define('APP_TAGLINE', $pengaturan['tagline'] ?? 'layanan cuti, tanpa antre.');
 define('APP_LOGO_PATH', $pengaturan['logo_path'] ?? null);
 define('APP_LOGO_INSTANSI_PATH', $pengaturan['logo_instansi_path'] ?? null);
+// Tampilan kaca (admin/pengaturan.php). Dijepit ke rentang sah supaya nilai
+// aneh di DB tidak menghasilkan atribut yang tidak dikenali CSS.
+define('APP_KACA_TRANSPARAN', max(1, min(3, (int) ($pengaturan['kaca_transparan'] ?? 3))));
+define('APP_KACA_CAIR', max(0, min(2, (int) ($pengaturan['kaca_cair'] ?? 1))));
 
 // Dimatikan sementara atas permintaan user (2026-09-06) - gak dihapus, tinggal
 // balikin ke true kapan aja. Dipakai includes/layout.php (sembunyiin nav),
