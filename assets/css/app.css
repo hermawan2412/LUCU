@@ -1668,6 +1668,33 @@ body.latar .stat-tile:hover {
     0 30px 56px -22px var(--kaca-bayangan);
 }
 
+/* Logo upload (biru navy) tenggelam di permukaan gelap: beri alas bulat
+   terang di belakangnya. File logo dan warnanya tidak diubah. Berlaku di
+   sidebar saat tema gelap, dan selalu di panel login (latarnya gelap). */
+.login-topleft .brand-mark img {
+  box-sizing: border-box; /* alas di dalam 90px, baris logo tidak melebar */
+  padding: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 1px 0 #fff, 0 6px 18px -6px rgba(0, 0, 0, 0.5);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sidebar .brand-mark img {
+    box-sizing: content-box;
+    padding: 3px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: inset 0 1px 0 #fff, 0 3px 8px -3px rgba(0, 0, 0, 0.5);
+  }
+}
+:root[data-theme="dark"] .sidebar .brand-mark img {
+  box-sizing: content-box;
+  padding: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 1px 0 #fff, 0 3px 8px -3px rgba(0, 0, 0, 0.5);
+}
+
 /* Login: foto yang sama di panel gelap, bercak animasi dimatikan. */
 body.latar .login-bg {
   background:

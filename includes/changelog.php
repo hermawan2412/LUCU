@@ -21,6 +21,7 @@ const CHANGELOG_RILIS = [
         'items' => [
             'Admin bisa mengatur tampilan kaca di Pengaturan: transparansi panel (Tinggi, Sedang, Rendah) dan efek cair (Halus, Kuat, Mati).',
             'Menu Pengaturan kini tersorot saat halamannya dibuka.',
+            'Logo aplikasi kini tetap terlihat di tema gelap dan di halaman login, dengan alas bulat terang di belakangnya.',
         ],
     ],
     [
