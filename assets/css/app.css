@@ -1532,27 +1532,30 @@ body.latar {
   --slate: #a7a29a;
 }
 
-body.latar-senin-a  { --latar-foto: url(../img/latar/senin-a.webp); }
-body.latar-senin-b  { --latar-foto: url(../img/latar/senin-b.webp); }
-body.latar-selasa-a { --latar-foto: url(../img/latar/selasa-a.webp); }
-body.latar-selasa-b { --latar-foto: url(../img/latar/selasa-b.webp); }
-body.latar-rabu-a   { --latar-foto: url(../img/latar/rabu-a.webp); }
-body.latar-rabu-b   { --latar-foto: url(../img/latar/rabu-b.webp); }
-body.latar-kamis-a  { --latar-foto: url(../img/latar/kamis-a.webp); }
-body.latar-kamis-b  { --latar-foto: url(../img/latar/kamis-b.webp); }
-body.latar-jumat-a  { --latar-foto: url(../img/latar/jumat-a.webp); }
-body.latar-jumat-b  { --latar-foto: url(../img/latar/jumat-b.webp); }
+/* Path absolut, bukan ../img: Safari menyelesaikan url() di dalam custom
+   property relatif ke HALAMAN (/user/...), bukan ke file CSS, jadi path
+   relatif jadi 404 dan latar hitam. RESTU selalu di root domain. */
+body.latar-senin-a  { --latar-foto: url(/assets/img/latar/senin-a.webp); }
+body.latar-senin-b  { --latar-foto: url(/assets/img/latar/senin-b.webp); }
+body.latar-selasa-a { --latar-foto: url(/assets/img/latar/selasa-a.webp); }
+body.latar-selasa-b { --latar-foto: url(/assets/img/latar/selasa-b.webp); }
+body.latar-rabu-a   { --latar-foto: url(/assets/img/latar/rabu-a.webp); }
+body.latar-rabu-b   { --latar-foto: url(/assets/img/latar/rabu-b.webp); }
+body.latar-kamis-a  { --latar-foto: url(/assets/img/latar/kamis-a.webp); }
+body.latar-kamis-b  { --latar-foto: url(/assets/img/latar/kamis-b.webp); }
+body.latar-jumat-a  { --latar-foto: url(/assets/img/latar/jumat-a.webp); }
+body.latar-jumat-b  { --latar-foto: url(/assets/img/latar/jumat-b.webp); }
 @media (max-width: 960px) {
-  body.latar-senin-a  { --latar-foto: url(../img/latar/senin-a-960.webp); }
-  body.latar-senin-b  { --latar-foto: url(../img/latar/senin-b-960.webp); }
-  body.latar-selasa-a { --latar-foto: url(../img/latar/selasa-a-960.webp); }
-  body.latar-selasa-b { --latar-foto: url(../img/latar/selasa-b-960.webp); }
-  body.latar-rabu-a   { --latar-foto: url(../img/latar/rabu-a-960.webp); }
-  body.latar-rabu-b   { --latar-foto: url(../img/latar/rabu-b-960.webp); }
-  body.latar-kamis-a  { --latar-foto: url(../img/latar/kamis-a-960.webp); }
-  body.latar-kamis-b  { --latar-foto: url(../img/latar/kamis-b-960.webp); }
-  body.latar-jumat-a  { --latar-foto: url(../img/latar/jumat-a-960.webp); }
-  body.latar-jumat-b  { --latar-foto: url(../img/latar/jumat-b-960.webp); }
+  body.latar-senin-a  { --latar-foto: url(/assets/img/latar/senin-a-960.webp); }
+  body.latar-senin-b  { --latar-foto: url(/assets/img/latar/senin-b-960.webp); }
+  body.latar-selasa-a { --latar-foto: url(/assets/img/latar/selasa-a-960.webp); }
+  body.latar-selasa-b { --latar-foto: url(/assets/img/latar/selasa-b-960.webp); }
+  body.latar-rabu-a   { --latar-foto: url(/assets/img/latar/rabu-a-960.webp); }
+  body.latar-rabu-b   { --latar-foto: url(/assets/img/latar/rabu-b-960.webp); }
+  body.latar-kamis-a  { --latar-foto: url(/assets/img/latar/kamis-a-960.webp); }
+  body.latar-kamis-b  { --latar-foto: url(/assets/img/latar/kamis-b-960.webp); }
+  body.latar-jumat-a  { --latar-foto: url(/assets/img/latar/jumat-a-960.webp); }
+  body.latar-jumat-b  { --latar-foto: url(/assets/img/latar/jumat-b-960.webp); }
 }
 
 /* Foto tetap di belakang (fixed), dengan selapis scrim supaya kaca di
