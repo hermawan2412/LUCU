@@ -1668,6 +1668,24 @@ body.latar .stat-tile:hover {
     0 30px 56px -22px var(--kaca-bayangan);
 }
 
+/* Riwayat pengambilan cuti (dashboard pegawai): baris judul per tahun. */
+.tabel-riwayat .baris-tahun th {
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  padding-top: 18px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.tabel-riwayat .ringkasan-tahun {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  font-weight: 450;
+  color: var(--slate);
+}
+
 /* Logo upload (biru navy) tenggelam di permukaan gelap: beri alas bulat
    terang di belakangnya. File logo dan warnanya tidak diubah. Berlaku di
    sidebar saat tema gelap, dan selalu di panel login (latarnya gelap). */

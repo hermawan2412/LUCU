@@ -365,18 +365,30 @@ function cuti_sakit_wajib_dokter(int $lama, string $ketLamaCuti): bool
 }
 
 /**
- * Rekap cuti (Disetujui) 1 pegawai dalam 1 tahun kalender, dikelompokkan per
- * jenis_cuti + satuan (Hari/Bulan/Tahun) - gak digabung lintas satuan biar
- * gak salah jumlah (mis. "3 Hari" + "2 Bulan" gak bisa dijumlah langsung).
- * Dipakai buat kartu "Rekap Cuti Saya" di dashboard.
+ * Riwayat pengambilan cuti 1 pegawai: semua cuti Disetujui, semua jenis,
+ * semua tahun (termasuk yang diinput admin lewat Cuti Historis, karena
+ * disimpan di tabel yang sama), dikelompokkan per tahun mulai cuti, terbaru
+ * dulu. Tiap tahun membawa ringkasan total per jenis + satuan (Hari/Bulan/
+ * Tahun tidak dijumlah lintas satuan). Berlaku sama untuk PNS dan PPPK.
+ * Dipakai kartu "Rekap Cuti Saya" di dashboard pegawai.
+ *
+ * @return array<int, array{baris: array, ringkasan: array<string, int>}>
  */
-function cuti_rekap_tahun(PDO $db, int $idPegawai, int $tahun): array
+function cuti_riwayat_pengambilan(PDO $db, int $idPegawai): array
 {
-    return db_all($db, "SELECT jenis_cuti, ket_lama_cuti, COUNT(*) AS jumlah_pengajuan, SUM(lama_cuti) AS total_lama
+    $rows = db_all($db, "SELECT id_cutipegawai, jenis_cuti, lama_cuti, ket_lama_cuti, dari_tanggal, sampai_dengan, dari_tanggal_iso
         FROM cuti_pegawai
-        WHERE id_pegawai = ? AND status_cuti = 'Disetujui' AND YEAR(dari_tanggal_iso) = ?
-        GROUP BY jenis_cuti, ket_lama_cuti
-        ORDER BY jenis_cuti ASC, ket_lama_cuti ASC", [$idPegawai, $tahun]);
+        WHERE id_pegawai = ? AND status_cuti = 'Disetujui'
+        ORDER BY dari_tanggal_iso DESC, id_cutipegawai DESC", [$idPegawai]);
+
+    $perTahun = [];
+    foreach ($rows as $r) {
+        $tahun = (int) substr((string) $r['dari_tanggal_iso'], 0, 4);
+        $perTahun[$tahun]['baris'][] = $r;
+        $kunci = $r['jenis_cuti'] . '|' . $r['ket_lama_cuti'];
+        $perTahun[$tahun]['ringkasan'][$kunci] = ($perTahun[$tahun]['ringkasan'][$kunci] ?? 0) + (int) $r['lama_cuti'];
+    }
+    return $perTahun;
 }
 
 function cuti_pernah_cuti_besar_5_tahun(PDO $db, int $idPegawai): bool

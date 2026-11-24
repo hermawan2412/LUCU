@@ -15,6 +15,15 @@ declare(strict_types=1);
 
 const CHANGELOG_RILIS = [
     [
+        'versi' => '2026.11.24.3',
+        'tanggal' => '24 November 2026',
+        'judul' => 'Riwayat pengambilan cuti di dashboard',
+        'items' => [
+            'Kartu Rekap Cuti Saya kini menampilkan seluruh riwayat cuti yang disetujui, semua jenis dan semua tahun, untuk pegawai PNS maupun PPPK. Sebelumnya hanya tahun berjalan.',
+            'Riwayat dikelompokkan per tahun, terbaru di atas, dengan ringkasan total per jenis cuti di setiap tahun. Cuti yang diinput admin lewat Cuti Historis ikut tampil.',
+        ],
+    ],
+    [
         'versi' => '2026.11.24.2',
         'tanggal' => '24 November 2026',
         'judul' => 'Pengaturan tampilan kaca',
