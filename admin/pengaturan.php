@@ -130,7 +130,7 @@ layout_header('Pengaturan', '', 'admin');
     <div class="field">
       <label for="nama_aplikasi">Nama Aplikasi (singkat)</label>
       <input id="nama_aplikasi" name="nama_aplikasi" type="text" required maxlength="100" value="<?= e($p['nama_aplikasi']) ?>">
-      <p class="hint">Muncul di brand mark topbar &amp; tab browser, mis. "RESTU".</p>
+      <p class="hint">Muncul di brand mark sidebar &amp; tab browser, mis. "RESTU".</p>
     </div>
     <div class="field">
       <label for="nama_lengkap">Nama Lengkap Aplikasi</label>
@@ -140,7 +140,7 @@ layout_header('Pengaturan', '', 'admin');
     <div class="field">
       <label for="instansi">Nama Instansi</label>
       <input id="instansi" name="instansi" type="text" required maxlength="150" value="<?= e($p['instansi']) ?>">
-      <p class="hint">Muncul di badge login, footer, dan topbar, mis. "Pengadilan Agama Rantau".</p>
+      <p class="hint">Muncul di badge login, footer, dan sidebar, mis. "Pengadilan Agama Rantau".</p>
     </div>
     <div class="field">
       <label for="tagline">Tagline</label>
@@ -153,7 +153,7 @@ layout_header('Pengaturan', '', 'admin');
 
 <div class="card">
   <h2 style="margin:0 0 16px;">Logo Aplikasi</h2>
-  <p class="lead">Tampil sebagai brand mark di topbar &amp; halaman login, gantiin ikon perisai bawaan.</p>
+  <p class="lead">Tampil sebagai brand mark di sidebar &amp; halaman login, gantiin ikon perisai bawaan.</p>
 
   <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
     <div style="width:130px; height:130px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border,#e5e5e5); border-radius:8px;">
@@ -170,7 +170,7 @@ layout_header('Pengaturan', '', 'admin');
     <div class="field">
       <label for="logo">Berkas Logo (PNG atau JPG, maks 2MB)</label>
       <input id="logo" name="logo" type="file" accept="image/png,image/jpeg" required>
-      <p class="hint">Idealnya persegi (mis. 256&times;256px), latar transparan (PNG) supaya rapi di topbar gelap maupun terang.</p>
+      <p class="hint">Idealnya persegi (mis. 256&times;256px), latar transparan (PNG) supaya rapi di sidebar gelap maupun terang.</p>
     </div>
     <button type="submit" class="btn-primary" style="width:auto;padding:12px 24px;">Unggah Logo</button>
   </form>

@@ -54,7 +54,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
         // saling rujuk (dropdown golongan/jabatan di form Data Pegawai), tapi
         // masing-masing tetap halaman CRUD sendiri (gak digabung jadi 1
         // halaman - biar gak numpuk kayak yang sempet dibahas). Ini cuma
-        // ngelompokin di nav biar topbar gak sesak 10 item sejajar.
+        // ngelompokin di nav biar sidebar gak kepanjangan.
         'master' => ['label' => 'Data Master', 'children' => [
             'pegawai' => ['label' => 'Data Pegawai', 'href' => 'data_pegawai.php'],
             'jabatan' => ['label' => 'Data Jabatan', 'href' => 'data_jabatan.php'],
@@ -114,8 +114,8 @@ function layout_header(string $title, string $active = '', string $section = 'us
   <script>(function(){try{var m=localStorage.getItem('restu-theme');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m);}catch(e){}var b=navigator.userAgentData&&navigator.userAgentData.brands;if(b&&b.some(function(x){return x.brand==='Chromium';}))document.documentElement.classList.add('kaca-refraksi');})();</script>
   <link rel="stylesheet" href="../assets/css/app.css">
 </head>
-<body class="latar latar-<?= latar_hari() ?>">
-  <!-- Filter refraksi kaca cair: dipakai backdrop-filter topbar di Chromium
+<body class="latar latar-<?= latar_hari() ?> dengan-sidebar">
+  <!-- Filter refraksi kaca cair: dipakai backdrop-filter sidebar di Chromium
        (kelas kaca-refraksi di <html>, lihat app.js). Peramban lain cukup blur. -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <filter id="kaca-cair" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
@@ -125,39 +125,44 @@ function layout_header(string $title, string $active = '', string $section = 'us
     </filter>
   </svg>
   <?php if ($siagaCuti): ?><div class="siaga-ambient" aria-hidden="true" title="Lebih dari 30% pegawai cuti hari ini"></div><?php endif; ?>
-  <header class="topbar">
-    <div class="brand-mark">
-      <?= brand_mark_svg(24, '../') ?>
-      <span>
-        <span class="wordmark"><?= e(APP_NAME) ?><?= $section === 'admin' ? ' · ' . e($_SESSION['role'] ?? 'Admin') : '' ?></span>
-        <span class="instansi"><?= e(APP_INSTANSI) ?></span>
-      </span>
+  <header class="sidebar" id="sidebar">
+    <div class="sidebar-kepala">
+      <div class="brand-mark">
+        <?= brand_mark_svg(24, '../') ?>
+        <span>
+          <span class="wordmark"><?= e(APP_NAME) ?><?= $section === 'admin' ? ' · ' . e($_SESSION['role'] ?? 'Admin') : '' ?></span>
+          <span class="instansi"><?= e(APP_INSTANSI) ?></span>
+        </span>
+      </div>
+      <button type="button" class="sidebar-menu-tombol" aria-expanded="false" aria-controls="sidebar-isi">Menu</button>
     </div>
-    <nav>
-      <?php foreach ($nav as $key => $item): ?>
-        <?php if (isset($item['children'])): ?>
-          <?php $grupAktif = array_key_exists($active, $item['children']); ?>
-          <div class="nav-dropdown">
-            <button type="button" aria-expanded="false" class="nav-dropdown-toggle<?= $grupAktif ? ' active' : '' ?>"><?= e($item['label']) ?> <span class="caret">&#9662;</span></button>
-            <div class="nav-dropdown-menu">
-              <?php foreach ($item['children'] as $childKey => $child): ?>
-                <a href="<?= e($child['href']) ?>" class="<?= $active === $childKey ? 'active' : '' ?>"><?= e($child['label']) ?></a>
-              <?php endforeach; ?>
-            </div>
-          </div>
-        <?php else: ?>
-          <a href="<?= e($item['href']) ?>" class="<?= $active === $key ? 'active' : '' ?>"><?= e($item['label']) ?></a>
-        <?php endif; ?>
-      <?php endforeach; ?>
-      <a href="../logout.php">Keluar</a>
-    </nav>
-    <div style="display:flex; align-items:center; gap:10px;">
-      <?= layout_theme_toggle_svg() ?>
-      <a href="<?= e($bellHref) ?>" class="notif-bell<?= $bellCount > 0 ? ' has-unread' : '' ?>" data-count="<?= $bellCount ?>" aria-label="<?= $section === 'admin' ? 'Cuti sedang diajukan' : 'Notifikasi' ?><?= $bellCount > 0 ? ', ' . $bellCount . ' belum dibaca' : '' ?>" title="<?= $section === 'admin' ? 'Cuti sedang diajukan' : 'Notifikasi' ?>">
-        <?= layout_bell_svg() ?>
-        <?php if ($bellCount > 0): ?><span class="notif-count"><?= $bellCount > 9 ? '9+' : $bellCount ?></span><?php endif; ?>
-      </a>
-      <div class="who"><?= e($_SESSION['username'] ?? '') ?></div>
+    <div class="sidebar-isi" id="sidebar-isi">
+      <nav aria-label="Menu utama">
+        <?php foreach ($nav as $key => $item): ?>
+          <?php if (isset($item['children'])): ?>
+            <?php $grupAktif = array_key_exists($active, $item['children']); ?>
+            <details class="nav-grup"<?= $grupAktif ? ' open' : '' ?>>
+              <summary class="<?= $grupAktif ? 'active' : '' ?>"><?= e($item['label']) ?></summary>
+              <div class="nav-grup-isi">
+                <?php foreach ($item['children'] as $childKey => $child): ?>
+                  <a href="<?= e($child['href']) ?>" class="<?= $active === $childKey ? 'active' : '' ?>"<?= $active === $childKey ? ' aria-current="page"' : '' ?>><?= e($child['label']) ?></a>
+                <?php endforeach; ?>
+              </div>
+            </details>
+          <?php else: ?>
+            <a href="<?= e($item['href']) ?>" class="<?= $active === $key ? 'active' : '' ?>"<?= $active === $key ? ' aria-current="page"' : '' ?>><?= e($item['label']) ?></a>
+          <?php endif; ?>
+        <?php endforeach; ?>
+        <a href="../logout.php">Keluar</a>
+      </nav>
+      <div class="sidebar-kaki">
+        <?= layout_theme_toggle_svg() ?>
+        <a href="<?= e($bellHref) ?>" class="notif-bell<?= $bellCount > 0 ? ' has-unread' : '' ?>" data-count="<?= $bellCount ?>" aria-label="<?= $section === 'admin' ? 'Cuti sedang diajukan' : 'Notifikasi' ?><?= $bellCount > 0 ? ', ' . $bellCount . ' belum dibaca' : '' ?>" title="<?= $section === 'admin' ? 'Cuti sedang diajukan' : 'Notifikasi' ?>">
+          <?= layout_bell_svg() ?>
+          <?php if ($bellCount > 0): ?><span class="notif-count"><?= $bellCount > 9 ? '9+' : $bellCount ?></span><?php endif; ?>
+        </a>
+        <div class="who"><?= e($_SESSION['username'] ?? '') ?></div>
+      </div>
     </div>
   </header>
   <a href="changelog.php" class="version-badge" title="Lihat riwayat pembaruan">v<?= e(changelog_versi_terbaru()) ?></a>

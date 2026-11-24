@@ -20,7 +20,7 @@ The design should feel like a well-kept office ledger seen through glass: the wo
 
 ## Layout
 
-- The top bar holds the brand, the role, the navigation (grouped dropdowns), the theme toggle, and the notification bell. There is no footer beyond the page.
+- A glass sidebar on the left holds the brand, the role, the navigation (groups such as "Data Master" are native <details> that open automatically on their own pages), and at the bottom the theme toggle, the notification bell, and the account. At 960px and below it becomes a top bar with a "Menu" button (Escape closes it). There is no footer.
 - Each page has one focal point: a form, a table, or the calendar. The dashboard uses stat tiles for counts, and each tile links to its list.
 - Pages are uniform on purpose (RHYTHM 1). Staff learn one pattern and reuse it.
 - Tables scroll horizontally inside `.table-scroll` on mobile. The page itself never overflows.
@@ -34,8 +34,8 @@ The design should feel like a well-kept office ledger seen through glass: the wo
 
 - Each working day has its own photo theme: Senin mountains, Selasa beach, Rabu the view from an airplane window, Kamis rice terraces, and Jumat Toraja tongkonan houses. Every theme has two photos (a/b). `latar_hari()` in `includes/helpers.php` picks one per date, so the photo stays the same on every page for the whole day. Sabtu and Minggu use the Jumat theme.
 - Photos are free Unsplash images, served as WebP from `assets/img/latar/` (1920px, plus a 960px version for screens up to 960px wide).
-- Every panel is glass: the topbar, cards, stat tiles, dropdown menus, dialogs, the calendar, and the login card. The owner chose full glass, which overrides antislop R-10's cap of 1-2 glass elements. This is a deliberate exception.
-- Glass recipe: blur 28px with saturation 180%, a diagonal sheen, a bright top edge, inner depth, and two shadows that make each panel float above the photo. The topbar floats highest. In Chromium, the topbar also refracts the photo through an SVG displacement filter.
+- Every panel is glass: the sidebar, cards, stat tiles, dropdown menus, dialogs, the calendar, and the login card. The owner chose full glass, which overrides antislop R-10's cap of 1-2 glass elements. This is a deliberate exception.
+- Glass recipe: blur 28px with saturation 180%, a diagonal sheen, a bright top edge, inner depth, and two shadows that make each panel float above the photo. The sidebar floats highest. In Chromium, the sidebar also refracts the photo through an SVG displacement filter.
 - Readability is non-negotiable. The photo sits under a scrim (white 38% in light mode, black 50% in dark mode). Panels people read for a long time (cards, tables, dialogs) use 86% opacity, and the rest use 74%. `--slate` is darkened in light mode. Page titles that sit directly on the photo get a soft text halo.
 - `prefers-reduced-transparency` and forced colours turn the panels back into solid surfaces.
 

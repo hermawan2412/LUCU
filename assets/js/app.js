@@ -67,40 +67,19 @@
   });
 })();
 
-// Dropdown nav ("Data Master" dkk) - klik toggle, bukan :hover (biar jalan
-// jg di mobile/tap). Klik di luar atau pilih salah satu link nutup lagi.
+// Sidebar: di layar sempit isinya dilipat di balik tombol "Menu".
+// Grup menu ("Data Master" dkk) pakai <details> bawaan, tanpa JS.
 (function () {
-  var dropdowns = document.querySelectorAll('.nav-dropdown');
-  if (!dropdowns.length) return;
-
-  function tutupSemua() {
-    dropdowns.forEach(function (dd) {
-      dd.classList.remove('open');
-      dd.querySelector('.nav-dropdown-toggle').setAttribute('aria-expanded', 'false');
-    });
+  var sb = document.getElementById('sidebar');
+  if (!sb) return;
+  var tombol = sb.querySelector('.sidebar-menu-tombol');
+  function atur(buka) {
+    sb.classList.toggle('buka', buka);
+    tombol.setAttribute('aria-expanded', buka ? 'true' : 'false');
   }
-
-  dropdowns.forEach(function (dd) {
-    var toggle = dd.querySelector('.nav-dropdown-toggle');
-    toggle.addEventListener('click', function (e) {
-      e.stopPropagation();
-      var sudahKebuka = dd.classList.contains('open');
-      tutupSemua();
-      if (!sudahKebuka) {
-        dd.classList.add('open');
-        toggle.setAttribute('aria-expanded', 'true');
-      }
-    });
-  });
-
-  document.addEventListener('click', tutupSemua);
-  // Escape nutup menu yang kebuka dan balikin fokus ke tombolnya.
+  tombol.addEventListener('click', function () { atur(!sb.classList.contains('buka')); });
   document.addEventListener('keydown', function (e) {
-    if (e.key !== 'Escape') return;
-    var buka = document.querySelector('.nav-dropdown.open');
-    if (!buka) return;
-    tutupSemua();
-    buka.querySelector('.nav-dropdown-toggle').focus();
+    if (e.key === 'Escape' && sb.classList.contains('buka')) { atur(false); tombol.focus(); }
   });
 })();
 

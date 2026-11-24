@@ -88,7 +88,7 @@
 }
 
 /* ===== Dark mode =====
-   3 opsi (tombol toggle di topbar, lihat assets/js/app.js): Auto (ikut
+   3 opsi (tombol toggle di sidebar, lihat assets/js/app.js): Auto (ikut
    prefers-color-scheme sistem), Terang (paksa), Gelap (paksa). Pilihan
    manual disimpan localStorage sbg atribut data-theme di <html> - dicek
    PALING AWAL lewat inline <script> di <head> (lihat includes/layout.php
@@ -531,30 +531,35 @@ a { color: var(--link-blue); }
 
 /* ===== App shell ===== */
 
-.topbar {
-  background: var(--surface);
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-1);
-  padding: 12px 28px;
-  margin: 20px auto 0;
-  max-width: 1180px;
-  display: flex;
-  align-items: center;
-  /* center, bukan space-between - logo/menu/toggle/info akun dikumpulin di
-     tengah (bukan logo mentok kiri, info akun mentok kanan). flex-wrap
-     bikin tiap baris (pas wrap ke bawah di layar sempit) ikut ke-center
-     sendiri-sendiri. */
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 14px;
-  position: sticky;
+/* Sidebar kiri (2026-11-24, menggantikan topbar). Desktop: panel tetap
+   di kiri, halaman bergeser lewat body.dengan-sidebar. Layar <= 960px:
+   jadi bar atas, isinya dilipat di balik tombol Menu (app.js). */
+.sidebar {
+  position: fixed;
   top: 16px;
+  bottom: 16px;
+  left: 16px;
+  width: 248px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 22px 14px 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+  overflow-y: auto;
   z-index: 10;
 }
+body.dengan-sidebar { padding-left: 264px; }
 
-.topbar .brand-mark svg { color: var(--ink); }
-.topbar .brand-mark .wordmark { font-size: 1.05rem; color: var(--ink); }
-.topbar .brand-mark .instansi {
+.sidebar-kepala { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 8px; }
+.sidebar-menu-tombol { display: none; }
+.sidebar-isi { display: flex; flex-direction: column; gap: 18px; flex: 1; min-height: 0; }
+
+.sidebar .brand-mark svg { color: var(--ink); }
+.sidebar .brand-mark .wordmark { font-size: 1.05rem; color: var(--ink); }
+.sidebar .brand-mark .instansi {
   font-size: 0.7rem;
   font-weight: 450;
   color: var(--slate);
@@ -583,91 +588,92 @@ a { color: var(--link-blue); }
   .version-badge { right: auto; left: 50%; transform: translateX(-50%); }
 }
 
-.topbar nav {
-  display: flex;
-  gap: 2px;
-  flex-wrap: wrap;
-  /* Center - .topbar border-radius-nya pill (999px), begitu nav-nya
-     wrap ke banyak baris (HP sempit, menu admin bisa sampe 4 baris) item
-     paling pinggir kiri/kanan kepotong lengkungan oval-nya kalau rata kiri
-     (default). Center jauhin item dari sudut lengkung itu. */
-  justify-content: center;
-}
+.sidebar nav { display: flex; flex-direction: column; gap: 2px; }
 
-.topbar nav a {
+.sidebar nav a,
+.nav-grup > summary {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  box-sizing: border-box;
   color: var(--slate);
   text-decoration: none;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 500;
   padding: 9px 14px;
   border-radius: var(--radius-pill);
+  cursor: pointer;
   transition: color 0.15s ease, background 0.15s ease;
 }
+.sidebar nav a:hover,
+.nav-grup > summary:hover { color: var(--ink); background: var(--bone); }
 
-.topbar nav a:hover { color: var(--ink); background: var(--bone); }
-
-.topbar nav a.active {
-  /* var(--signal) - brand-orange, sengaja gak ikut kebalik antar tema
-     (lihat token block: --signal dikecualikan dari flip dark mode), jadi
-     teks menu aktif selalu oranye & kontras di kedua tema tanpa perlu
-     override terpisah buat dark mode. */
+.sidebar nav a.active {
+  /* var(--signal) tidak ikut kebalik antar tema, jadi menu aktif selalu
+     oranye di atas ink di kedua tema. */
   color: var(--signal);
   background: var(--ink);
 }
 
-/* Dropdown nav ("Data Master") - toggle klik (bukan cuma :hover), biar
-   konsisten di mobile yang gak ada hover. Dibuka/ditutup app.js, cuma
-   nambah/nyabut class .open di .nav-dropdown. */
-.nav-dropdown { position: relative; }
-
-.nav-dropdown-toggle {
-  font: inherit;
-  cursor: pointer;
-  border: none;
-  background: none;
-  color: var(--slate);
-  font-size: 0.88rem;
-  font-weight: 500;
-  padding: 9px 14px;
-  border-radius: var(--radius-pill);
-  transition: color 0.15s ease, background 0.15s ease;
-}
-.nav-dropdown-toggle .caret { font-size: 0.65em; margin-left: 2px; }
-.nav-dropdown-toggle:hover { color: var(--ink); background: var(--bone); }
-.nav-dropdown-toggle.active { color: var(--signal); background: var(--ink); }
-
-.nav-dropdown-menu {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 8px;
-  padding: 6px;
-  min-width: 180px;
-  background: var(--surface);
-  border-radius: var(--radius-tiny);
-  box-shadow: var(--shadow-2);
+/* Grup menu ("Data Master"): <details> bawaan, terbuka otomatis kalau
+   salah satu halamannya sedang dibuka. */
+.nav-grup > summary { list-style: none; }
+.nav-grup > summary::-webkit-details-marker { display: none; }
+.nav-grup > summary::after { content: "\25BE"; margin-left: auto; font-size: 0.75em; }
+.nav-grup[open] > summary::after { transform: rotate(180deg); }
+.nav-grup > summary.active { color: var(--ink); font-weight: 600; }
+.nav-grup-isi {
+  display: flex;
   flex-direction: column;
   gap: 2px;
-  z-index: 20;
+  margin: 2px 0 6px 18px;
+  padding-left: 8px;
+  border-left: 1px solid var(--border-strong);
 }
-.nav-dropdown.open .nav-dropdown-menu { display: flex; }
+.nav-grup-isi a { font-size: 0.86rem; min-height: 36px; padding: 7px 12px; }
 
-.nav-dropdown-menu a {
-  color: var(--slate);
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 500;
-  padding: 8px 12px;
-  border-radius: var(--radius-tiny);
-  white-space: nowrap;
-  transition: color 0.15s ease, background 0.15s ease;
+.sidebar-kaki {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
 }
-.nav-dropdown-menu a:hover { color: var(--ink); background: var(--bone); }
-.nav-dropdown-menu a.active { color: var(--signal); background: var(--ink); }
 
-.topbar .who {
+@media (max-width: 960px) {
+  .sidebar {
+    position: sticky;
+    top: 12px;
+    bottom: auto;
+    left: auto;
+    width: auto;
+    margin: 12px 12px 0;
+    max-height: calc(100dvh - 24px);
+    padding: 12px 14px;
+    gap: 0;
+  }
+  body.dengan-sidebar { padding-left: 0; }
+  .sidebar-kepala { padding: 0; }
+  .sidebar-menu-tombol {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 18px;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--bone);
+    border: none;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+  }
+  .sidebar-menu-tombol:hover { background: var(--border); }
+  .sidebar-isi { display: none; padding-top: 14px; }
+  .sidebar.buka .sidebar-isi { display: flex; }
+}
+
+.sidebar .who {
   font-size: 0.78rem;
   font-weight: 500;
   color: var(--ink);
@@ -805,27 +811,23 @@ a { color: var(--link-blue); }
    meluncur dari posisi lama ke yang baru, isi halaman berganti dengan pudar-naik. */
 @media (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
-  .topbar { view-transition-name: topbar; }
+  .sidebar { view-transition-name: sidebar; }
   /* Hanya item level atas: anak dropdown aktif bersamaan dengan toggle-nya,
      nama kembar membuat transisi batal. */
-  .topbar nav > a.active, .nav-dropdown-toggle.active { view-transition-name: nav-aktif; }
+  .sidebar nav a.active { view-transition-name: nav-aktif; }
   ::view-transition-group(nav-aktif) { animation-duration: 0.38s; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
   ::view-transition-old(root) { animation: 0.16s ease both vt-keluar; }
   ::view-transition-new(root) { animation: 0.32s cubic-bezier(0.16, 1, 0.3, 1) both vt-masuk; }
 
-  .topbar nav a, .nav-dropdown-toggle, .nav-dropdown-menu a { transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease; }
-  .topbar nav a:active, .nav-dropdown-toggle:active, .nav-dropdown-menu a:active { transform: scale(0.94); }
-  .nav-dropdown.open .nav-dropdown-menu { animation: menu-buka 0.18s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .nav-dropdown .caret { display: inline-block; transition: transform 0.18s ease; }
-  .nav-dropdown.open .caret { transform: rotate(180deg); }
+  .sidebar nav a, .nav-grup > summary { transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease; }
+  .sidebar nav a:active, .nav-grup > summary:active { transform: scale(0.96); }
+  .nav-grup[open] > .nav-grup-isi { animation: grup-buka 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
+  .nav-grup > summary::after { transition: transform 0.18s ease; }
 }
 
 @keyframes vt-keluar { to { opacity: 0; } }
 @keyframes vt-masuk { from { opacity: 0; transform: translateY(8px); } }
-@keyframes menu-buka {
-  from { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(0.97); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-}
+@keyframes grup-buka { from { opacity: 0; transform: translateY(-4px); } }
 
 @keyframes rise-in {
   from { opacity: 0; transform: translateY(10px); }
@@ -1174,7 +1176,7 @@ a.calendar-cell:focus-visible { outline: none; } /* diganti cincin .kal-halo (li
 
 .calendar-cell.today .calendar-day-num {
   background: var(--ink);
-  color: var(--canvas); /* bukan #fff - sama alasan .topbar nav a.active */
+  color: var(--canvas); /* bukan #fff - sama alasan .sidebar nav a.active */
 }
 
 .calendar-persen {
@@ -1568,11 +1570,10 @@ body.latar:has(.kartu-kalender)::before {
 /* Resep kaca. Sheen diagonal = pantulan cahaya di permukaan; inset atas =
    tepi yang memantulkan cahaya; inset dalam = tebal kaca; dua bayangan =
    jarak panel dari latar (kesan spasial). */
-body.latar .topbar,
+body.latar .sidebar,
 body.latar .card,
 body.latar .login-card,
 body.latar .stat-tile,
-body.latar .nav-dropdown-menu,
 body.latar dialog.selesai,
 body.latar .kartu-kalender {
   background-color: var(--kaca-isi);
@@ -1597,8 +1598,8 @@ body.latar .kartu-kalender { background-color: var(--kaca-isi-baca); }
 body.latar .page > h1,
 body.latar .page > .lead { text-shadow: 0 0 14px var(--latar-halo), 0 0 2px var(--latar-halo); }
 body.latar .card .table-scroll { background-color: transparent; }
-/* Topbar melayang paling tinggi. */
-body.latar .topbar {
+/* Sidebar melayang paling tinggi. */
+body.latar .sidebar {
   box-shadow:
     inset 0 1px 0 var(--kaca-tepi),
     inset 0 -1px 1px var(--kaca-tepi-bawah),
@@ -1608,7 +1609,7 @@ body.latar .topbar {
 }
 /* Refraksi asli (latar membias di balik kaca): hanya Chromium yang
    mendukung filter SVG di backdrop-filter; kelas dipasang di layout.php. */
-html.kaca-refraksi body.latar .topbar {
+html.kaca-refraksi body.latar .sidebar {
   -webkit-backdrop-filter: url(#kaca-cair) blur(16px) saturate(180%);
   backdrop-filter: url(#kaca-cair) blur(16px) saturate(180%);
 }
@@ -1619,12 +1620,6 @@ body.latar .stat-tile:hover {
     inset 0 0 24px -6px var(--kaca-dalam),
     0 2px 6px rgba(0, 0, 0, 0.10),
     0 30px 56px -22px var(--kaca-bayangan);
-}
-
-/* Di layar sempit topbar membungkus jadi beberapa baris: pil jadi oval,
-   pakai radius kartu. */
-@media (max-width: 720px) {
-  body.latar .topbar { border-radius: var(--radius); }
 }
 
 /* Login: foto yang sama di panel gelap, bercak animasi dimatikan. */
@@ -1638,12 +1633,11 @@ body.latar .login-topleft { --dust: #e9e6e1; }
 body.latar .login-title em { color: #ffb38a; } /* oranye terang: >= 3:1 di atas scrim */
 
 @media (prefers-reduced-transparency: reduce), (forced-colors: active) {
-  body.latar .topbar,
+  body.latar .sidebar,
   body.latar .card,
   body.latar .login-card,
   body.latar .stat-tile,
-  body.latar .nav-dropdown-menu,
-  body.latar dialog.selesai,
+    body.latar dialog.selesai,
   body.latar .kartu-kalender {
     background-color: var(--surface);
     background-image: none;
