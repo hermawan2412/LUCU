@@ -116,7 +116,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
 </head>
 <body>
   <?php if ($siagaCuti): ?><div class="siaga-ambient" aria-hidden="true" title="Lebih dari 30% pegawai cuti hari ini"></div><?php endif; ?>
-  <div class="topbar">
+  <header class="topbar">
     <div class="brand-mark">
       <?= brand_mark_svg(24, '../') ?>
       <span>
@@ -129,7 +129,7 @@ function layout_header(string $title, string $active = '', string $section = 'us
         <?php if (isset($item['children'])): ?>
           <?php $grupAktif = array_key_exists($active, $item['children']); ?>
           <div class="nav-dropdown">
-            <button type="button" class="nav-dropdown-toggle<?= $grupAktif ? ' active' : '' ?>"><?= e($item['label']) ?> <span class="caret">&#9662;</span></button>
+            <button type="button" aria-expanded="false" class="nav-dropdown-toggle<?= $grupAktif ? ' active' : '' ?>"><?= e($item['label']) ?> <span class="caret">&#9662;</span></button>
             <div class="nav-dropdown-menu">
               <?php foreach ($item['children'] as $childKey => $child): ?>
                 <a href="<?= e($child['href']) ?>" class="<?= $active === $childKey ? 'active' : '' ?>"><?= e($child['label']) ?></a>
@@ -144,22 +144,22 @@ function layout_header(string $title, string $active = '', string $section = 'us
     </nav>
     <div style="display:flex; align-items:center; gap:10px;">
       <?= layout_theme_toggle_svg() ?>
-      <a href="<?= e($bellHref) ?>" class="notif-bell<?= $bellCount > 0 ? ' has-unread' : '' ?>" data-count="<?= $bellCount ?>" title="<?= $section === 'admin' ? 'Cuti sedang diajukan' : 'Notifikasi' ?>">
+      <a href="<?= e($bellHref) ?>" class="notif-bell<?= $bellCount > 0 ? ' has-unread' : '' ?>" data-count="<?= $bellCount ?>" aria-label="<?= $section === 'admin' ? 'Cuti sedang diajukan' : 'Notifikasi' ?><?= $bellCount > 0 ? ', ' . $bellCount . ' belum dibaca' : '' ?>" title="<?= $section === 'admin' ? 'Cuti sedang diajukan' : 'Notifikasi' ?>">
         <?= layout_bell_svg() ?>
         <?php if ($bellCount > 0): ?><span class="notif-count"><?= $bellCount > 9 ? '9+' : $bellCount ?></span><?php endif; ?>
       </a>
       <div class="who"><?= e($_SESSION['username'] ?? '') ?></div>
     </div>
-  </div>
+  </header>
   <a href="changelog.php" class="version-badge" title="Lihat riwayat pembaruan">v<?= e(changelog_versi_terbaru()) ?></a>
-  <div class="page">
+  <main class="page">
     <?php
 }
 
 function layout_footer(): void
 {
     ?>
-  </div>
+  </main>
   <?php selesai_render(); ?>
   <script src="../assets/js/app.js"></script>
 </body>

@@ -77,7 +77,7 @@ $statCuti = cuti_statistik_hari_ini($db);
       </div>
     </div>
 
-    <p class="login-footer"><?= e(APP_NAME) ?> — <?= e(APP_INSTANSI) ?></p>
+    <p class="login-footer"><?= e(APP_NAME) ?> · <?= e(APP_INSTANSI) ?></p>
   </div>
   <script src="assets/js/app.js"></script>
 </body>

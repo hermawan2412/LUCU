@@ -160,7 +160,7 @@ layout_header('Pengaturan', '', 'admin');
       <?= brand_mark_svg(110, '../') ?>
     </div>
     <span class="hint" style="margin:0;">
-      <?= APP_LOGO_PATH ? 'Logo saat ini sudah diupload.' : 'Belum ada logo — masih pakai ikon bawaan.' ?>
+      <?= APP_LOGO_PATH ? 'Logo saat ini sudah diupload.' : 'Belum ada logo, masih pakai ikon bawaan.' ?>
     </span>
   </div>
 
@@ -186,14 +186,14 @@ layout_header('Pengaturan', '', 'admin');
 
 <div class="card">
   <h2 style="margin:0 0 16px;">Logo Instansi</h2>
-  <p class="lead">Tampil di halaman login (gantiin badge teks nama instansi) — ukuran disamakan dengan Logo Aplikasi di atas.</p>
+  <p class="lead">Tampil di halaman login (gantiin badge teks nama instansi), ukuran disamakan dengan Logo Aplikasi di atas.</p>
 
   <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
     <div style="width:130px; height:130px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border,#e5e5e5); border-radius:8px; background:#141413;">
       <?= logo_instansi_html(110, '../') ?>
     </div>
     <span class="hint" style="margin:0;">
-      <?= APP_LOGO_INSTANSI_PATH ? 'Logo instansi saat ini sudah diupload.' : 'Belum ada logo — halaman login masih pakai teks nama instansi.' ?>
+      <?= APP_LOGO_INSTANSI_PATH ? 'Logo instansi saat ini sudah diupload.' : 'Belum ada logo, halaman login masih pakai teks nama instansi.' ?>
     </span>
   </div>
 
@@ -203,7 +203,7 @@ layout_header('Pengaturan', '', 'admin');
     <div class="field">
       <label for="logo_instansi">Berkas Logo Instansi (PNG atau JPG, maks 2MB)</label>
       <input id="logo_instansi" name="logo_instansi" type="file" accept="image/png,image/jpeg" required>
-      <p class="hint">Latar belakangnya gelap (halaman login pakai panel hitam) — PNG latar transparan paling pas.</p>
+      <p class="hint">Latar belakangnya gelap (halaman login pakai panel hitam), PNG latar transparan paling pas.</p>
     </div>
     <button type="submit" class="btn-primary" style="width:auto;padding:12px 24px;">Unggah Logo Instansi</button>
   </form>

@@ -477,6 +477,13 @@ a { color: var(--link-blue); }
   border-color: var(--ink);
 }
 
+/* Cincin fokus keyboard: border saja terlalu tipis buat kelihatan. */
+.field input:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal) 45%, transparent);
+}
+
 .btn-primary {
   width: 100%;
   background: var(--ink);
